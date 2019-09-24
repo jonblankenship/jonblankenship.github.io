@@ -7,17 +7,17 @@
 <link rel="stylesheet" href="/assets/css/style.css">
 <title>Jon Blankenship</title>
 <!-- Begin Jekyll SEO tag v2.6.1 -->
-<title>Jon Blankenship | Thoughts on software development and entrepreneurship.</title>
+<title>Jon Blankenship | Software developer.</title>
 <meta name="generator" content="Jekyll v3.8.6" />
 <meta property="og:title" content="Jon Blankenship" />
 <meta property="og:locale" content="en_US" />
-<meta name="description" content="Thoughts on software development and entrepreneurship." />
-<meta property="og:description" content="Thoughts on software development and entrepreneurship." />
-<link rel="canonical" href="http://localhost:4000/" />
-<meta property="og:url" content="http://localhost:4000/" />
+<meta name="description" content="Software developer." />
+<meta property="og:description" content="Software developer." />
+<link rel="canonical" href="https://blog.jonblankenship.com//" />
+<meta property="og:url" content="https://blog.jonblankenship.com//" />
 <meta property="og:site_name" content="Jon Blankenship" />
 <script type="application/ld+json">
-{"@type":"WebSite","url":"http://localhost:4000/","name":"Jon Blankenship","headline":"Jon Blankenship","description":"Thoughts on software development and entrepreneurship.","@context":"https://schema.org"}</script>
+{"@type":"WebSite","url":"https://blog.jonblankenship.com//","name":"Jon Blankenship","headline":"Jon Blankenship","description":"Software developer.","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 </head>
 <body>
@@ -31,6 +31,24 @@
 	<main>
 		<div class="container">
 			<ul class="posts"><li><div class="post-meta">
+			<a class="post-link" href="/2019/01/27/safely-rendering-markdown-in-blazor.html">
+				<h2 class="post-title">Safely Rendering Markdown in Blazor</h2>
+			</a>
+			<div class="post-date"></i>Jan 27, 2019</div>
+		</div>
+		<div class="post"><p>This week I added the ability to post and properly display markdown content in my <a href="https://blazor.net/">Blazor</a> (server-side Blazor, actually… Razor Components) project. Markdown is a lightweight, standardized way of formatting text without having to resort to HTML or depend on a <a href="https://en.wikipedia.org/wiki/WYSIWYG">WYSIWYG</a> editor. There’s a nice markdown quick reference <a href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet">here</a>.</p>
+
+</div>
+	</li><li><div class="post-meta">
+			<a class="post-link" href="/2019/01/06/creating-a-loading-overlay-for-a-composite-blazor-view.html">
+				<h2 class="post-title">Creating a Loading Overlay for a Composite Blazor View</h2>
+			</a>
+			<div class="post-date"></i>Jan 6, 2019</div>
+		</div>
+		<div class="post"><p>One of my projects’ home screen is composed of multiple Blazor components that make a web service calls in their respective <code class="highlighter-rouge">OnInitAsync()</code>s to retrieve their data.  When loading the page, all of the components render immediately in their unpopulated state; each one then updates and fills out as the various web service calls complete and their data loads.  I’m not a fan of this – I’d rather have a nice overlay with some sort of loading indicator hiding the components while they’re loading that disappears when the last component is ready for display.  This weekend I developed a simple pattern for accomplishing just that.</p>
+
+</div>
+	</li><li><div class="post-meta">
 			<a class="post-link" href="/2018/11/02/experiences-converting-from-client-side-to-server-side-blazor.html">
 				<h2 class="post-title">Experiences Converting from Client-Side to Server-Side Blazor</h2>
 			</a>

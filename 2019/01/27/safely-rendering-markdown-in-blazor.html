@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<link href="https://fonts.googleapis.com/css?family=Nunito+Sans:400,400i,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/style.css">
+<title>Safely Rendering Markdown in Blazor</title>
+<!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Safely Rendering Markdown in Blazor | Jon Blankenship</title>
+<meta name="generator" content="Jekyll v3.8.6" />
+<meta property="og:title" content="Safely Rendering Markdown in Blazor" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="This week I added the ability to post and properly display markdown content in my Blazor (server-side Blazor, actually… Razor Components) project. Markdown is a lightweight, standardized way of formatting text without having to resort to HTML or depend on a WYSIWYG editor. There’s a nice markdown quick reference here." />
+<meta property="og:description" content="This week I added the ability to post and properly display markdown content in my Blazor (server-side Blazor, actually… Razor Components) project. Markdown is a lightweight, standardized way of formatting text without having to resort to HTML or depend on a WYSIWYG editor. There’s a nice markdown quick reference here." />
+<link rel="canonical" href="https://blog.jonblankenship.com//2019/01/27/safely-rendering-markdown-in-blazor.html" />
+<meta property="og:url" content="https://blog.jonblankenship.com//2019/01/27/safely-rendering-markdown-in-blazor.html" />
+<meta property="og:site_name" content="Jon Blankenship" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-01-27T01:00:00-06:00" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","url":"https://blog.jonblankenship.com//2019/01/27/safely-rendering-markdown-in-blazor.html","headline":"Safely Rendering Markdown in Blazor","dateModified":"2019-01-27T01:00:00-06:00","datePublished":"2019-01-27T01:00:00-06:00","description":"This week I added the ability to post and properly display markdown content in my Blazor (server-side Blazor, actually… Razor Components) project. Markdown is a lightweight, standardized way of formatting text without having to resort to HTML or depend on a WYSIWYG editor. There’s a nice markdown quick reference here.","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.jonblankenship.com//2019/01/27/safely-rendering-markdown-in-blazor.html"},"@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+</head>
+<body>
+  <header class="texture-black">
+    <div class="container"></div><div class="container">
+	<h1>Safely Rendering Markdown in Blazor</h1>
+	<h4 class="post-description"></h4>
+	<div class="post-date" style="margin-top:20px">
+		Published on Jan 27, 2019
+	</div>
+	<ul class="post-tags"><li>software-development</li><li>asp.net-core</li><li>blazor</li></ul>
+</div>
+</header>
+  <main>
+    <div class="container">
+      <div class="post-container">
+          <p>This week I added the ability to post and properly display markdown content in my <a href="https://blazor.net/">Blazor</a> (server-side Blazor, actually… Razor Components) project. Markdown is a lightweight, standardized way of formatting text without having to resort to HTML or depend on a <a href="https://en.wikipedia.org/wiki/WYSIWYG">WYSIWYG</a> editor. There’s a nice markdown quick reference <a href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet">here</a>.</p>
+
+<h1 id="leveraging-the-work-of-others">Leveraging the Work of Others</h1>
+
+<p>My need was simple: display formatted markdown on one screen that was saved as plain text on another. Accomplishing this was almost as simple, thanks to the work of those who have gone before me. I used two libraries:</p>
+
+<ul>
+  <li><a href="https://github.com/lunet-io/markdig">Markdig</a> – “a fast, powerful, CommonMark compliant, extensible Markdown processor for .NET.”</li>
+  <li><a href="https://github.com/mganss/HtmlSanitizer">HtmlSanitizer</a> – “a .NET library for cleaning HTML fragments and documents from constructs that can lead to XSS attacks.”</li>
+</ul>
+
+<p>I also drew from <a href="https://edcharbeneau.com/">Ed Charbeneau’s</a> fantastic work on <a href="https://github.com/EdCharbeneau/BlazeDown">BlazeDown</a>, an experimental markdown editor he wrote using Blazor. He first <a href="https://edcharbeneau.com/blazedown-with-blazor-02/">built it</a> back when Blazor was on release 0.2, and he had to do a little extra work to get it to work due to some deficiencies in Blazor at the time (namely, the inability to render raw HTML). The Blazor team added <a href="https://blazor.net/api/Microsoft.AspNetCore.Blazor.MarkupString.html">MarkupString</a> for rendering raw HTML with release 0.5, which made the task of rendering markup much simpler. He <a href="https://edcharbeneau.com/blazedown-with-blazor/">revisited BlazeDown</a> with release 0.5.1 of Blazor, and updated the project to use the new feature.</p>
+
+<h1 id="this-example">This Example</h1>
+
+<p>What I’ll show here is just enough code to meet the requirements that I had in my project – simply render a string of in-memory markdown as HTML on the screen and do it safely (more on that later).</p>
+
+<p>The code for this short sample can be found <a href="https://github.com/jonblankenship/blazorplayground/tree/master/RenderMarkdown">here</a>.</p>
+
+<p><img src="Markdown-768x311.png" alt="markdown entered as plain text and rendered as HTML" /></p>
+
+<h1 id="markdownview-component">MarkdownView Component</h1>
+
+<p>Part of the power of Blazor is the ability to componentize commonly used controls and logic for easy reuse.  I created a <code class="highlighter-rouge">MarkdownView</code> Blazor component that is responsible for safely rendering a string of markdown as HTML.</p>
+
+<p><code class="highlighter-rouge">MarkdownView</code> is just two lines:</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code>@inherits MarkdownModel
+
+@HtmlContent
+</code></pre></div></div>
+
+<p>The corresponding <code class="highlighter-rouge">MarkdownModel</code> is as follows:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">MarkdownModel</span><span class="p">:</span> <span class="n">BlazorComponent</span>
+<span class="p">{</span>
+    <span class="k">private</span> <span class="kt">string</span> <span class="n">_content</span><span class="p">;</span>
+
+    <span class="p">[</span><span class="n">Inject</span><span class="p">]</span> <span class="k">public</span> <span class="n">IHtmlSanitizer</span> <span class="n">HtmlSanitizer</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+
+    <span class="p">[</span><span class="n">Parameter</span><span class="p">]</span>
+    <span class="k">protected</span> <span class="kt">string</span> <span class="n">Content</span>
+    <span class="p">{</span>
+        <span class="k">get</span> <span class="p">=&gt;</span> <span class="n">_content</span><span class="p">;</span>
+        <span class="k">set</span>
+        <span class="p">{</span>
+            <span class="n">_content</span> <span class="p">=</span> <span class="k">value</span><span class="p">;</span>
+            <span class="n">HtmlContent</span> <span class="p">=</span> <span class="nf">ConvertStringToMarkupString</span><span class="p">(</span><span class="n">_content</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="n">MarkupString</span> <span class="n">HtmlContent</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">private</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+
+    <span class="k">private</span> <span class="n">MarkupString</span> <span class="nf">ConvertStringToMarkupString</span><span class="p">(</span><span class="kt">string</span> <span class="k">value</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(!</span><span class="kt">string</span><span class="p">.</span><span class="nf">IsNullOrWhiteSpace</span><span class="p">(</span><span class="n">_content</span><span class="p">))</span>
+        <span class="p">{</span>
+            <span class="c1">// Convert markdown string to HTML</span>
+            <span class="kt">var</span> <span class="n">html</span> <span class="p">=</span> <span class="n">Markdig</span><span class="p">.</span><span class="n">Markdown</span><span class="p">.</span><span class="nf">ToHtml</span><span class="p">(</span><span class="k">value</span><span class="p">,</span> <span class="k">new</span> <span class="nf">MarkdownPipelineBuilder</span><span class="p">().</span><span class="nf">UseAdvancedExtensions</span><span class="p">().</span><span class="nf">Build</span><span class="p">());</span>
+
+            <span class="c1">// Sanitize HTML before rendering</span>
+            <span class="kt">var</span> <span class="n">sanitizedHtml</span> <span class="p">=</span> <span class="n">HtmlSanitizer</span><span class="p">.</span><span class="nf">Sanitize</span><span class="p">(</span><span class="n">html</span><span class="p">);</span>
+
+            <span class="c1">// Return sanitized HTML as a MarkupString that Blazor can render</span>
+            <span class="k">return</span> <span class="k">new</span> <span class="nf">MarkupString</span><span class="p">(</span><span class="n">sanitizedHtml</span><span class="p">);</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="k">new</span> <span class="nf">MarkupString</span><span class="p">();</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>This is a good simple example to demonstrate a few different concepts. First, I’ve specified a service to inject into the component on instantiation, <code class="highlighter-rouge">HtmlSanitizer</code>. We’ll discuss this more in a bit, but for now just know that it is a dependency registered with the IoC container.</p>
+
+<p>Second, I’ve specified a parameter, <code class="highlighter-rouge">Content</code>, that is bound to a to a property on the model of parent view. This is how I pass a string of markdown into this component.</p>
+
+<p>Third, I’ve exposed an <code class="highlighter-rouge">HtmlContent</code> property of type <code class="highlighter-rouge">MarkupString</code>. This is the property that will expose the string of markdown converted to a string of HTML that this component will display.</p>
+
+<p>When <code class="highlighter-rouge">Content</code> is set, I use a function <code class="highlighter-rouge">ConvertStringToMarkupString(..)</code> to convert the string to HTML, sanitize the string of HTML, and return it as a <code class="highlighter-rouge">MarkupString</code>.</p>
+
+<p>Usage of the component consists of simply binding it to a string that we want to render:</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;MarkdownView</span> <span class="na">Content=</span><span class="s">"@MarkdownContent"</span><span class="nt">/&gt;</span>
+</code></pre></div></div>
+
+<h1 id="be-safe--sanitize-your-html">Be Safe – Sanitize Your HTML</h1>
+
+<p>It’s important to sanitize any user-supplied HTML that you will be rendering back as raw HTML to prevent malicious users from injecting scripts into you app and making it vulnerable to cross-site scripting (XSS) attacks. For this task, I use <a href="https://github.com/mganss/HtmlSanitizer">HtmlSanitizer</a>, an actively-maintained, highly-configurable .NET library. I already showed above how it is injected and used in my <code class="highlighter-rouge">MarkdownView</code> component. The only remaining piece is the registration of the <code class="highlighter-rouge">HtmlSanitizer</code> with my IoC container in the <code class="highlighter-rouge">ConfigureServices</code> method in my <code class="highlighter-rouge">Startup</code> class:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">services</span><span class="p">.</span><span class="n">AddScoped</span><span class="p">&lt;</span><span class="n">IHtmlSanitizer</span><span class="p">,</span> <span class="n">HtmlSanitizer</span><span class="p">&gt;(</span><span class="n">x</span> <span class="p">=&gt;</span>
+<span class="p">{</span>
+    <span class="c1">// Configure sanitizer rules as needed here.</span>
+    <span class="c1">// For now, just use default rules + allow class attributes</span>
+    <span class="kt">var</span> <span class="n">sanitizer</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Ganss</span><span class="p">.</span><span class="n">XSS</span><span class="p">.</span><span class="nf">HtmlSanitizer</span><span class="p">();</span>
+    <span class="n">sanitizer</span><span class="p">.</span><span class="n">AllowedAttributes</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="s">"class"</span><span class="p">);</span>
+    <span class="k">return</span> <span class="n">sanitizer</span><span class="p">;</span>
+<span class="p">});</span>
+</code></pre></div></div>
+
+<p>By making the sanitation of the HTML a part of the <code class="highlighter-rouge">MarkdownView</code> component’s logic, I ensure that I won’t forget to sanitize a piece of content as long as I always use the component to render my markdown. It’s also wise to sanitize markdown and HTML on ingress prior to writing it to storage.</p>
+
+<h1 id="wrapping-up">Wrapping Up</h1>
+
+<p>This was a pretty short example demonstrating how to add a feature that can have a big impact. The tools available to us in Blazor and a couple of existing libraries made this a pretty simple task, which is one of the reasons I’m so excited about Blazor: the ability to leverage existing .NET libraries directly in the browser directly translates to a number of significant benefits including faster delivery times, smaller codebases, lower total cost of ownership, etc…</p>
+
+<p>Thanks for reading!</p>
+
+<p>–Jon</p>
+
+      </div>
+
+        <!-- Configure Disqus --></div>
+  </main></body>
+</html>
