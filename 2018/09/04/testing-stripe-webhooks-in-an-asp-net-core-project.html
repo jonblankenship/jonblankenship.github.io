@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<link href="https://fonts.googleapis.com/css?family=Nunito+Sans:400,400i,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/style.css">
+<title>Testing Stripe Webhooks in an ASP.NET Core Project</title>
+<!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Testing Stripe Webhooks in an ASP.NET Core Project | Jon Blankenship</title>
+<meta name="generator" content="Jekyll v3.8.6" />
+<meta property="og:title" content="Testing Stripe Webhooks in an ASP.NET Core Project" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="I’m using Stripe for subscription management and payment processing for the the SaaS side project I’m currently working on. Stripe offers webhook functionality that allows you to register callback endpoints on your API with Stripe that they will call whenever any one of numerous specified events occur on their side." />
+<meta property="og:description" content="I’m using Stripe for subscription management and payment processing for the the SaaS side project I’m currently working on. Stripe offers webhook functionality that allows you to register callback endpoints on your API with Stripe that they will call whenever any one of numerous specified events occur on their side." />
+<link rel="canonical" href="http://localhost:4000/2018/09/04/testing-stripe-webhooks-in-an-asp-net-core-project.html" />
+<meta property="og:url" content="http://localhost:4000/2018/09/04/testing-stripe-webhooks-in-an-asp-net-core-project.html" />
+<meta property="og:site_name" content="Jon Blankenship" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2018-09-04T02:00:00-05:00" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","url":"http://localhost:4000/2018/09/04/testing-stripe-webhooks-in-an-asp-net-core-project.html","headline":"Testing Stripe Webhooks in an ASP.NET Core Project","dateModified":"2018-09-04T02:00:00-05:00","datePublished":"2018-09-04T02:00:00-05:00","description":"I’m using Stripe for subscription management and payment processing for the the SaaS side project I’m currently working on. Stripe offers webhook functionality that allows you to register callback endpoints on your API with Stripe that they will call whenever any one of numerous specified events occur on their side.","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2018/09/04/testing-stripe-webhooks-in-an-asp-net-core-project.html"},"@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+</head>
+<body>
+  <header class="texture-black">
+    <div class="container"></div><div class="container">
+	<h1>Testing Stripe Webhooks in an ASP.NET Core Project</h1>
+	<h4 class="post-description"></h4>
+	<div class="post-date" style="margin-top:20px">
+		Published on Sep 4, 2018
+	</div>
+	<ul class="post-tags"><li>software-development</li><li>asp.net-core</li></ul>
+</div>
+</header>
+  <main>
+    <div class="container">
+      <div class="post-container">
+          <p>I’m using <a href="https://stripe.com/">Stripe</a> for subscription management and payment processing for the the SaaS side project I’m currently working on.  Stripe offers webhook functionality that allows you to register callback endpoints on your API with Stripe that they will call whenever any one of numerous specified events occur on their side.</p>
+
+<p>So, for example, in my SaaS I’m offering customers a free 30-day trial period at the beginning of their subscription before they have to provide credit card information.  I can register for the <code class="highlighter-rouge">customer.subscription.trial_will_end</code> event with an endpoint of my choice on my API, and Stripe will call that endpoint three days before the end of any of my customers’ trial periods with details about the given customer and their subscription.  I’ll have logic on my side to check to see if we have a credit card for that customer yet, and, if not, send them a friendly e-mail reminding them that their trial is about to expire and they need to enter a credit card if they’d like to continue to use the service.</p>
+
+<p><img src="Capture-768x216.png" alt="img" /></p>
+
+<p>Stripe offers the ability through their dashboard to send test events to a webhook endpoint.  As I worked on my integration this past week, I ran into a couple of small issues in getting the test events to reach my service running locally on my machine.  So here’s a quick summary of what it took to get the messages flowing.</p>
+
+<h1 id="stripeeventscontroller">StripeEventsController</h1>
+
+<p>First we need a controller with an endpoint that Stripe will call into.  I’m using a single endpoint to catch all events.  It then delegates the processing of events to an <code class="highlighter-rouge">IStripeEventProcessor</code>.  Here’s my endpoint:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="nf">Route</span><span class="p">(</span><span class="s">"api/[controller]"</span><span class="p">)]</span>
+<span class="k">public</span> <span class="k">class</span> <span class="nc">StripeEventsController</span> <span class="p">:</span> <span class="n">Controller</span>
+<span class="p">{</span>
+    <span class="k">private</span> <span class="k">readonly</span> <span class="n">IStripeEventProcessor</span> <span class="n">_stripeEventProcessor</span><span class="p">;</span>
+    <span class="k">private</span> <span class="k">readonly</span> <span class="n">IEnvironmentSettings</span> <span class="n">_environmentSettings</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="nf">StripeEventsController</span><span class="p">(</span>
+        <span class="n">IStripeEventProcessor</span> <span class="n">stripeEventProcessor</span><span class="p">,</span>
+        <span class="n">IEnvironmentSettings</span> <span class="n">environmentSettings</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">_stripeEventProcessor</span> <span class="p">=</span> <span class="n">stripeEventProcessor</span> <span class="p">??</span> <span class="k">throw</span> <span class="k">new</span> <span class="nf">ArgumentNullException</span><span class="p">(</span><span class="k">nameof</span><span class="p">(</span><span class="n">stripeEventProcessor</span><span class="p">));</span>
+        <span class="n">_environmentSettings</span> <span class="p">=</span> <span class="n">environmentSettings</span> <span class="p">??</span> <span class="k">throw</span> <span class="k">new</span> <span class="nf">ArgumentNullException</span><span class="p">(</span><span class="k">nameof</span><span class="p">(</span><span class="n">environmentSettings</span><span class="p">));</span>
+    <span class="p">}</span>
+
+    <span class="p">[</span><span class="n">HttpPost</span><span class="p">]</span>
+    <span class="k">public</span> <span class="k">async</span> <span class="n">Task</span><span class="p">&lt;</span><span class="n">IActionResult</span><span class="p">&gt;</span> <span class="nf">IndexAsync</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="kt">var</span> <span class="n">json</span> <span class="p">=</span> <span class="k">await</span> <span class="k">new</span> <span class="nf">StreamReader</span><span class="p">(</span><span class="n">HttpContext</span><span class="p">.</span><span class="n">Request</span><span class="p">.</span><span class="n">Body</span><span class="p">).</span><span class="nf">ReadToEndAsync</span><span class="p">();</span>
+
+        <span class="k">try</span>
+        <span class="p">{</span>
+            <span class="kt">var</span> <span class="n">stripeEvent</span> <span class="p">=</span> <span class="n">StripeEventUtility</span><span class="p">.</span><span class="nf">ConstructEvent</span><span class="p">(</span><span class="n">json</span><span class="p">,</span>
+                <span class="n">Request</span><span class="p">.</span><span class="n">Headers</span><span class="p">[</span><span class="s">"Stripe-Signature"</span><span class="p">],</span> <span class="n">_environmentSettings</span><span class="p">.</span><span class="n">StripeConfiguration</span><span class="p">.</span><span class="n">Value</span><span class="p">.</span><span class="n">WebhookSigningSecret</span><span class="p">);</span>
+
+            <span class="k">await</span> <span class="n">_stripeEventProcessor</span><span class="p">.</span><span class="nf">ProcessAsync</span><span class="p">(</span><span class="n">stripeEvent</span><span class="p">);</span>
+
+            <span class="k">return</span> <span class="nf">Ok</span><span class="p">();</span>
+        <span class="p">}</span>
+        <span class="k">catch</span> <span class="p">(</span><span class="n">StripeException</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">return</span> <span class="nf">BadRequest</span><span class="p">();</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Note that I’m passing a <code class="highlighter-rouge">WebhookSigningSecret</code> to <code class="highlighter-rouge">StripeEventUtility.ConstructEvent(..)</code>; this verifies that the event was actually sent by Stripe by checking the “Stripe-Signature” header value.  The webhook signing secret can be obtained from Stripe &gt; Developers &gt; Webhooks &gt; select endpoint &gt; Signing secret.</p>
+
+<h1 id="turn-off-https-redirection-in-development">Turn Off HTTPS Redirection in Development</h1>
+
+<p>I’m using HTTPS Redirection in my project to redirect any non-secure requests to their corresponding HTTPS endpoint.  This caused me to receive an error whenever sending a test event: “Test webhook error: 307.”</p>
+
+<p><img src="Capture-1.png" alt="img" /></p>
+
+<p>Stripe expects to receive a 200-series status code back on all webhook calls, so the 307 Temporary Redirect status was a problem.  To resolve this, I modified my Startup.cs to only use HTTPS Redirection when not in development mode, like so:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">void</span> <span class="nf">Configure</span><span class="p">(</span><span class="n">IApplicationBuilder</span> <span class="n">app</span><span class="p">,</span> <span class="n">IHostingEnvironment</span> <span class="n">env</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">env</span><span class="p">.</span><span class="nf">IsDevelopment</span><span class="p">())</span>
+    <span class="p">{</span> 
+        <span class="c1">// snip...</span>
+    <span class="p">}</span>
+    <span class="k">else</span>
+    <span class="p">{</span>
+        <span class="c1">// snip...</span>
+        <span class="n">app</span><span class="p">.</span><span class="nf">UseHttpsRedirection</span><span class="p">();</span> <span class="c1">// &lt;- Moved from outside to inside else block to allow ngrok tunneling for testing Stripe webhooks</span>
+    <span class="p">}</span>
+    <span class="c1">// snip...</span>
+    <span class="n">app</span><span class="p">.</span><span class="nf">UseMvc</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h1 id="ngrok">ngrok</h1>
+
+<p>In order for Stripe to send test webhook events to our service, it needs to be able to connect to it.  <a href="https://ngrok.com/">ngrok</a> is a neat little utility that allows you to expose your locally running web app or service via a public URL.  Download ngrok and install it, following the four getting started steps <a href="https://dashboard.ngrok.com/get-started">here</a>.</p>
+
+<p>When we’re ready to test, we’ll start up ngrok with the following command (where 64768 is the port number of your service):
+<code class="highlighter-rouge">ngrok http 64768 -host-header="localhost:64768"</code>
+It’s important to note that my service is configured to be accessible via the following bindings:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;binding protocol="http" bindingInformation="*:64768:localhost" /&gt;
+&lt;binding protocol="https" bindingInformation="*:44358:localhost" /&gt;
+</code></pre></div></div>
+
+<p>You want to specify the non-secure (non-HTTPS) port when starting up ngrok.  It’s also important to specify the <code class="highlighter-rouge">host-header</code> flag; if you don’t, you’ll get a 400 Bad Request on all of your test calls:</p>
+
+<p><img src="Capture-2.png" alt="img" /></p>
+
+<p>Upon starting ngrok, you’ll see a screen like the following, indicating (in my case) that it is forwarding https://96c1bf3b.ngrok.io to my localhost:64768: <img src="Capture-3.png" alt="img" /></p>
+
+<h1 id="configure-stripe-webhook-endpoint-and-test">Configure Stripe Webhook Endpoint and Test</h1>
+
+<p>Finally, you need to set up a Stripe webhook that points to your Stripe event handler endpoint exposed publicly via ngrok.  This is done by navigating to the Stripe dashboard &gt; Webhooks, and clicking “Add endpoint”.  In my case, my endpoint looks like this:</p>
+
+<p><img src="Capture-6-768x263.png" alt="img" /></p>
+
+<p>Now we test our endpoint by clicking “Send test webhook.”  If all goes as planned, you’ll see a successful response like the following:<img src="Capture-4-768x585.png" alt="img" /></p>
+
+<p>You can also fire up http://localhost:4040/inspect/http in your browser and see a nice dashboard where you can inspect and replay all requests made through the ngrok public endpoint:</p>
+
+<p><img src="Capture-5-768x315.png" alt="img" /></p>
+
+<p>Congratulations!  With just a few steps you’re now successfully sending test Stripe webhook events to your service running locally.</p>
+
+      </div>
+
+        <!-- Configure Disqus --></div>
+  </main></body>
+</html>

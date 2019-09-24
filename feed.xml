@@ -1,4 +1,298 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.6">Jekyll</generator><link href="https://blog.jonblankenship.com//feed.xml" rel="self" type="application/atom+xml" /><link href="https://blog.jonblankenship.com//" rel="alternate" type="text/html" /><updated>2019-09-23T19:43:00-05:00</updated><id>https://blog.jonblankenship.com//feed.xml</id><title type="html">Jon Blankenship</title><subtitle>Thoughts on software development and entrepreneurship.</subtitle><entry><title type="html">Configuring AutoMapper for use with the ASP.NET Core DI Container</title><link href="https://blog.jonblankenship.com//2018/08/23/configuring-automapper-for-use-with-the-asp-net-core-di-container.html" rel="alternate" type="text/html" title="Configuring AutoMapper for use with the ASP.NET Core DI Container" /><published>2018-08-23T02:00:00-05:00</published><updated>2018-08-23T02:00:00-05:00</updated><id>https://blog.jonblankenship.com//2018/08/23/configuring-automapper-for-use-with-the-asp-net-core-di-container</id><content type="html" xml:base="https://blog.jonblankenship.com//2018/08/23/configuring-automapper-for-use-with-the-asp-net-core-di-container.html">&lt;p&gt;I’m generally a strong proponent of using separate models for commmunicating across service boundaries that are separate and distinct from my core domain model. In a typical web application that is backed by a database, this usually means that I have a domain model, a storage model, and a view model, and I map between storage model ↔ domain model and between domain model ↔ view model when crossing their respective boundaries. This keeps my domain model isolated, ensures that it is not forced to change due to concerns in another layer, and promotes adherence to the &lt;a href=&quot;https://8thlight.com/blog/uncle-bob/2014/05/08/SingleReponsibilityPrinciple.html&quot;&gt;Single Responsibility Principle&lt;/a&gt; (a class should have one, and only one, reason to change).&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.6">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2019-09-24T07:09:17-05:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Jon Blankenship</title><subtitle>Thoughts on software development and entrepreneurship.</subtitle><entry><title type="html">Experiences Converting from Client-Side to Server-Side Blazor</title><link href="http://localhost:4000/2018/11/02/experiences-converting-from-client-side-to-server-side-blazor.html" rel="alternate" type="text/html" title="Experiences Converting from Client-Side to Server-Side Blazor" /><published>2018-11-02T02:00:00-05:00</published><updated>2018-11-02T02:00:00-05:00</updated><id>http://localhost:4000/2018/11/02/experiences-converting-from-client-side-to-server-side-blazor</id><content type="html" xml:base="http://localhost:4000/2018/11/02/experiences-converting-from-client-side-to-server-side-blazor.html">&lt;p&gt;I’ve been using client-side &lt;a href=&quot;https://blazor.net/&quot;&gt;Blazor&lt;/a&gt; for a couple of months now on one of my side projects and I’ve become a pretty big fan, because it allows me to write a modern, dynamic web app in C# with minimal JavaScript.  The Blazor docs give a nice synopsis of how this happens &lt;a href=&quot;https://blazor.net/docs/introduction/index.html&quot;&gt;here&lt;/a&gt;:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;\1. C# code files and Razor files are compiled into .NET assemblies.
+\2. The assemblies and the .NET runtime are downloaded to the browser.
+\3. Blazor uses JavaScript to bootstrap the .NET runtime and configures the runtime to load required assembly references. Document object model (DOM) manipulation and browser API calls are handled by the Blazor runtime via JavaScript interoperability.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;With Blazor I’m able to build single-page applications using my preferred language in a natural and enjoyable programming paradigm.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;(Disclaimer:  Blazor is still considered an experimental framework by Microsoft, so proceed with caution only if you are brave, daring, and have a penchant for adventure.  You’ve been warned…)&lt;/em&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;server-side-blazor&quot;&gt;Server-Side Blazor&lt;/h1&gt;
+
+&lt;p&gt;In late July 2018, the Blazor team shipped release 0.5.0, which introduced server-side Blazor.  Initially I dismissed server-side Blazor, quite content to continue working completely client-side.  But as I saw that it seemed the team was putting quite a bit of emphasis on server-side Blazor and I read about the benefits it promised over client-side Blazor, I became intrigued.&lt;/p&gt;
+
+&lt;p&gt;The &lt;a href=&quot;https://blogs.msdn.microsoft.com/webdev/2018/07/25/blazor-0-5-0-experimental-release-now-available/&quot;&gt;release notes&lt;/a&gt; do a really nice job of explaining what server-side Blazor is and how it works.  In a nutshell, Blazor was designed to be able to be run in a web worker thread separate from the main UI thread, like this:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;blazor-web-worker.png&quot; alt=&quot;Blazor running in a separate web worker thread in the browser.&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Server-side Blazor leverages this model and stretches the communication over a network connection, using &lt;a href=&quot;https://www.asp.net/signalr&quot;&gt;SignalR&lt;/a&gt; to send UI updates, raise events, and invoke JavaScript interop calls between the browser and the server, like this:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;Blazor-server-side-768x329.png&quot; alt=&quot;Server-side Blazor running on the server and communicating with the Browser via SignalR.&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The &lt;a href=&quot;https://blogs.msdn.microsoft.com/webdev/2018/07/25/blazor-0-5-0-experimental-release-now-available/&quot;&gt;release notes&lt;/a&gt; also provide a good breakdown of the benefits and downsides of the server-side model compared to the client-side model.  I’ll highlight just a couple benefits here that I’ve experienced from the get-go:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;Faster app load time&lt;/strong&gt;:  I received early feedback on my client-side Blazor app that it took a long time to load the app initially (on the order of tens of seconds).  This is understandable, as the framework has to ship the entire app, the .NET runtime, and any dependencies down to the client on load.  After switching over to server-side Blazor, my load time went down to sub-second.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Much better debugging&lt;/strong&gt;:  With client-side Blazor there are ways to get basic debugging of the Blazor components working in Chrome developer tools, but it is a far cry from the rich debugging experience that we’re used to in Visual Studio.  I found myself using &lt;code class=&quot;highlighter-rouge&quot;&gt;Debug.WriteLine(..)&lt;/code&gt; a lot.  With server-side Blazor, since Blazor component code is running on .NET Core on the server, the Visual Studio debugging tooling just works.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Feels like client-side Blazor&lt;/strong&gt;:  Apart from the improved load time and debugging support, server-side Blazor is &lt;em&gt;almost&lt;/em&gt; indistinguishable from client-side Blazor to both the developer and the end-user.  As we’ll see in a moment, apart from a couple of small changes at startup, you develop a server-side Blazor app just like a client-side Blazor app: composing Blazor components in exactly the same way regardless of where they will be running.  And the end-user still has a rich, interactive SPA experience.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Now the downsides to server-side Blazor are what you might expect: increased latency on every UI interaction, no offline support, and scalability limited by the number of client connections that SignalR can manage.  It’s too early for me to speak to the scalability concern, but increased latency is mostly imperceptible to the user given a decent internet connection.&lt;/p&gt;
+
+&lt;h1 id=&quot;converting-a-solution-to-server-side-blazor&quot;&gt;Converting a Solution to Server-Side Blazor&lt;/h1&gt;
+
+&lt;p&gt;Converting a client-side Blazor solution to server-side Blazor is much easier than you might expect and can be done in a matter of minutes.  (In fact, &lt;a href=&quot;https://github.com/Suchiman&quot;&gt;Suchiman&lt;/a&gt; has a &lt;a href=&quot;https://github.com/Suchiman/BlazorDualMode&quot;&gt;demo&lt;/a&gt; showing how to dynamically switch between client-side and server-side at runtime based on a querystring parameter.)&lt;/p&gt;
+
+&lt;p&gt;A server-side Blazor application consists of two projects, typically named {SolutionName}.App and {SolutionName}.Server, both created by the VS tooling when you create a new server-side Blazor application.  I already had a client-side project that I had named ProjectX.Web.  The first step I took was Add &amp;gt; New Project… &amp;gt; ASP.NET Core Web Application on my solution:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;New-Project-Snip-768x444.png&quot; alt=&quot;Visual Studio Add New Project dialog - ASP.NET Core Web Application&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;After entering my desired name and clicking Next, I selected Blazor (Server-side in ASP.NET Core):&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;New-Project-Server-Side-Blazor-Snip-768x557.png&quot; alt=&quot;New ASP.NET Core Web Application - Blazor (Server-side in ASP.NET Core)&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;This added two new projects to my solution: ProjectX.App and ProjectX.Server.  Since I already had a ProjectX.Web project representing the client-side piece, I deleted the newly created ProjectX.App project.  I made ProjectX.Server the startup project and added a reference in it to my existing ProjectX.Web.&lt;/p&gt;
+
+&lt;p&gt;In my index.html in ProjectX.Web, I replaced this:&lt;/p&gt;
+
+&lt;div class=&quot;language-html highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;script &lt;/span&gt;&lt;span class=&quot;na&quot;&gt;src=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;_framework/blazor.webassembly.js&quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;With this:&lt;/p&gt;
+
+&lt;div class=&quot;language-html highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;script &lt;/span&gt;&lt;span class=&quot;na&quot;&gt;src=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;_framework/blazor.server.js&quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;In ProjectX.Server.Startup.cs, there are two places where it was referencing App.Startup; I changed them to use Web.Startup instead.&lt;/p&gt;
+
+&lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;ConfigureServices&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IServiceCollection&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;services&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;services&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AddServerSideBlazor&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ProjectX&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Web&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Startup&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;();&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;// snip...&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;Configure&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IApplicationBuilder&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;app&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IHostingEnvironment&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// snip...&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;app&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;UseServerSideBlazor&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ProjectX&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Web&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Startup&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;();&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;… and that’s all there was to it!  Well, almost…&lt;/p&gt;
+
+&lt;h1 id=&quot;gotchas&quot;&gt;Gotchas&lt;/h1&gt;
+
+&lt;p&gt;I ran into a few minor issues that you may or may not encounter, depending on what you’re doing in your application.&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;h3 id=&quot;blank-screen-after-app-load&quot;&gt;Blank Screen After App Load&lt;/h3&gt;
+
+    &lt;p&gt;After making the changes described above, I built and ran my project.  The loading screen displayed as expected, but then it just displayed a blank white screen with no errors logged to the console.&lt;/p&gt;
+
+    &lt;p&gt;Following the guidance in this &lt;a href=&quot;https://github.com/aspnet/Blazor/issues/1411&quot;&gt;thread&lt;/a&gt;, I tried removing the global.json file that was created when I created by client-side project, which pinned the SDK version to 2.1.3xx.  This didn’t help in my case.  I then checked my .NET Core SDK version by running &lt;code class=&quot;highlighter-rouge&quot;&gt;dotnet --info&lt;/code&gt; at the VS Developer Command Prompt.  I was running &lt;code class=&quot;highlighter-rouge&quot;&gt;2.1.500-preview-009335&lt;/code&gt;.  I deleted the preview version of the SDK and then my app started loading and running.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;h3 id=&quot;js-errors-invoking-blazor-component-methods-using-invokemethod&quot;&gt;JS Errors Invoking Blazor Component Methods using .invokeMethod&lt;/h3&gt;
+
+    &lt;p&gt;With my app running now, I started testing some of the functionality.  I have a couple of controls that invoke methods on my Blazor components via JavaScript that I found were no longer working.  A quick peek at the Chrome dev tools console showed the culprit (thank you, Blazor team, for good error messages!):
+&lt;img src=&quot;JS-Invoke-Errors.png&quot; alt=&quot;Uncaught Error: The current dispatcher does not support synchronous calls blazor.server.js from JS to .NET. Use invokeMethodAsync instead.&quot; /&gt;Easy fix: I just changed the couple of spots where I was using &lt;code class=&quot;highlighter-rouge&quot;&gt;.invokeMethod(..)&lt;/code&gt; to invoke methods on my Blazor components to &lt;code class=&quot;highlighter-rouge&quot;&gt;.invokeMethodAsync(..)&lt;/code&gt;, and most of them started working.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;h3 id=&quot;jsinvokable-methods-not-marked-virtual&quot;&gt;JSInvokable Methods Not Marked Virtual&lt;/h3&gt;
+
+    &lt;p&gt;Even after switching to use &lt;code class=&quot;highlighter-rouge&quot;&gt;.invokeMethodAsync(..)&lt;/code&gt;, I still had a couple of Blazor component methods that were failing to be invoked from my JS.  I found that the difference between the ones that worked and the ones that didn’t was the &lt;code class=&quot;highlighter-rouge&quot;&gt;virtual&lt;/code&gt; keyword on the method declaration.  I added &lt;code class=&quot;highlighter-rouge&quot;&gt;virtual&lt;/code&gt; to the methods that weren’t executing and they started working.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;That said, sitting here a few days later, I tried removing the virtual keyword from those JSInvokable methods again, and they continue to work.  So I’m not sure why this worked in the first place or if I had another change at that time that actually fixed it (I don’t think so).  Your mileage may vary…&lt;/p&gt;
+
+&lt;h1 id=&quot;wrapping-up&quot;&gt;Wrapping Up&lt;/h1&gt;
+
+&lt;p&gt;Switching my solution from client-side to server-side Blazor was a piece of cake, and the benefits were well worth it.  I can now see the reasons for the recent buzz around server-side Blazor.  If I get to the point where I need to support a larger number of concurrent SignalR connections, I’ll start using &lt;a href=&quot;https://azure.microsoft.com/en-us/services/signalr-service/&quot;&gt;Azure SignalR Service&lt;/a&gt; and route the communication through it, as described in the &lt;a href=&quot;https://blogs.msdn.microsoft.com/webdev/2018/10/02/blazor-0-6-0-experimental-release-now-available/&quot;&gt;Blazor 0.6.0 release notes&lt;/a&gt;, but for now I’m content to run it through my app service.&lt;/p&gt;</content><author><name></name></author><category term="asp.net-core," /><category term="blazor," /><category term="client-side-blazor," /><category term="no-javascript," /><category term="server-side-blazor," /><category term="signalr" /><summary type="html">I’ve been using client-side Blazor for a couple of months now on one of my side projects and I’ve become a pretty big fan, because it allows me to write a modern, dynamic web app in C# with minimal JavaScript. The Blazor docs give a nice synopsis of how this happens here:</summary></entry><entry><title type="html">Adding a Loading Spinner to a Button with Blazor</title><link href="http://localhost:4000/2018/10/19/adding-a-loading-spinner-to-a-button-with-blazor.html" rel="alternate" type="text/html" title="Adding a Loading Spinner to a Button with Blazor" /><published>2018-10-19T02:00:00-05:00</published><updated>2018-10-19T02:00:00-05:00</updated><id>http://localhost:4000/2018/10/19/adding-a-loading-spinner-to-a-button-with-blazor</id><content type="html" xml:base="http://localhost:4000/2018/10/19/adding-a-loading-spinner-to-a-button-with-blazor.html">&lt;p&gt;I’ve been playing with &lt;a href=&quot;https://blazor.net/&quot;&gt;Blazor&lt;/a&gt; for several weeks now, and it’s fantastic.  For the uninitiated, Blazor allows you to write .NET code that runs in the browser through the power of &lt;a href=&quot;https://webassembly.org/&quot;&gt;WebAssembly (Wasm)&lt;/a&gt;.  This means that the amount of JavaScript you end up having to write to create a dynamic web UI is significantly reduced, or even eliminated (check out this &lt;a href=&quot;https://sql-mistermagoo.github.io/bletris&quot;&gt;Tetris clone&lt;/a&gt;  &lt;a href=&quot;https://twitter.com/mistermag00&quot;&gt;@mistermag00&lt;/a&gt; wrote running completely on Blazor with &lt;strong&gt;ZERO&lt;/strong&gt; JavaScript).&lt;/p&gt;
+
+&lt;p&gt;Today my objective is much less ambitious than attempting to recreate a classic 1980s-era video game in the browser:  I just want to change the state of a search button to indicate to the user that something is happening while we retrieve their results.  Here’s what we’re shooting for:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;search-button-animation.gif&quot; alt=&quot;img&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Let’s start with the Razor view code:&lt;/p&gt;
+
+&lt;div class=&quot;language-html highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;@if (IsSearching)
+{
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;button&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;class=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;btn btn-primary float-right search disabled&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;disabled&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&amp;lt;span&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;class=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'fa-left fas fa-sync-alt spinning'&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&amp;lt;/span&amp;gt;&lt;/span&gt;Searching...&lt;span class=&quot;nt&quot;&gt;&amp;lt;/button&amp;gt;&lt;/span&gt;
+}
+else
+{
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;button&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;class=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;btn btn-primary btn-outline-primary float-right search&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;onclick=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;@OnSearchAsync&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;Search&lt;span class=&quot;nt&quot;&gt;&amp;lt;/button&amp;gt;&lt;/span&gt;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Here we have two versions of the button, and we determine which one to display based on an IsSearching boolean property in the Blazor component code.&lt;/p&gt;
+
+&lt;p&gt;The first button represents the state of the button while we’re searching.  We set the visual state to disabled with the &lt;code class=&quot;highlighter-rouge&quot;&gt;disabled&lt;/code&gt; CSS class and disable clicks with the disabled attribute.  Both buttons have a custom &lt;code class=&quot;highlighter-rouge&quot;&gt;search&lt;/code&gt; CSS class which just sets the width of the button so we don’t have a jarring width change when transitioning between states.  I’m using a &lt;a href=&quot;https://fontawesome.com/&quot;&gt;Font Awesome&lt;/a&gt; icon for my spinning icon (so don’t forget the link to their CSS in your HEAD), and animating it with a couple of custom CCS classes that we’ll look at in a minute.&lt;/p&gt;
+
+&lt;p&gt;The second button represents the state of the button when we’re not searching.  It has the &lt;code class=&quot;highlighter-rouge&quot;&gt;onclick&lt;/code&gt; handler calling into the &lt;code class=&quot;highlighter-rouge&quot;&gt;OnSearchAsync&lt;/code&gt; method in my Blazor component code.&lt;/p&gt;
+
+&lt;p&gt;Speaking of my Blazor component code, let’s check it out…&lt;/p&gt;
+
+&lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;SearchCriteriaBase&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;BlazorComponent&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;protected&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;bool&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IsSearching&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;async&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Task&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;OnSearchAsync&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;IsSearching&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;nf&quot;&gt;StateHasChanged&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;CheckIsValid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;c1&quot;&gt;// Make my long-running web service call and do something with the results&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+        &lt;span class=&quot;n&quot;&gt;IsSearching&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;nf&quot;&gt;StateHasChanged&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;All that’s needed is a simple &lt;code class=&quot;highlighter-rouge&quot;&gt;IsSearching&lt;/code&gt; property that  I can set to switch between button states while searching.  I just need to remember to call &lt;code class=&quot;highlighter-rouge&quot;&gt;StateHasChanged()&lt;/code&gt; to let Blazor know it needs to update the DOM.&lt;/p&gt;
+
+&lt;p&gt;And finally, here’s the custom CSS to make the animation happen:&lt;/p&gt;
+
+&lt;div class=&quot;language-css highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nc&quot;&gt;.fas.spinning&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nl&quot;&gt;animation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;spin&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;1s&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;infinite&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;linear&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;nl&quot;&gt;-webkit-animation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;spin2&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;1s&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;infinite&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;linear&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;@keyframes&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;spin&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;nl&quot;&gt;transform&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;scale&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rotate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;0deg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;nt&quot;&gt;to&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;nl&quot;&gt;transform&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;scale&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rotate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;360deg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;@-webkit-keyframes&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;spin2&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;nl&quot;&gt;-webkit-transform&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rotate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;0deg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;nt&quot;&gt;to&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;nl&quot;&gt;-webkit-transform&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rotate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;360deg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;nc&quot;&gt;.fa-left&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nl&quot;&gt;margin-right&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;7px&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;nc&quot;&gt;.btn.search&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nl&quot;&gt;width&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;10rem&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;And that’s it. A simple button state transition with no Javascript, just the way I like it!&lt;/p&gt;</content><author><name></name></author><category term="asp.net-core," /><category term="blazor," /><category term="bootstrap," /><category term="css," /><category term="font-awesome," /><category term="no-javascript" /><summary type="html">I’ve been playing with Blazor for several weeks now, and it’s fantastic. For the uninitiated, Blazor allows you to write .NET code that runs in the browser through the power of WebAssembly (Wasm). This means that the amount of JavaScript you end up having to write to create a dynamic web UI is significantly reduced, or even eliminated (check out this Tetris clone @mistermag00 wrote running completely on Blazor with ZERO JavaScript).</summary></entry><entry><title type="html">Testing Stripe Webhooks in an ASP.NET Core Project</title><link href="http://localhost:4000/2018/09/04/testing-stripe-webhooks-in-an-asp-net-core-project.html" rel="alternate" type="text/html" title="Testing Stripe Webhooks in an ASP.NET Core Project" /><published>2018-09-04T02:00:00-05:00</published><updated>2018-09-04T02:00:00-05:00</updated><id>http://localhost:4000/2018/09/04/testing-stripe-webhooks-in-an-asp-net-core-project</id><content type="html" xml:base="http://localhost:4000/2018/09/04/testing-stripe-webhooks-in-an-asp-net-core-project.html">&lt;p&gt;I’m using &lt;a href=&quot;https://stripe.com/&quot;&gt;Stripe&lt;/a&gt; for subscription management and payment processing for the the SaaS side project I’m currently working on.  Stripe offers webhook functionality that allows you to register callback endpoints on your API with Stripe that they will call whenever any one of numerous specified events occur on their side.&lt;/p&gt;
+
+&lt;p&gt;So, for example, in my SaaS I’m offering customers a free 30-day trial period at the beginning of their subscription before they have to provide credit card information.  I can register for the &lt;code class=&quot;highlighter-rouge&quot;&gt;customer.subscription.trial_will_end&lt;/code&gt; event with an endpoint of my choice on my API, and Stripe will call that endpoint three days before the end of any of my customers’ trial periods with details about the given customer and their subscription.  I’ll have logic on my side to check to see if we have a credit card for that customer yet, and, if not, send them a friendly e-mail reminding them that their trial is about to expire and they need to enter a credit card if they’d like to continue to use the service.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;Capture-768x216.png&quot; alt=&quot;img&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Stripe offers the ability through their dashboard to send test events to a webhook endpoint.  As I worked on my integration this past week, I ran into a couple of small issues in getting the test events to reach my service running locally on my machine.  So here’s a quick summary of what it took to get the messages flowing.&lt;/p&gt;
+
+&lt;h1 id=&quot;stripeeventscontroller&quot;&gt;StripeEventsController&lt;/h1&gt;
+
+&lt;p&gt;First we need a controller with an endpoint that Stripe will call into.  I’m using a single endpoint to catch all events.  It then delegates the processing of events to an &lt;code class=&quot;highlighter-rouge&quot;&gt;IStripeEventProcessor&lt;/code&gt;.  Here’s my endpoint:&lt;/p&gt;
+
+&lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;Route&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;api/[controller]&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)]&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;StripeEventsController&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Controller&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;readonly&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IStripeEventProcessor&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_stripeEventProcessor&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;readonly&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IEnvironmentSettings&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_environmentSettings&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;StripeEventsController&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;IStripeEventProcessor&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stripeEventProcessor&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;IEnvironmentSettings&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;environmentSettings&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;_stripeEventProcessor&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stripeEventProcessor&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;??&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;throw&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;ArgumentNullException&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;nameof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;stripeEventProcessor&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;_environmentSettings&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;environmentSettings&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;??&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;throw&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;ArgumentNullException&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;nameof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;environmentSettings&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;HttpPost&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;async&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Task&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IActionResult&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;IndexAsync&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;json&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;await&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;StreamReader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;HttpContext&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Request&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Body&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;ReadToEndAsync&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+
+        &lt;span class=&quot;k&quot;&gt;try&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stripeEvent&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StripeEventUtility&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;ConstructEvent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;json&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;Request&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Headers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Stripe-Signature&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_environmentSettings&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;StripeConfiguration&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;WebhookSigningSecret&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+            &lt;span class=&quot;k&quot;&gt;await&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_stripeEventProcessor&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;ProcessAsync&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;stripeEvent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+            &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;Ok&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;catch&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;StripeException&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;BadRequest&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Note that I’m passing a &lt;code class=&quot;highlighter-rouge&quot;&gt;WebhookSigningSecret&lt;/code&gt; to &lt;code class=&quot;highlighter-rouge&quot;&gt;StripeEventUtility.ConstructEvent(..)&lt;/code&gt;; this verifies that the event was actually sent by Stripe by checking the “Stripe-Signature” header value.  The webhook signing secret can be obtained from Stripe &amp;gt; Developers &amp;gt; Webhooks &amp;gt; select endpoint &amp;gt; Signing secret.&lt;/p&gt;
+
+&lt;h1 id=&quot;turn-off-https-redirection-in-development&quot;&gt;Turn Off HTTPS Redirection in Development&lt;/h1&gt;
+
+&lt;p&gt;I’m using HTTPS Redirection in my project to redirect any non-secure requests to their corresponding HTTPS endpoint.  This caused me to receive an error whenever sending a test event: “Test webhook error: 307.”&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;Capture-1.png&quot; alt=&quot;img&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Stripe expects to receive a 200-series status code back on all webhook calls, so the 307 Temporary Redirect status was a problem.  To resolve this, I modified my Startup.cs to only use HTTPS Redirection when not in development mode, like so:&lt;/p&gt;
+
+&lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;Configure&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IApplicationBuilder&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;app&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IHostingEnvironment&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;IsDevelopment&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; 
+        &lt;span class=&quot;c1&quot;&gt;// snip...&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;// snip...&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;app&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;UseHttpsRedirection&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// &amp;lt;- Moved from outside to inside else block to allow ngrok tunneling for testing Stripe webhooks&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// snip...&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;app&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;UseMvc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h1 id=&quot;ngrok&quot;&gt;ngrok&lt;/h1&gt;
+
+&lt;p&gt;In order for Stripe to send test webhook events to our service, it needs to be able to connect to it.  &lt;a href=&quot;https://ngrok.com/&quot;&gt;ngrok&lt;/a&gt; is a neat little utility that allows you to expose your locally running web app or service via a public URL.  Download ngrok and install it, following the four getting started steps &lt;a href=&quot;https://dashboard.ngrok.com/get-started&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;When we’re ready to test, we’ll start up ngrok with the following command (where 64768 is the port number of your service):
+&lt;code class=&quot;highlighter-rouge&quot;&gt;ngrok http 64768 -host-header=&quot;localhost:64768&quot;&lt;/code&gt;
+It’s important to note that my service is configured to be accessible via the following bindings:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;lt;binding protocol=&quot;http&quot; bindingInformation=&quot;*:64768:localhost&quot; /&amp;gt;
+&amp;lt;binding protocol=&quot;https&quot; bindingInformation=&quot;*:44358:localhost&quot; /&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;You want to specify the non-secure (non-HTTPS) port when starting up ngrok.  It’s also important to specify the &lt;code class=&quot;highlighter-rouge&quot;&gt;host-header&lt;/code&gt; flag; if you don’t, you’ll get a 400 Bad Request on all of your test calls:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;Capture-2.png&quot; alt=&quot;img&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Upon starting ngrok, you’ll see a screen like the following, indicating (in my case) that it is forwarding https://96c1bf3b.ngrok.io to my localhost:64768: &lt;img src=&quot;Capture-3.png&quot; alt=&quot;img&quot; /&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;configure-stripe-webhook-endpoint-and-test&quot;&gt;Configure Stripe Webhook Endpoint and Test&lt;/h1&gt;
+
+&lt;p&gt;Finally, you need to set up a Stripe webhook that points to your Stripe event handler endpoint exposed publicly via ngrok.  This is done by navigating to the Stripe dashboard &amp;gt; Webhooks, and clicking “Add endpoint”.  In my case, my endpoint looks like this:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;Capture-6-768x263.png&quot; alt=&quot;img&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Now we test our endpoint by clicking “Send test webhook.”  If all goes as planned, you’ll see a successful response like the following:&lt;img src=&quot;Capture-4-768x585.png&quot; alt=&quot;img&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;You can also fire up http://localhost:4040/inspect/http in your browser and see a nice dashboard where you can inspect and replay all requests made through the ngrok public endpoint:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;Capture-5-768x315.png&quot; alt=&quot;img&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Congratulations!  With just a few steps you’re now successfully sending test Stripe webhook events to your service running locally.&lt;/p&gt;</content><author><name></name></author><category term="asp.net-core," /><category term="https-redirection," /><category term="ngrok," /><category term="stripe," /><category term="webhooks" /><summary type="html">I’m using Stripe for subscription management and payment processing for the the SaaS side project I’m currently working on. Stripe offers webhook functionality that allows you to register callback endpoints on your API with Stripe that they will call whenever any one of numerous specified events occur on their side.</summary></entry><entry><title type="html">Configuring AutoMapper for use with the ASP.NET Core DI Container</title><link href="http://localhost:4000/2018/08/23/configuring-automapper-for-use-with-the-asp-net-core-di-container.html" rel="alternate" type="text/html" title="Configuring AutoMapper for use with the ASP.NET Core DI Container" /><published>2018-08-23T02:00:00-05:00</published><updated>2018-08-23T02:00:00-05:00</updated><id>http://localhost:4000/2018/08/23/configuring-automapper-for-use-with-the-asp-net-core-di-container</id><content type="html" xml:base="http://localhost:4000/2018/08/23/configuring-automapper-for-use-with-the-asp-net-core-di-container.html">&lt;p&gt;I’m generally a strong proponent of using separate models for commmunicating across service boundaries that are separate and distinct from my core domain model. In a typical web application that is backed by a database, this usually means that I have a domain model, a storage model, and a view model, and I map between storage model ↔ domain model and between domain model ↔ view model when crossing their respective boundaries. This keeps my domain model isolated, ensures that it is not forced to change due to concerns in another layer, and promotes adherence to the &lt;a href=&quot;https://8thlight.com/blog/uncle-bob/2014/05/08/SingleReponsibilityPrinciple.html&quot;&gt;Single Responsibility Principle&lt;/a&gt; (a class should have one, and only one, reason to change).&lt;/p&gt;
 
 &lt;p&gt;Having multiple models implies that there is some mechanism for mapping between models. My go-to tool for this task is &lt;a href=&quot;https://automapper.org/&quot;&gt;AutoMapper&lt;/a&gt;. Configuring AutoMapper for use in an ASP.NET Core project using the ASP.NET Core DI container differs slightly from my prior experiences with it on past projects. Here’s what I did to get up and running…&lt;/p&gt;
 
@@ -110,7 +404,7 @@
 
 &lt;p&gt;We’ve shown how to configure and start using AutoMapper with the ASP.NET Core DI container, for a quick and easy way to get model mapping with DI working in your ASP.NET Core project.&lt;/p&gt;
 
-&lt;p&gt;It’s worth noting, though, that while the core DI container may be adequate for small, simple projects, it’s not as feature-rich as most other third-party DI containers.  More complex projects might require a more robust and capable DI container to meet their specific needs.  (&lt;a href=&quot;https://stackoverflow.com/questions/30681477/why-would-one-use-a-third-party-di-container-over-the-built-in-asp-net-core-di-c/30682214#30682214&quot;&gt;This post&lt;/a&gt; on Stack Overflow gives a nice overview of some of its shortcomings.)&lt;/p&gt;</content><author><name></name></author><category term="asp.net-core," /><category term="automapper," /><category term="dependency-injection," /><category term="single-responsibility-principle" /><summary type="html">I’m generally a strong proponent of using separate models for commmunicating across service boundaries that are separate and distinct from my core domain model. In a typical web application that is backed by a database, this usually means that I have a domain model, a storage model, and a view model, and I map between storage model ↔ domain model and between domain model ↔ view model when crossing their respective boundaries. This keeps my domain model isolated, ensures that it is not forced to change due to concerns in another layer, and promotes adherence to the Single Responsibility Principle (a class should have one, and only one, reason to change).</summary></entry><entry><title type="html">Adding Simple Pagination to a Bootstrap Table in ASP.NET Core</title><link href="https://blog.jonblankenship.com//2018/08/18/adding-simple-pagination-to-a-bootstrap-table-in-asp-net-core.html" rel="alternate" type="text/html" title="Adding Simple Pagination to a Bootstrap Table in ASP.NET Core" /><published>2018-08-18T02:00:00-05:00</published><updated>2018-08-18T02:00:00-05:00</updated><id>https://blog.jonblankenship.com//2018/08/18/adding-simple-pagination-to-a-bootstrap-table-in-asp-net-core</id><content type="html" xml:base="https://blog.jonblankenship.com//2018/08/18/adding-simple-pagination-to-a-bootstrap-table-in-asp-net-core.html">&lt;p&gt;I recently needed to add simple pagination to a Bootstrap table on a page in my ASP.NET Core project. I’m using MVC Razor Pages, but a similar approach will work with Razor Views.&lt;/p&gt;
+&lt;p&gt;It’s worth noting, though, that while the core DI container may be adequate for small, simple projects, it’s not as feature-rich as most other third-party DI containers.  More complex projects might require a more robust and capable DI container to meet their specific needs.  (&lt;a href=&quot;https://stackoverflow.com/questions/30681477/why-would-one-use-a-third-party-di-container-over-the-built-in-asp-net-core-di-c/30682214#30682214&quot;&gt;This post&lt;/a&gt; on Stack Overflow gives a nice overview of some of its shortcomings.)&lt;/p&gt;</content><author><name></name></author><category term="asp.net-core," /><category term="automapper," /><category term="dependency-injection," /><category term="single-responsibility-principle" /><summary type="html">I’m generally a strong proponent of using separate models for commmunicating across service boundaries that are separate and distinct from my core domain model. In a typical web application that is backed by a database, this usually means that I have a domain model, a storage model, and a view model, and I map between storage model ↔ domain model and between domain model ↔ view model when crossing their respective boundaries. This keeps my domain model isolated, ensures that it is not forced to change due to concerns in another layer, and promotes adherence to the Single Responsibility Principle (a class should have one, and only one, reason to change).</summary></entry><entry><title type="html">Adding Simple Pagination to a Bootstrap Table in ASP.NET Core</title><link href="http://localhost:4000/2018/08/18/adding-simple-pagination-to-a-bootstrap-table-in-asp-net-core.html" rel="alternate" type="text/html" title="Adding Simple Pagination to a Bootstrap Table in ASP.NET Core" /><published>2018-08-18T02:00:00-05:00</published><updated>2018-08-18T02:00:00-05:00</updated><id>http://localhost:4000/2018/08/18/adding-simple-pagination-to-a-bootstrap-table-in-asp-net-core</id><content type="html" xml:base="http://localhost:4000/2018/08/18/adding-simple-pagination-to-a-bootstrap-table-in-asp-net-core.html">&lt;p&gt;I recently needed to add simple pagination to a Bootstrap table on a page in my ASP.NET Core project. I’m using MVC Razor Pages, but a similar approach will work with Razor Views.&lt;/p&gt;
 
 &lt;p&gt;My data set contains 270+ rows, and originally I was returning all 270+ rows to the client and displaying them in a table that scrolled well past the end of the page. I only want to show ten at a time with a simple paging control. Here’s what the final product will look like:&lt;img src=&quot;Capture-1-768x346.png&quot; alt=&quot;img&quot; /&gt;&lt;/p&gt;
 
@@ -314,7 +608,7 @@
   &lt;li&gt;This implementation retrieves the entire data set from the service and then applies paging within our app service. This is fine for my purposes since my dataset is small, but for larger datasets I would push the execution of the paging (skip/take operators) to the database. (If using Entity Framework, this could be as simple as deferring query execution until after the &lt;code class=&quot;highlighter-rouge&quot;&gt;Skip&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;Take&lt;/code&gt; are applied in &lt;code class=&quot;highlighter-rouge&quot;&gt;PaginatedList&amp;lt;T&amp;gt;.Create(..)&lt;/code&gt;.)&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;I may consider these enhancements in the future, but for now this implementation suits my needs just fine.&lt;/p&gt;</content><author><name></name></author><category term="asp.net-core," /><category term="bootstrap," /><category term="pagination," /><category term="razor" /><category term="pages" /><summary type="html">I recently needed to add simple pagination to a Bootstrap table on a page in my ASP.NET Core project. I’m using MVC Razor Pages, but a similar approach will work with Razor Views.</summary></entry><entry><title type="html">Switching Your Website to Use HTTPS, the Free and Easy Way</title><link href="https://blog.jonblankenship.com//2018/07/09/switching-your-website-to-use-https-the-free-and-easy-way.html" rel="alternate" type="text/html" title="Switching Your Website to Use HTTPS, the Free and Easy Way" /><published>2018-07-09T02:00:00-05:00</published><updated>2018-07-09T02:00:00-05:00</updated><id>https://blog.jonblankenship.com//2018/07/09/switching-your-website-to-use-https-the-free-and-easy-way</id><content type="html" xml:base="https://blog.jonblankenship.com//2018/07/09/switching-your-website-to-use-https-the-free-and-easy-way.html">&lt;p&gt;Google &lt;a href=&quot;https://security.googleblog.com/2018/02/a-secure-web-is-here-to-stay.html&quot;&gt;has announced&lt;/a&gt; that with their July 2018 release of Chrome 68 they’ll start marking all non-HTTPS websites as “not secure.”  Thankfully, these days there are several cheap, and even free, options for securing your site’s traffic.  There’s really no reason not to do it.&lt;/p&gt;
+&lt;p&gt;I may consider these enhancements in the future, but for now this implementation suits my needs just fine.&lt;/p&gt;</content><author><name></name></author><category term="asp.net-core," /><category term="bootstrap," /><category term="pagination," /><category term="razor" /><category term="pages" /><summary type="html">I recently needed to add simple pagination to a Bootstrap table on a page in my ASP.NET Core project. I’m using MVC Razor Pages, but a similar approach will work with Razor Views.</summary></entry><entry><title type="html">Switching Your Website to Use HTTPS, the Free and Easy Way</title><link href="http://localhost:4000/2018/07/09/switching-your-website-to-use-https-the-free-and-easy-way.html" rel="alternate" type="text/html" title="Switching Your Website to Use HTTPS, the Free and Easy Way" /><published>2018-07-09T02:00:00-05:00</published><updated>2018-07-09T02:00:00-05:00</updated><id>http://localhost:4000/2018/07/09/switching-your-website-to-use-https-the-free-and-easy-way</id><content type="html" xml:base="http://localhost:4000/2018/07/09/switching-your-website-to-use-https-the-free-and-easy-way.html">&lt;p&gt;Google &lt;a href=&quot;https://security.googleblog.com/2018/02/a-secure-web-is-here-to-stay.html&quot;&gt;has announced&lt;/a&gt; that with their July 2018 release of Chrome 68 they’ll start marking all non-HTTPS websites as “not secure.”  Thankfully, these days there are several cheap, and even free, options for securing your site’s traffic.  There’s really no reason not to do it.&lt;/p&gt;
 
 &lt;p&gt;One such option is to use &lt;a href=&quot;https://www.cloudflare.com/ssl/&quot;&gt;CloudFlare’s free SSL&lt;/a&gt;.  Security expert &lt;a href=&quot;https://twitter.com/troyhunt&quot;&gt;Troy Hunt&lt;/a&gt; has a fantastic 4-part video series called &lt;a href=&quot;https://httpsiseasy.com/&quot;&gt;Https Is Easy!&lt;/a&gt; that takes you through the simple steps to secure your site.&lt;/p&gt;
 
@@ -332,7 +626,7 @@
 
 &lt;p&gt;&lt;img src=&quot;https://blog.jonblankenship.com/wp-content/uploads/2018/07/https_detection.png&quot; alt=&quot;img&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;After applying this change, my mixed content errors went away, my site was secured, and I was good to go.&lt;/p&gt;</content><author><name></name></author><summary type="html">Google has announced that with their July 2018 release of Chrome 68 they’ll start marking all non-HTTPS websites as “not secure.” Thankfully, these days there are several cheap, and even free, options for securing your site’s traffic. There’s really no reason not to do it.</summary></entry><entry><title type="html">Side Project</title><link href="https://blog.jonblankenship.com//2018/04/26/side-project.html" rel="alternate" type="text/html" title="Side Project" /><published>2018-04-26T02:00:00-05:00</published><updated>2018-04-26T02:00:00-05:00</updated><id>https://blog.jonblankenship.com//2018/04/26/side-project</id><content type="html" xml:base="https://blog.jonblankenship.com//2018/04/26/side-project.html">&lt;p&gt;It’s been awhile since I’ve done any serious side-project work.  I’ve not had the energy or time to work on a personal project since I started working for my current employer almost three years ago, and, honestly, I haven’t felt much of a need.&lt;/p&gt;
+&lt;p&gt;After applying this change, my mixed content errors went away, my site was secured, and I was good to go.&lt;/p&gt;</content><author><name></name></author><summary type="html">Google has announced that with their July 2018 release of Chrome 68 they’ll start marking all non-HTTPS websites as “not secure.” Thankfully, these days there are several cheap, and even free, options for securing your site’s traffic. There’s really no reason not to do it.</summary></entry><entry><title type="html">Side Project</title><link href="http://localhost:4000/2018/04/26/side-project.html" rel="alternate" type="text/html" title="Side Project" /><published>2018-04-26T02:00:00-05:00</published><updated>2018-04-26T02:00:00-05:00</updated><id>http://localhost:4000/2018/04/26/side-project</id><content type="html" xml:base="http://localhost:4000/2018/04/26/side-project.html">&lt;p&gt;It’s been awhile since I’ve done any serious side-project work.  I’ve not had the energy or time to work on a personal project since I started working for my current employer almost three years ago, and, honestly, I haven’t felt much of a need.&lt;/p&gt;
 
 &lt;p&gt;When I joined my current employer three years ago, any side projects that I had in flight stopped dead in their tracks because – after years of consulting for the state – I was all of sudden working on interesting problems, being challenged daily, playing with cool new technologies, and building something new and innovative.  The needs I had satisfied previously after hours working on side projects (i.e., the desires to create, innovate, and learn new things) were now being satisfied at work.&lt;/p&gt;
 

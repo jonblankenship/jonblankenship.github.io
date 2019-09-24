@@ -13,51 +13,86 @@
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="Thoughts on software development and entrepreneurship." />
 <meta property="og:description" content="Thoughts on software development and entrepreneurship." />
-<link rel="canonical" href="https://blog.jonblankenship.com//" />
-<meta property="og:url" content="https://blog.jonblankenship.com//" />
+<link rel="canonical" href="http://localhost:4000/" />
+<meta property="og:url" content="http://localhost:4000/" />
 <meta property="og:site_name" content="Jon Blankenship" />
 <script type="application/ld+json">
-{"@type":"WebSite","url":"https://blog.jonblankenship.com//","name":"Jon Blankenship","headline":"Jon Blankenship","description":"Thoughts on software development and entrepreneurship.","@context":"https://schema.org"}</script>
+{"@type":"WebSite","url":"http://localhost:4000/","name":"Jon Blankenship","headline":"Jon Blankenship","description":"Thoughts on software development and entrepreneurship.","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 </head>
 <body>
 	<header class="texture-black">
 		<div class="container"></div><div class="container">
 	<h1>Jon Blankenship</h1>
-	<h2>Thoughts on software development and entrepreneurship</h2>
+	<h2>Software developer.</h2>
 	<ul class="social"><a href="https://github.com/jonblankenship"><li><i class="icon-github-circled"></i></li></a><a href="https://linkedin.com/in/jonathanblankenship"><li><i class="icon-linkedin-squared"></i></li></a><a href="https://twitter.com/Jon_Blankenship"><li><i class="icon-twitter-squared"></i></li></a></ul>
 </div>
 </header>
 	<main>
 		<div class="container">
 			<ul class="posts"><li><div class="post-meta">
+			<a class="post-link" href="/2018/11/02/experiences-converting-from-client-side-to-server-side-blazor.html">
+				<h2 class="post-title">Experiences Converting from Client-Side to Server-Side Blazor</h2>
+			</a>
+			<div class="post-date"></i>Nov 2, 2018</div>
+		</div>
+		<div class="post"><p>I’ve been using client-side <a href="https://blazor.net/">Blazor</a> for a couple of months now on one of my side projects and I’ve become a pretty big fan, because it allows me to write a modern, dynamic web app in C# with minimal JavaScript.  The Blazor docs give a nice synopsis of how this happens <a href="https://blazor.net/docs/introduction/index.html">here</a>:</p>
+
+</div>
+	</li><li><div class="post-meta">
+			<a class="post-link" href="/2018/10/19/adding-a-loading-spinner-to-a-button-with-blazor.html">
+				<h2 class="post-title">Adding a Loading Spinner to a Button with Blazor</h2>
+			</a>
+			<div class="post-date"></i>Oct 19, 2018</div>
+		</div>
+		<div class="post"><p>I’ve been playing with <a href="https://blazor.net/">Blazor</a> for several weeks now, and it’s fantastic.  For the uninitiated, Blazor allows you to write .NET code that runs in the browser through the power of <a href="https://webassembly.org/">WebAssembly (Wasm)</a>.  This means that the amount of JavaScript you end up having to write to create a dynamic web UI is significantly reduced, or even eliminated (check out this <a href="https://sql-mistermagoo.github.io/bletris">Tetris clone</a>  <a href="https://twitter.com/mistermag00">@mistermag00</a> wrote running completely on Blazor with <strong>ZERO</strong> JavaScript).</p>
+
+</div>
+	</li><li><div class="post-meta">
+			<a class="post-link" href="/2018/09/04/testing-stripe-webhooks-in-an-asp-net-core-project.html">
+				<h2 class="post-title">Testing Stripe Webhooks in an ASP.NET Core Project</h2>
+			</a>
+			<div class="post-date"></i>Sep 4, 2018</div>
+		</div>
+		<div class="post"><p>I’m using <a href="https://stripe.com/">Stripe</a> for subscription management and payment processing for the the SaaS side project I’m currently working on.  Stripe offers webhook functionality that allows you to register callback endpoints on your API with Stripe that they will call whenever any one of numerous specified events occur on their side.</p>
+
+</div>
+	</li><li><div class="post-meta">
 			<a class="post-link" href="/2018/08/23/configuring-automapper-for-use-with-the-asp-net-core-di-container.html">
 				<h2 class="post-title">Configuring AutoMapper for use with the ASP.NET Core DI Container</h2>
 			</a>
 			<div class="post-date"></i>Aug 23, 2018</div>
 		</div>
-		<div class="post"></div>
+		<div class="post"><p>I’m generally a strong proponent of using separate models for commmunicating across service boundaries that are separate and distinct from my core domain model. In a typical web application that is backed by a database, this usually means that I have a domain model, a storage model, and a view model, and I map between storage model ↔ domain model and between domain model ↔ view model when crossing their respective boundaries. This keeps my domain model isolated, ensures that it is not forced to change due to concerns in another layer, and promotes adherence to the <a href="https://8thlight.com/blog/uncle-bob/2014/05/08/SingleReponsibilityPrinciple.html">Single Responsibility Principle</a> (a class should have one, and only one, reason to change).</p>
+
+</div>
 	</li><li><div class="post-meta">
 			<a class="post-link" href="/2018/08/18/adding-simple-pagination-to-a-bootstrap-table-in-asp-net-core.html">
 				<h2 class="post-title">Adding Simple Pagination to a Bootstrap Table in ASP.NET Core</h2>
 			</a>
 			<div class="post-date"></i>Aug 18, 2018</div>
 		</div>
-		<div class="post"></div>
+		<div class="post"><p>I recently needed to add simple pagination to a Bootstrap table on a page in my ASP.NET Core project. I’m using MVC Razor Pages, but a similar approach will work with Razor Views.</p>
+
+</div>
 	</li><li><div class="post-meta">
 			<a class="post-link" href="/2018/07/09/switching-your-website-to-use-https-the-free-and-easy-way.html">
 				<h2 class="post-title">Switching Your Website to Use HTTPS, the Free and Easy Way</h2>
 			</a>
 			<div class="post-date"></i>Jul 9, 2018</div>
 		</div>
-		<div class="post"></div>
+		<div class="post"><p>Google <a href="https://security.googleblog.com/2018/02/a-secure-web-is-here-to-stay.html">has announced</a> that with their July 2018 release of Chrome 68 they’ll start marking all non-HTTPS websites as “not secure.”  Thankfully, these days there are several cheap, and even free, options for securing your site’s traffic.  There’s really no reason not to do it.</p>
+
+</div>
 	</li><li><div class="post-meta">
 			<a class="post-link" href="/2018/04/26/side-project.html">
 				<h2 class="post-title">Side Project</h2>
 			</a>
 			<div class="post-date"></i>Apr 26, 2018</div>
 		</div>
-		<div class="post"></div>
+		<div class="post"><p>It’s been awhile since I’ve done any serious side-project work.  I’ve not had the energy or time to work on a personal project since I started working for my current employer almost three years ago, and, honestly, I haven’t felt much of a need.</p>
+
+</div>
 	</li></ul>
 		</div>
 	</main></body>
