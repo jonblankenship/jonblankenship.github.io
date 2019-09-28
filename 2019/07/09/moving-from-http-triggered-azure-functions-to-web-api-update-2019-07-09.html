@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<link href="https://fonts.googleapis.com/css?family=Nunito+Sans:400,400i,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/style.css">
+<title>Moving from HTTP-Triggered Azure Functions to Web API (Update 2019.07.09)</title>
+<!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Moving from HTTP-Triggered Azure Functions to Web API (Update 2019.07.09) | Jon Blankenship</title>
+<meta name="generator" content="Jekyll v3.8.6" />
+<meta property="og:title" content="Moving from HTTP-Triggered Azure Functions to Web API (Update 2019.07.09)" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="This past weekend was a long one due to the Fourth of July, and despite a weekend filled with cookouts, swimming, fireworks, an anniversary date night, and a trip to St. Louis, I was able to knock off an important task on my side project‘s TODO List." />
+<meta property="og:description" content="This past weekend was a long one due to the Fourth of July, and despite a weekend filled with cookouts, swimming, fireworks, an anniversary date night, and a trip to St. Louis, I was able to knock off an important task on my side project‘s TODO List." />
+<link rel="canonical" href="http://localhost:4000/2019/07/09/moving-from-http-triggered-azure-functions-to-web-api-update-2019-07-09.html" />
+<meta property="og:url" content="http://localhost:4000/2019/07/09/moving-from-http-triggered-azure-functions-to-web-api-update-2019-07-09.html" />
+<meta property="og:site_name" content="Jon Blankenship" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-07-09T02:00:00-05:00" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","url":"http://localhost:4000/2019/07/09/moving-from-http-triggered-azure-functions-to-web-api-update-2019-07-09.html","headline":"Moving from HTTP-Triggered Azure Functions to Web API (Update 2019.07.09)","dateModified":"2019-07-09T02:00:00-05:00","datePublished":"2019-07-09T02:00:00-05:00","description":"This past weekend was a long one due to the Fourth of July, and despite a weekend filled with cookouts, swimming, fireworks, an anniversary date night, and a trip to St. Louis, I was able to knock off an important task on my side project‘s TODO List.","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2019/07/09/moving-from-http-triggered-azure-functions-to-web-api-update-2019-07-09.html"},"@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+</head>
+<body>
+  <header class="texture-black">
+    <div class="container"></div><div class="container page-header post-header">
+	<h1><a href="/">Jon Blankenship</a></h1>
+	<h2>Developer.</h2>
+</div>
+	</header>
+  <main>
+    <div class="container">
+      <div class="post-title">        
+          <div class="post-date">
+              Jul 9, 2019
+            </div>
+          <h1>Moving from HTTP-Triggered Azure Functions to Web API (Update 2019.07.09)</h1>
+          <h4 class="post-description"></h4>
+      </div>
+
+      <div class="post-container">
+          <p>This past weekend was a long one due to the Fourth of July, and despite a weekend filled with cookouts, swimming, fireworks, an anniversary date night, and a trip to St. Louis, I was able to knock off an important task on my <a href="https://blog.jonblankenship.com/category/side-projects/stock-alerts/">side project</a>‘s <a href="https://github.com/jonblankenship/stock-alerts/blob/master/TODO.md">TODO List</a>.</p>
+
+<h2 id="refactoring-http-triggered-azure-functions-into-a-web-api-service">Refactoring HTTP-Triggered Azure Functions into a Web API Service</h2>
+
+<p>When I started work on Stock Alerts, I began with the <a href="https://azure.microsoft.com/en-us/services/functions/">Azure Functions</a> for retrieving quotes and evaluating alert definitions, because they were the most interesting pieces to me.</p>
+
+<p>I then started thinking about the API endpoints that I’d need to support a mobile client. I figured I wouldn’t need too many endpoints to support the very minimal functionality that I was aiming to implement for MVP, and I already had the Azure Functions project, so I figured I’d just stand up a few <a href="https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-http-webhook">HTTP-triggered</a> functions for my API. After all, I could always refactor them into their own proper web API project later.</p>
+
+<p>It was midway through implementing authentication that I realized that rather than continuing to try to fit the endpoints that I needed into Azure Functions, it made sense to move the HTTP-triggered functions into their own web API project with a separate app service in Azure sooner rather than later.</p>
+
+<p>So that’s what I did.</p>
+
+<p>I performed the refactor Thursday/Friday, and fiddled with the build and release pipelines in Azure DevOps in my free moments on Friday/Saturday. Monday morning I switched the app to use the new API.</p>
+
+<p>Thankfully the refactoring of the code was fairly simple because my functions, much like good controller methods, were thin – they simply received the HTTP request, deserialized it, performed any necessary request-level validation, and delegated processing to the domain layer which lives in a separate assembly. The controllers in the Web API project that I created ended up being very similar.</p>
+
+<p>I’m now closer to the MVP infrastructure that I <a href="https://blog.jonblankenship.com/2019/07/01/stock-alerts-infrastructure/">mentioned</a> a week ago, depicted below (I’m just missing <code class="highlighter-rouge">StockAlerts.WebApp</code> now):</p>
+
+<p><img src="Stock-Alerts-MVP-Infrastructure-Resources.png" alt="Stock Alerts MVP Infrastructure Resources" /></p>
+
+<p>I love the feeling of checking items off of my TODO list.</p>
+
+<h2 id="why-i-chose-web-api-over-http-triggered-azure-functions">Why I Chose Web API Over HTTP-Triggered Azure Functions</h2>
+
+<p>So why did I choose to move my API methods from my Functions project to their own Web API project and service?</p>
+
+<p>A few key reasons: 1. Inability to configure middleware for Azure Functions 2. Prefer controller methods over Azure Functions 3. API usage patterns</p>
+
+<p>Let’s talk about these one-by-one…</p>
+
+<h3 id="aspnet-core-middleware">ASP.NET CORE MIDDLEWARE</h3>
+
+<p>ASP.NET Core gives the developer the ability to plug in logic into the request/response pipeline. This logic is referred to as middleware. <a href="https://twitter.com/andrewlocknet">Andrew Lock</a> has a great <a href="https://andrewlock.net/asp-net-core-in-action-what-is-middleware/">post</a> on what it is and how it works in an ASP.NET Core web app.</p>
+
+<p>ASP.NET Core has default middleware that it executes during the normal course of processing a request and response, but it also allows the developer to configure at startup what additional middleware should execute with each request, including custom middleware. Middleware is generally used for performing cross-cutting tasks – things like logging, handling exceptions, rendering views, and performing authentication, to name a few.</p>
+
+<p>Early in my adventures into Azure Functions I learned that the developer doesn’t have the ability to configure the middleware that executes during an HTTP-triggered function invocation. Sure, some folks have rolled their own middleware pattern in Azure Functions (like <a href="https://dasith.me/2018/01/20/using-azure-functions-httptrigger-as-web-api/">here</a> and <a href="https://medium.com/@emanuelcasco/implement-middleware-pattern-in-azure-functions-d8e9f94626a5">here</a>), but I didn’t want to invest that much effort into building something that an ASP.NET Core Web API gives me for free.</p>
+
+<p>My custom middleware needs aren’t too many: for a typical web API I add custom error-handling middleware and enable authentication middleware.</p>
+
+<p>Though I was able to implement workarounds to accomplish these tasks to work in my functions, they weren’t nearly as clean as accomplishing the same thing with middleware in an ASP.NET Core Web API.</p>
+
+<h4 id="error-handling"><em>Error Handling</em></h4>
+
+<p>My preferred approach to handling exceptions on recent Web API projects has been to create an <code class="highlighter-rouge">ErrorHandlingMiddleware</code> class that catches any unhandled exception during the processing of the request and turns it into the appropriate HTTP response. The code can be found <a href="https://github.com/jonblankenship/stock-alerts/blob/master/StockAlerts/StockAlerts.Api/Middleware/ErrorHandlingMiddleware.cs">here</a>. Adding it to the pipeline is as simple as one line in <code class="highlighter-rouge">Startup.cs</code>:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">app</span><span class="p">.</span><span class="nf">UseMiddleware</span><span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="n">ErrorHandlingMiddleware</span><span class="p">));</span>
+</code></pre></div></div>
+
+<p>To accomplish similar functionality in my Azure Functions required an additional Nuget package (<a href="https://www.nuget.org/packages/PostSharp/">PostSharp</a>), a custom attribute, and a <code class="highlighter-rouge">[HandleExceptions]</code> on top of all of my functions. Not terrible, but I’d rather not have the extra package and have to remember to manually decorate my functions to get error-handling.</p>
+
+<h4 id="authenticationauthorization"><em>Authentication/Authorization</em></h4>
+
+<p>To turn on token-based authentication/authorization for an ASP.NET Core Web API endpoint, you must configure the authentication, JWT bearer, and authorization options in <code class="highlighter-rouge">Startup.cs</code>, add the authentication middleware with <code class="highlighter-rouge">app.UseAuthentication();</code>, and decorate your controller methods with the <code class="highlighter-rouge">[Authorize]</code> attribute.</p>
+
+<p>To implement token-based authentication/authorization on my Azure Functions, there wasn’t an easy way for me to simply decorate a function with an <code class="highlighter-rouge">[Authorize]</code> attribute and let the framework make sure that the user could invoke the function. Instead, for each function I had to use <code class="highlighter-rouge">AuthorizationLevel.Anonymous</code> and manually check for a valid <code class="highlighter-rouge">ClaimsPrincipal</code> and <code class="highlighter-rouge">return new UnauthorizedResult()</code> if there wasn’t one.</p>
+
+<p>It worked, but it wasn’t pretty.</p>
+
+<p>Beyond that, I had trouble getting it to add the <code class="highlighter-rouge">Token-Expired</code> header on responses when the auth token has expired. After switching over to Web API, this just works with the configuration I have in place.</p>
+
+<h3 id="prefer-controllers-over-functions">PREFER CONTROLLERS OVER FUNCTIONS</h3>
+
+<p>As I began to add multiple HTTP-triggered functions that manipulated the same server resource, I grouped them into a single file per resource, similar to how controllers are often organized. But even though the methods were grouped like controllers, there were significant differences at the code level that cause me to prefer the controller implementations over the Azure Functions implementations.</p>
+
+<p>Let’s compare the two side-by-side…</p>
+
+<p>Here’s an Azure Function for getting an alert definition by ID:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="nf">FunctionName</span><span class="p">(</span><span class="s">"GetAlertDefinition"</span><span class="p">)]</span>
+<span class="p">[</span><span class="n">HandleExceptions</span><span class="p">]</span>
+<span class="k">public</span> <span class="k">async</span> <span class="n">Task</span><span class="p">&lt;</span><span class="n">IActionResult</span><span class="p">&gt;</span> <span class="nf">GetAlertDefinitionAsync</span><span class="p">(</span>
+    <span class="p">[</span><span class="nf">HttpTrigger</span><span class="p">(</span><span class="n">AuthorizationLevel</span><span class="p">.</span><span class="n">Anonymous</span><span class="p">,</span> <span class="s">"get"</span><span class="p">,</span> <span class="n">Route</span> <span class="p">=</span> <span class="s">"alert-definitions/{alertDefinitionId}"</span><span class="p">)]</span> <span class="n">HttpRequest</span> <span class="n">req</span><span class="p">,</span>
+    <span class="kt">string</span> <span class="n">alertDefinitionId</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="kt">var</span> <span class="n">claimsPrincipal</span> <span class="p">=</span> <span class="n">_authService</span><span class="p">.</span><span class="nf">GetAuthenticatedPrincipal</span><span class="p">(</span><span class="n">req</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">claimsPrincipal</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nf">UnauthorizedResult</span><span class="p">();</span>
+
+    <span class="kt">var</span> <span class="n">alertDefinition</span> <span class="p">=</span> <span class="k">await</span> <span class="n">_alertDefinitionsService</span><span class="p">.</span><span class="nf">GetAlertDefinitionAsync</span><span class="p">(</span><span class="k">new</span> <span class="nf">Guid</span><span class="p">(</span><span class="n">alertDefinitionId</span><span class="p">));</span>
+
+    <span class="n">claimsPrincipal</span><span class="p">.</span><span class="nf">GuardIsAuthorizedForAppUserId</span><span class="p">(</span><span class="n">alertDefinition</span><span class="p">.</span><span class="n">AppUserId</span><span class="p">);</span>
+
+    <span class="kt">var</span> <span class="n">resource</span> <span class="p">=</span> <span class="n">_mapper</span><span class="p">.</span><span class="n">Map</span><span class="p">&lt;</span><span class="n">Resources</span><span class="p">.</span><span class="n">Model</span><span class="p">.</span><span class="n">AlertDefinition</span><span class="p">&gt;(</span><span class="n">alertDefinition</span><span class="p">);</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="nf">OkObjectResult</span><span class="p">(</span><span class="n">resource</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>And here’s the analogous controller method for getting an alert definition by ID:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="n">HttpGet</span><span class="p">]</span>
+<span class="p">[</span><span class="nf">Route</span><span class="p">(</span><span class="s">"{alertDefinitionId}"</span><span class="p">)]</span>
+<span class="k">public</span> <span class="k">async</span> <span class="n">Task</span><span class="p">&lt;</span><span class="n">IActionResult</span><span class="p">&gt;</span> <span class="nf">GetAsync</span><span class="p">(</span><span class="n">Guid</span> <span class="n">alertDefinitionId</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="kt">var</span> <span class="n">alertDefinition</span> <span class="p">=</span> <span class="k">await</span> <span class="n">_alertDefinitionsService</span><span class="p">.</span><span class="nf">GetAlertDefinitionAsync</span><span class="p">(</span><span class="n">alertDefinitionId</span><span class="p">);</span>
+
+    <span class="n">HttpContext</span><span class="p">.</span><span class="n">User</span><span class="p">.</span><span class="nf">GuardIsAuthorizedForAppUserId</span><span class="p">(</span><span class="n">alertDefinition</span><span class="p">.</span><span class="n">AppUserId</span><span class="p">);</span>
+
+    <span class="kt">var</span> <span class="n">resource</span> <span class="p">=</span> <span class="n">_mapper</span><span class="p">.</span><span class="n">Map</span><span class="p">&lt;</span><span class="n">Resources</span><span class="p">.</span><span class="n">Model</span><span class="p">.</span><span class="n">AlertDefinition</span><span class="p">&gt;(</span><span class="n">alertDefinition</span><span class="p">);</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="nf">OkObjectResult</span><span class="p">(</span><span class="n">resource</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Observations:</p>
+
+<ol>
+  <li>The controller method is shorter.</li>
+  <li>The controller method is able to accept ID parameters as GUIDs, avoiding manual conversion.</li>
+  <li>The controller method declares the HTTP verb and route more cleanly (in my opinion) as method attributes rather than a parameter attribute.</li>
+  <li>Because I’ve decorated the controller with <code class="highlighter-rouge">[Authorize]</code>, the controller method avoids the manual authorization logic.</li>
+  <li>Because I’m using the <code class="highlighter-rouge">ErrorHandlingMiddleware</code>, the controller method avoids the extra <code class="highlighter-rouge">[HandleExceptions]</code> attribute.</li>
+  <li>Not illustrated in this example, but the controller method accepts request bodies as entities, avoiding having to manually deserialize the request body from the <code class="highlighter-rouge">HttpRequest</code>.</li>
+</ol>
+
+<p>From a purely code aesthetics perspective, I just prefer controller methods over HTTP-triggered functions.</p>
+
+<h3 id="api-usage-pattern">API USAGE PATTERN</h3>
+
+<p>I expect the usage pattern of my API to be fairly uniform across the available endpoints and the traffic to ebb and flow predictably with the amount of users using the mobile app. I don’t expect large spikes in traffic to specific endpoints where I would need to be able to scale individual endpoints; if there are large spikes due to a sudden increase in the number of users, I’ll want to scale the whole web API service.</p>
+
+<p>While HTTP-triggered Azure Functions may be the right choice for other use cases, the anticipated usage pattern of the Stock Alerts API aligns much more closely with a Web API service.</p>
+
+<p>I’m still using Azure Functions for pulling stock quotes, evaluating alert definitions, and sending out notifications. Azure Functions are well-suited for these use cases, for the reasons I described <a href="https://blog.jonblankenship.com/2019/07/01/stock-alerts-infrastructure/">here</a>.</p>
+
+<h2 id="wrapping-up">Wrapping Up</h2>
+
+<p>With this change behind me, I’m ready to continue moving forward working on the mobile app. My mornings the rest of this week will be focused on building the Create Alert Definition screen.</p>
+
+<p>Here’s the repository for the project if you’d like to follow along: https://github.com/jonblankenship/stock-alerts.</p>
+
+<p>Thanks for reading!</p>
+
+<p>-Jon</p>
+
+      </div>
+      
+      <div class="post-footer">
+        <ul class="post-tags"><li>asp-net-core</li><li>authentication</li><li>authorization</li><li>azure-functions</li><li>controllers</li><li>error-handling</li><li>http-triggered-function</li><li>middleware</li><li>side-project</li><li>stock-alerts</li><li>web-api</li></ul>
+      </div>
+
+        <!-- Configure Disqus --></div>
+  </main></body>
+</html>

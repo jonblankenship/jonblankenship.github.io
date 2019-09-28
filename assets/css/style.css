@@ -839,6 +839,9 @@ header {
 .w-25 {
   width: 25%; }
 
+.float-right {
+  float: right; }
+
 .texture-black {
   background-image: url("/assets/textures/black.jpg"); }
   .texture-black h2 {

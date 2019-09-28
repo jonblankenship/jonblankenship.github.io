@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<link href="https://fonts.googleapis.com/css?family=Nunito+Sans:400,400i,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/style.css">
+<title>Stock Alerts Features</title>
+<!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Stock Alerts Features | Jon Blankenship</title>
+<meta name="generator" content="Jekyll v3.8.6" />
+<meta property="og:title" content="Stock Alerts Features" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="In my previous post I revealed my new side project, Stock Alerts, and my intention to build a .NET Core product on the Azure stack, posting regular updates about my work as I go. Before I get down into the weeds in future posts, I thought it might be good to first talk at a higher level about the MVP features I’ll be implementing and the infrastructure that will be needed." />
+<meta property="og:description" content="In my previous post I revealed my new side project, Stock Alerts, and my intention to build a .NET Core product on the Azure stack, posting regular updates about my work as I go. Before I get down into the weeds in future posts, I thought it might be good to first talk at a higher level about the MVP features I’ll be implementing and the infrastructure that will be needed." />
+<link rel="canonical" href="http://localhost:4000/2019/06/28/stock-alerts-features.html" />
+<meta property="og:url" content="http://localhost:4000/2019/06/28/stock-alerts-features.html" />
+<meta property="og:site_name" content="Jon Blankenship" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-06-28T02:00:00-05:00" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","url":"http://localhost:4000/2019/06/28/stock-alerts-features.html","headline":"Stock Alerts Features","dateModified":"2019-06-28T02:00:00-05:00","datePublished":"2019-06-28T02:00:00-05:00","description":"In my previous post I revealed my new side project, Stock Alerts, and my intention to build a .NET Core product on the Azure stack, posting regular updates about my work as I go. Before I get down into the weeds in future posts, I thought it might be good to first talk at a higher level about the MVP features I’ll be implementing and the infrastructure that will be needed.","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2019/06/28/stock-alerts-features.html"},"@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+</head>
+<body>
+  <header class="texture-black">
+    <div class="container"></div><div class="container page-header post-header">
+	<h1><a href="/">Jon Blankenship</a></h1>
+	<h2>Developer.</h2>
+</div>
+	</header>
+  <main>
+    <div class="container">
+      <div class="post-title">        
+          <div class="post-date">
+              Jun 28, 2019
+            </div>
+          <h1>Stock Alerts Features</h1>
+          <h4 class="post-description"></h4>
+      </div>
+
+      <div class="post-container">
+          <p>In my <a href="https://blog.jonblankenship.com/2019/06/25/working-on-a-new-side-project-in-public/">previous post</a> I revealed my new side project, Stock Alerts, and my intention to build a .NET Core product on the Azure stack, posting regular updates about my work as I go. Before I get down into the weeds in future posts, I thought it might be good to first talk at a higher level about the MVP features I’ll be implementing and the infrastructure that will be needed.</p>
+
+<h2 id="features">Features</h2>
+
+<p>Stocks Alerts will consist of a mobile app with a small number of key features. Of course there will be backend services to support the mobile app functionality, but we’ll talk about the features from the user’s perspective as he/she interacts with the app.</p>
+
+<p>There will also be a web app eventually, but for now we’ll just focus on the mobile app.</p>
+
+<h3 id="alert-definition-management">ALERT DEFINITION MANAGEMENT</h3>
+
+<p><img src="push_notifications1600-150x150.png" alt="Push notification" class="float-right" />Stock Alerts users will be able to view, create, edit, and delete alert definitions that define the criteria for a stock alert. In the course of creating an alert definition, the user will search for and select a stock, name the alert, and define the criteria that will trigger the alert.</p>
+
+<p>Initially, the set of stocks available to create alert definitions will be limited, due to daily API call limits set by my data provider (which I’ll talk in a future post). I’ve considered either supporting only stocks in the S&amp;P 500 at first or allowing the initial users to essentially define the initial universe of stocks by the alert definitions that they create. Still thinking on this one…</p>
+
+<p>For the alert criteria, the API will support allowing the user to choose from multiple rule types (like various price alerts, technical alerts, and fundamental alerts), as well as combining multiple rules into a boolean logic tree, but for MVP the mobile app will only expose the ability to enter <code class="highlighter-rouge">1..n</code> price alerts combined by an <code class="highlighter-rouge">AND</code> or <code class="highlighter-rouge">OR</code>.</p>
+
+<h3 id="alert-notifications">ALERT NOTIFICATIONS</h3>
+
+<p><a href="https://azure.microsoft.com/en-us/services/functions"><img src="AzureFunctions-150x150.png" alt="Azure Functions" class="float-right" /></a>The Stock Alerts backend will evaluate all active alert definitions as it receives new stock data and notify users of triggered alerts via one or more of three methods: push notification, e-mail, and/or SMS message.</p>
+
+<p>The processing of active alert definitions and the sending of notifications via the three channels will be handled by Azure Functions in conjunction with Azure Service Bus queues. Azure Functions are well-suited for these types of tasks – I pay for the compute that I use and they can scale out under load (for example, when AAPL makes a large move and triggers a large number of alerts).</p>
+
+<h3 id="user-registration--login">USER REGISTRATION &amp; LOGIN</h3>
+
+<p>The Stock Alerts mobile app will allow new users to register with the app and existing users to login. To register, a user just needs to provide their e-mail address, a unique username, and their password. After login, web requests will be authenticated via token-based authentication</p>
+
+<h3 id="user-preferences-management">USER PREFERENCES MANAGEMENT</h3>
+
+<p>Users will be able to set their notification preferences in the Stock Alerts app, including the channels that they will be notified on (push notification, e-mail, or SMS), as well as their e-mail address and SMS phone number, if applicable.</p>
+
+<h3 id="paymentsubscription-management">PAYMENT/SUBSCRIPTION MANAGEMENT</h3>
+
+<p><a href="https://stripe.com/"><img src="stripe-pay-card-logo_318-55295-150x150.jpg" alt="Stripe logo" class="float-right" /></a>Though users will be able to register and set up a limited number of alert definitions for free, I’ll charge users who have more than a few active alert definitions. Stripe is the standard for managing subscriptions and taking online payments, and their API is well-designed. We’ll integrate with Stripe to manage user subscriptions and payments for premium users.</p>
+
+<h3 id="cross-platform">CROSS-PLATFORM</h3>
+
+<p><a href="https://docs.microsoft.com/en-us/xamarin/xamarin-forms/"><img src="xamagon-150x150.png" alt="Xamarin Forms" class="float-right" /></a>The mobile app will target both Android and iOS (and eventually web), and we’ll use Xamarin.Forms to accomplish this. I’m an Android user, so Android will be the first platform I focus on. I can get idea validation and feedback by launching on a single platform, and if there is traction after launch and I want to expand to iOS, I’ll be well-positioned to do so having build the app with Xamarin.Forms.</p>
+
+<p>A web app will probably be post-MVP as well.</p>
+
+<h2 id="is-that-all">Is That All?</h2>
+
+<p>The feature set that I’m targeting for MVP is extremely limited by design. There’s enough here to provide value, prove out the idea, and demonstrate interactions throughout the full stack while being small enough to complete within a couple of months at 5-10 hours per week (though writing about it will slow me down some). There will also be plenty of opportunities for enhancements and additional features post-MVP, if I’m so inclined.</p>
+
+<p>When choosing a side project, it’s important to me that it be very small and limited in scope for a few reasons. First, I want something that I can build quickly while I’m motivated and energized about the new idea and lessen the risk of losing interest or becoming bored with it halfway through. I also want to launch as soon as possible to begin the feedback loop and start learning from my users: What do they like/not like? How do they use the product? Will they pay for it? Etc… Finally, by limiting the initial feature set, I focus on just the core features of the product and I don’t waste time building features that my users may not even care about.</p>
+
+<p>So now that we know what features we’ll be building, we’re ready to talk about the infrastructure needed to support those features!</p>
+
+<p>… but that’s a topic for my next post. Thanks for reading.</p>
+
+<p>-Jon</p>
+
+      </div>
+      
+      <div class="post-footer">
+        <ul class="post-tags"><li>asp-net-core</li><li>azure-functions</li><li>azure-service-bus</li><li>mvp</li><li>stock-alerts</li><li>xamarin.forms</li></ul>
+      </div>
+
+        <!-- Configure Disqus --></div>
+  </main></body>
+</html>
