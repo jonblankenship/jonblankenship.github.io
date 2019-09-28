@@ -13,32 +13,36 @@
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="This week I added the ability to post and properly display markdown content in my Blazor (server-side Blazor, actually… Razor Components) project. Markdown is a lightweight, standardized way of formatting text without having to resort to HTML or depend on a WYSIWYG editor. There’s a nice markdown quick reference here." />
 <meta property="og:description" content="This week I added the ability to post and properly display markdown content in my Blazor (server-side Blazor, actually… Razor Components) project. Markdown is a lightweight, standardized way of formatting text without having to resort to HTML or depend on a WYSIWYG editor. There’s a nice markdown quick reference here." />
-<link rel="canonical" href="https://blog.jonblankenship.com//2019/01/27/safely-rendering-markdown-in-blazor.html" />
-<meta property="og:url" content="https://blog.jonblankenship.com//2019/01/27/safely-rendering-markdown-in-blazor.html" />
+<link rel="canonical" href="http://localhost:4000/2019/01/27/safely-rendering-markdown-in-blazor.html" />
+<meta property="og:url" content="http://localhost:4000/2019/01/27/safely-rendering-markdown-in-blazor.html" />
 <meta property="og:site_name" content="Jon Blankenship" />
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2019-01-27T01:00:00-06:00" />
 <script type="application/ld+json">
-{"@type":"BlogPosting","url":"https://blog.jonblankenship.com//2019/01/27/safely-rendering-markdown-in-blazor.html","headline":"Safely Rendering Markdown in Blazor","dateModified":"2019-01-27T01:00:00-06:00","datePublished":"2019-01-27T01:00:00-06:00","description":"This week I added the ability to post and properly display markdown content in my Blazor (server-side Blazor, actually… Razor Components) project. Markdown is a lightweight, standardized way of formatting text without having to resort to HTML or depend on a WYSIWYG editor. There’s a nice markdown quick reference here.","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.jonblankenship.com//2019/01/27/safely-rendering-markdown-in-blazor.html"},"@context":"https://schema.org"}</script>
+{"@type":"BlogPosting","url":"http://localhost:4000/2019/01/27/safely-rendering-markdown-in-blazor.html","headline":"Safely Rendering Markdown in Blazor","dateModified":"2019-01-27T01:00:00-06:00","datePublished":"2019-01-27T01:00:00-06:00","description":"This week I added the ability to post and properly display markdown content in my Blazor (server-side Blazor, actually… Razor Components) project. Markdown is a lightweight, standardized way of formatting text without having to resort to HTML or depend on a WYSIWYG editor. There’s a nice markdown quick reference here.","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2019/01/27/safely-rendering-markdown-in-blazor.html"},"@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 </head>
 <body>
   <header class="texture-black">
-    <div class="container"></div><div class="container">
-	<h1>Safely Rendering Markdown in Blazor</h1>
-	<h4 class="post-description"></h4>
-	<div class="post-date" style="margin-top:20px">
-		Published on Jan 27, 2019
-	</div>
-	<ul class="post-tags"><li>software-development</li><li>asp.net-core</li><li>blazor</li></ul>
+    <div class="container"></div><div class="container page-header post-header">
+	<h1><a href="/">Jon Blankenship</a></h1>
+	<h2>Developer.</h2>
 </div>
-</header>
+	</header>
   <main>
     <div class="container">
+      <div class="post-title">        
+          <div class="post-date">
+              Jan 27, 2019
+            </div>
+          <h1>Safely Rendering Markdown in Blazor</h1>
+          <h4 class="post-description"></h4>
+      </div>
+
       <div class="post-container">
           <p>This week I added the ability to post and properly display markdown content in my <a href="https://blazor.net/">Blazor</a> (server-side Blazor, actually… Razor Components) project. Markdown is a lightweight, standardized way of formatting text without having to resort to HTML or depend on a <a href="https://en.wikipedia.org/wiki/WYSIWYG">WYSIWYG</a> editor. There’s a nice markdown quick reference <a href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet">here</a>.</p>
 
-<h1 id="leveraging-the-work-of-others">Leveraging the Work of Others</h1>
+<h2 id="leveraging-the-work-of-others">Leveraging the Work of Others</h2>
 
 <p>My need was simple: display formatted markdown on one screen that was saved as plain text on another. Accomplishing this was almost as simple, thanks to the work of those who have gone before me. I used two libraries:</p>
 
@@ -49,7 +53,7 @@
 
 <p>I also drew from <a href="https://edcharbeneau.com/">Ed Charbeneau’s</a> fantastic work on <a href="https://github.com/EdCharbeneau/BlazeDown">BlazeDown</a>, an experimental markdown editor he wrote using Blazor. He first <a href="https://edcharbeneau.com/blazedown-with-blazor-02/">built it</a> back when Blazor was on release 0.2, and he had to do a little extra work to get it to work due to some deficiencies in Blazor at the time (namely, the inability to render raw HTML). The Blazor team added <a href="https://blazor.net/api/Microsoft.AspNetCore.Blazor.MarkupString.html">MarkupString</a> for rendering raw HTML with release 0.5, which made the task of rendering markup much simpler. He <a href="https://edcharbeneau.com/blazedown-with-blazor/">revisited BlazeDown</a> with release 0.5.1 of Blazor, and updated the project to use the new feature.</p>
 
-<h1 id="this-example">This Example</h1>
+<h2 id="this-example">This Example</h2>
 
 <p>What I’ll show here is just enough code to meet the requirements that I had in my project – simply render a string of in-memory markdown as HTML on the screen and do it safely (more on that later).</p>
 
@@ -57,7 +61,7 @@
 
 <p><img src="Markdown-768x311.png" alt="markdown entered as plain text and rendered as HTML" /></p>
 
-<h1 id="markdownview-component">MarkdownView Component</h1>
+<h2 id="markdownview-component">MarkdownView Component</h2>
 
 <p>Part of the power of Blazor is the ability to componentize commonly used controls and logic for easy reuse.  I created a <code class="highlighter-rouge">MarkdownView</code> Blazor component that is responsible for safely rendering a string of markdown as HTML.</p>
 
@@ -121,7 +125,7 @@
 <div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;MarkdownView</span> <span class="na">Content=</span><span class="s">"@MarkdownContent"</span><span class="nt">/&gt;</span>
 </code></pre></div></div>
 
-<h1 id="be-safe--sanitize-your-html">Be Safe – Sanitize Your HTML</h1>
+<h2 id="be-safe--sanitize-your-html">Be Safe – Sanitize Your HTML</h2>
 
 <p>It’s important to sanitize any user-supplied HTML that you will be rendering back as raw HTML to prevent malicious users from injecting scripts into you app and making it vulnerable to cross-site scripting (XSS) attacks. For this task, I use <a href="https://github.com/mganss/HtmlSanitizer">HtmlSanitizer</a>, an actively-maintained, highly-configurable .NET library. I already showed above how it is injected and used in my <code class="highlighter-rouge">MarkdownView</code> component. The only remaining piece is the registration of the <code class="highlighter-rouge">HtmlSanitizer</code> with my IoC container in the <code class="highlighter-rouge">ConfigureServices</code> method in my <code class="highlighter-rouge">Startup</code> class:</p>
 
@@ -137,7 +141,7 @@
 
 <p>By making the sanitation of the HTML a part of the <code class="highlighter-rouge">MarkdownView</code> component’s logic, I ensure that I won’t forget to sanitize a piece of content as long as I always use the component to render my markdown. It’s also wise to sanitize markdown and HTML on ingress prior to writing it to storage.</p>
 
-<h1 id="wrapping-up">Wrapping Up</h1>
+<h2 id="wrapping-up">Wrapping Up</h2>
 
 <p>This was a pretty short example demonstrating how to add a feature that can have a big impact. The tools available to us in Blazor and a couple of existing libraries made this a pretty simple task, which is one of the reasons I’m so excited about Blazor: the ability to leverage existing .NET libraries directly in the browser directly translates to a number of significant benefits including faster delivery times, smaller codebases, lower total cost of ownership, etc…</p>
 
@@ -145,6 +149,10 @@
 
 <p>–Jon</p>
 
+      </div>
+      
+      <div class="post-footer">
+        <ul class="post-tags"><li>asp.net-core</li><li>blazor</li><li>c#</li><li>cross-site-scripting</li><li>markdown</li><li>razor-components</li><li>sanitize-html</li><li>xss</li></ul>
       </div>
 
         <!-- Configure Disqus --></div>

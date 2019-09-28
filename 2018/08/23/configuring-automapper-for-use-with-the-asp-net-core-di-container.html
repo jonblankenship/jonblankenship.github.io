@@ -13,28 +13,32 @@
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="I’m generally a strong proponent of using separate models for commmunicating across service boundaries that are separate and distinct from my core domain model. In a typical web application that is backed by a database, this usually means that I have a domain model, a storage model, and a view model, and I map between storage model ↔ domain model and between domain model ↔ view model when crossing their respective boundaries. This keeps my domain model isolated, ensures that it is not forced to change due to concerns in another layer, and promotes adherence to the Single Responsibility Principle (a class should have one, and only one, reason to change)." />
 <meta property="og:description" content="I’m generally a strong proponent of using separate models for commmunicating across service boundaries that are separate and distinct from my core domain model. In a typical web application that is backed by a database, this usually means that I have a domain model, a storage model, and a view model, and I map between storage model ↔ domain model and between domain model ↔ view model when crossing their respective boundaries. This keeps my domain model isolated, ensures that it is not forced to change due to concerns in another layer, and promotes adherence to the Single Responsibility Principle (a class should have one, and only one, reason to change)." />
-<link rel="canonical" href="https://blog.jonblankenship.com//2018/08/23/configuring-automapper-for-use-with-the-asp-net-core-di-container.html" />
-<meta property="og:url" content="https://blog.jonblankenship.com//2018/08/23/configuring-automapper-for-use-with-the-asp-net-core-di-container.html" />
+<link rel="canonical" href="http://localhost:4000/2018/08/23/configuring-automapper-for-use-with-the-asp-net-core-di-container.html" />
+<meta property="og:url" content="http://localhost:4000/2018/08/23/configuring-automapper-for-use-with-the-asp-net-core-di-container.html" />
 <meta property="og:site_name" content="Jon Blankenship" />
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2018-08-23T02:00:00-05:00" />
 <script type="application/ld+json">
-{"@type":"BlogPosting","url":"https://blog.jonblankenship.com//2018/08/23/configuring-automapper-for-use-with-the-asp-net-core-di-container.html","headline":"Configuring AutoMapper for use with the ASP.NET Core DI Container","dateModified":"2018-08-23T02:00:00-05:00","datePublished":"2018-08-23T02:00:00-05:00","description":"I’m generally a strong proponent of using separate models for commmunicating across service boundaries that are separate and distinct from my core domain model. In a typical web application that is backed by a database, this usually means that I have a domain model, a storage model, and a view model, and I map between storage model ↔ domain model and between domain model ↔ view model when crossing their respective boundaries. This keeps my domain model isolated, ensures that it is not forced to change due to concerns in another layer, and promotes adherence to the Single Responsibility Principle (a class should have one, and only one, reason to change).","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.jonblankenship.com//2018/08/23/configuring-automapper-for-use-with-the-asp-net-core-di-container.html"},"@context":"https://schema.org"}</script>
+{"@type":"BlogPosting","url":"http://localhost:4000/2018/08/23/configuring-automapper-for-use-with-the-asp-net-core-di-container.html","headline":"Configuring AutoMapper for use with the ASP.NET Core DI Container","dateModified":"2018-08-23T02:00:00-05:00","datePublished":"2018-08-23T02:00:00-05:00","description":"I’m generally a strong proponent of using separate models for commmunicating across service boundaries that are separate and distinct from my core domain model. In a typical web application that is backed by a database, this usually means that I have a domain model, a storage model, and a view model, and I map between storage model ↔ domain model and between domain model ↔ view model when crossing their respective boundaries. This keeps my domain model isolated, ensures that it is not forced to change due to concerns in another layer, and promotes adherence to the Single Responsibility Principle (a class should have one, and only one, reason to change).","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2018/08/23/configuring-automapper-for-use-with-the-asp-net-core-di-container.html"},"@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 </head>
 <body>
   <header class="texture-black">
-    <div class="container"></div><div class="container">
-	<h1>Configuring AutoMapper for use with the ASP.NET Core DI Container</h1>
-	<h4 class="post-description"></h4>
-	<div class="post-date" style="margin-top:20px">
-		Published on Aug 23, 2018
-	</div>
-	<ul class="post-tags"><li>software-development</li><li>asp.net-core</li></ul>
+    <div class="container"></div><div class="container page-header post-header">
+	<h1><a href="/">Jon Blankenship</a></h1>
+	<h2>Developer.</h2>
 </div>
-</header>
+	</header>
   <main>
     <div class="container">
+      <div class="post-title">        
+          <div class="post-date">
+              Aug 23, 2018
+            </div>
+          <h1>Configuring AutoMapper for use with the ASP.NET Core DI Container</h1>
+          <h4 class="post-description"></h4>
+      </div>
+
       <div class="post-container">
           <p>I’m generally a strong proponent of using separate models for commmunicating across service boundaries that are separate and distinct from my core domain model. In a typical web application that is backed by a database, this usually means that I have a domain model, a storage model, and a view model, and I map between storage model ↔ domain model and between domain model ↔ view model when crossing their respective boundaries. This keeps my domain model isolated, ensures that it is not forced to change due to concerns in another layer, and promotes adherence to the <a href="https://8thlight.com/blog/uncle-bob/2014/05/08/SingleReponsibilityPrinciple.html">Single Responsibility Principle</a> (a class should have one, and only one, reason to change).</p>
 
@@ -150,6 +154,10 @@
 
 <p>It’s worth noting, though, that while the core DI container may be adequate for small, simple projects, it’s not as feature-rich as most other third-party DI containers.  More complex projects might require a more robust and capable DI container to meet their specific needs.  (<a href="https://stackoverflow.com/questions/30681477/why-would-one-use-a-third-party-di-container-over-the-built-in-asp-net-core-di-c/30682214#30682214">This post</a> on Stack Overflow gives a nice overview of some of its shortcomings.)</p>
 
+      </div>
+      
+      <div class="post-footer">
+        <ul class="post-tags"><li>asp.net-core</li><li>automapper</li><li>dependency-injection</li><li>single-responsibility-principle</li></ul>
       </div>
 
         <!-- Configure Disqus --></div>
