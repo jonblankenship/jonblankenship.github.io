@@ -770,7 +770,8 @@ header {
 
 .posts {
   list-style-type: none;
-  padding: 0; }
+  padding: 0;
+  float: left; }
   .posts > li {
     margin-bottom: 30px;
     padding-bottom: 20px; }
@@ -828,6 +829,47 @@ header {
       .navbar ul li:hover {
         background-color: rgba(255, 255, 255, 0.15);
         cursor: pointer; }
+
+.archive-index {
+  width: 70%;
+  float: right;
+  margin-top: 19px; }
+  .archive-index h5 {
+    font-size: 16px;
+    margin-bottom: 4px; }
+  .archive-index ul {
+    padding: 0;
+    margin: 0; }
+  .archive-index li {
+    font-size: 16px;
+    margin-top: -1px;
+    list-style-type: none;
+    border-bottom: 1px solid #ddd;
+    border-top: 1px solid #ddd; }
+  @media screen and (max-width: 540px) {
+    .archive-index {
+      float: none; } }
+
+.archive-title {
+  color: #999;
+  font-size: 18px;
+  text-transform: uppercase;
+  font-weight: bold;
+  margin-top: 30px; }
+
+.primary {
+  width: 70%; }
+  @media screen and (max-width: 540px) {
+    .primary {
+      width: 100%; } }
+
+.secondary {
+  float: right;
+  width: 26%; }
+  @media screen and (max-width: 540px) {
+    .secondary {
+      float: none;
+      width: 100%; } }
 
 .center-image {
   margin: 0 auto;

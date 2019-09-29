@@ -17,17 +17,40 @@
 <meta property="og:url" content="http://localhost:4000/about/" />
 <meta property="og:site_name" content="Jon Blankenship" />
 <script type="application/ld+json">
-{"@type":"WebSite","url":"http://localhost:4000/about/","name":"Jon Blankenship","headline":"About","description":"Developer.","@context":"https://schema.org"}</script>
+{"@type":"WebSite","headline":"About","url":"http://localhost:4000/about/","name":"Jon Blankenship","description":"Developer.","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
-</head>
+
+
+  
+
+
+
+
+
+
+
+<!-- Fathom - simple website analytics - https://usefathom.com -->
+<script>
+    (function(f, a, t, h, o, m){
+    a[h]=a[h]||function(){
+        (a[h].q=a[h].q||[]).push(arguments)
+    };
+    o=f.createElement('script'),
+    m=f.getElementsByTagName('script')[0];
+    o.async=1; o.src=t; o.id='fathom-script';
+    m.parentNode.insertBefore(o,m)
+    })(document, window, '//cdn.usefathom.com/tracker.js', 'fathom');
+    fathom('set', 'siteId', 'VHYCR');
+    fathom('trackPageview');
+    </script>
+    <!-- / Fathom --></head>
 <body>
 	<header class="texture-black">
-		<div class="container"></div><div class="container page-header">
-	<h1>Jon Blankenship</h1>
+		<div class="container"></div><div class="container page-header post-header">
+	<h1><a href="/">Jon Blankenship</a></h1>
 	<h2>Developer.</h2>
-	<ul class="social"><a href="https://github.com/jonblankenship"><li><i class="icon-github-circled"></i></li></a><a href="https://linkedin.com/in/jonathanblankenship"><li><i class="icon-linkedin-squared"></i></li></a><a href="https://twitter.com/Jon_Blankenship"><li><i class="icon-twitter-squared"></i></li></a></ul>
 </div>
-</header>
+	</header>
 	<main>
 		<div class="container">
 			<p>This is the base Jekyll theme. You can find out more info about customizing your Jekyll theme, as well as basic Jekyll usage documentation at <a href="https://jekyllrb.com/">jekyllrb.com</a></p>
