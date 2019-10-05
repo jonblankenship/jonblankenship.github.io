@@ -563,7 +563,7 @@ pre.highlight, code {
   box-sizing: border-box; }
 
 body {
-  font-family: 'libre_franklin', sans-serif;
+  font-family: 'Roboto', serif;
   font-size: 16px;
   line-height: 1.55em;
   margin: 0;
@@ -575,6 +575,8 @@ body {
   @media screen and (min-width: 1280px) {
     body {
       font-size: 19px; } }
+  body p {
+    font-weight: 100; }
 
 a {
   color: #999;
@@ -651,7 +653,7 @@ header {
 
 .container {
   margin: 0 150px;
-  max-width: 1000px; }
+  max-width: 850px; }
   .container div.highlighter-rouge {
     right: 150px; }
   @media screen and (max-width: 540px) {
@@ -800,9 +802,12 @@ header {
   display: block;
   margin-left: auto;
   margin-right: auto; }
+.post-container h4 {
+  font-style: italic; }
 
 .post p {
-  margin: 0; }
+  margin: 0;
+  margin-bottom: 14px; }
 
 .navbar {
   position: absolute;
@@ -883,6 +888,21 @@ header {
 
 .float-right {
   float: right; }
+
+.ludwig, blockquote {
+  position: relative;
+  padding-left: 1em;
+  border-left: 0.2em solid #666666;
+  font-family: 'Roboto', serif;
+  font-weight: 100; }
+  .ludwig p, blockquote p {
+    display: inline; }
+    .ludwig p:before, blockquote p:before, .ludwig p:after, blockquote p:after {
+      content: '\201C';
+      font-family: 'Sanchez';
+      color: #666666; }
+    .ludwig p:after, blockquote p:after {
+      content: '\201D'; }
 
 .texture-black {
   background-image: url("/assets/textures/black.jpg"); }

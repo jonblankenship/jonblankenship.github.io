@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<link href="https://fonts.googleapis.com/css?family=Nunito+Sans:400,400i,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/style.css">
+<title>Using the Specification Pattern to Build a Data-Driven Rules Engine</title>
+<!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Using the Specification Pattern to Build a Data-Driven Rules Engine | Jon Blankenship</title>
+<meta name="generator" content="Jekyll v3.8.6" />
+<meta property="og:title" content="Using the Specification Pattern to Build a Data-Driven Rules Engine" />
+<meta name="author" content="Jon_Blankenship" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="See how the composite specification pattern can be used in a .NET application to build a data-driven rules engine. Individual rules are implemented as specifications and can be combined into complex rules while keeping the code maintainable and well-organized." />
+<meta property="og:description" content="See how the composite specification pattern can be used in a .NET application to build a data-driven rules engine. Individual rules are implemented as specifications and can be combined into complex rules while keeping the code maintainable and well-organized." />
+<link rel="canonical" href="https://blog.jonblankenship.com//2019/10/04/using-the-specification-pattern-to-build-a-data-driven-rules-engine/" />
+<meta property="og:url" content="https://blog.jonblankenship.com//2019/10/04/using-the-specification-pattern-to-build-a-data-driven-rules-engine/" />
+<meta property="og:site_name" content="Jon Blankenship" />
+<meta property="og:image" content="https://blog.jonblankenship.com//2019/10/04/using-the-specification-pattern-to-build-a-data-driven-rules-engine/DecisionTree.PNG" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-10-04T02:00:00-05:00" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","url":"https://blog.jonblankenship.com//2019/10/04/using-the-specification-pattern-to-build-a-data-driven-rules-engine/","headline":"Using the Specification Pattern to Build a Data-Driven Rules Engine","dateModified":"2019-10-04T02:00:00-05:00","datePublished":"2019-10-04T02:00:00-05:00","image":"https://blog.jonblankenship.com//2019/10/04/using-the-specification-pattern-to-build-a-data-driven-rules-engine/DecisionTree.PNG","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.jonblankenship.com//2019/10/04/using-the-specification-pattern-to-build-a-data-driven-rules-engine/"},"author":{"@type":"Person","name":"Jon_Blankenship"},"description":"See how the composite specification pattern can be used in a .NET application to build a data-driven rules engine. Individual rules are implemented as specifications and can be combined into complex rules while keeping the code maintainable and well-organized.","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  
+
+
+
+
+
+
+
+<!-- Twitter cards -->
+<meta name="twitter:site"    content="@Jon_Blankenship">
+<meta name="twitter:creator" content="@Jon_Blankenship">
+<meta name="twitter:title"   content="Using the Specification Pattern to Build a Data-Driven Rules Engine">
+
+
+<meta name="twitter:description" content="Developer.">
+
+
+
+<meta name="twitter:card"  content="summary_large_image">
+<meta name="twitter:image" content="https://blog.jonblankenship.com/2019/10/04/using-the-specification-pattern-to-build-a-data-driven-rules-engine/DecisionTree.PNG">
+
+<!-- end of Twitter cards -->
+
+
+  <!-- Use $env:JEKYLL_ENV="production"; bundle exec jekyll build to build for production. -->
+  <!-- Fathom - simple website analytics - https://usefathom.com -->
+  <script>
+      (function(f, a, t, h, o, m){
+      a[h]=a[h]||function(){
+          (a[h].q=a[h].q||[]).push(arguments)
+      };
+      o=f.createElement('script'),
+      m=f.getElementsByTagName('script')[0];
+      o.async=1; o.src=t; o.id='fathom-script';
+      m.parentNode.insertBefore(o,m)
+      })(document, window, '//cdn.usefathom.com/tracker.js', 'fathom');
+      fathom('set', 'siteId', 'VHYCR');
+      fathom('trackPageview');
+  </script>
+  <!-- / Fathom -->
+</head>
+<body>
+  <header class="texture-black">
+    <div class="container"></div><div class="container page-header post-header">
+	<h1><a href="/">Jon Blankenship</a></h1>
+	<h2>Developer.</h2>
+</div>
+	</header>
+  <main>
+    <div class="container">
+      <div class="post-title">        
+          <div class="post-date">
+              Oct 4, 2019
+            </div>
+          <h1>Using the Specification Pattern to Build a Data-Driven Rules Engine</h1>
+          <!-- <h4 class="post-description">See how the composite specification pattern can be used in a .NET application to build a data-driven rules engine.  Individual rules are implemented as specifications and can be combined into complex rules while keeping the code maintainable and well-organized.</h4> -->
+      </div>
+
+      <div class="post-container">
+          <p>In my <a href="https://blog.jonblankenship.com/tag/stock-alerts/">Stock Alerts</a> project, the user configures criteria for a given stock that should be evaluated continuously and trigger a notification to the user when the criteria are satisfied.</p>
+
+<p>Rather than simply setting a single price trigger, I want the user to be able to specify multiple types of criteria and combine them using Boolean logic to form a complex rule.</p>
+
+<!--more-->
+
+<p>For example, a dividend growth investor might want to be notified when JNJ meets the following criteria:</p>
+
+<ul>
+  <li>Dividend &gt; 2.5% <strong>AND</strong></li>
+  <li>Payout Ratio &lt; 50% <strong>AND</strong></li>
+  <li>(PE Ratio &lt; 20 <strong>OR</strong> Price &lt; 130)</li>
+</ul>
+
+<p><img src="DecisionTree.PNG" alt="Stock Alert Rules" class="w-50" /></p>
+
+<p>Another investor might want a completely different set of criteria to alert them when their momentum stock darling is about to take off out of a range.</p>
+
+<p>So how do we accomplish this in a clean, configurable, and testable manner?</p>
+
+<h2 id="enter-the-specification-pattern">Enter the Specification Pattern</h2>
+
+<p>The specification pattern has been a valuable tool in my toolbox in the past, and it is the perfect tool for the job ahead of us today: building a data-driven rules engine.</p>
+
+<p><a href="https://amzn.to/2mqUJXv"><img src="Domain-Driven Design.jpg" alt="Domain-Driven Design" class="float-right" /></a></p>
+
+<p>The pattern was introduced by Eric Evans, author of <a href="https://amzn.to/2mqUJXv">Domain-Driven Design: Tackling Complexity in the Heart of Software</a> and father of the domain-driven design (DDD) approach to software development.  Evans and <a href="https://www.martinfowler.com/">Martin Fowler</a> co-wrote a <a href="https://www.martinfowler.com/apsupp/spec.pdf">white paper</a> on specifications that is well worth the read addressing the uses of specification, types of specifications, and consequences of specification.</p>
+
+<p>The <a href="https://en.wikipedia.org/wiki/Specification_pattern">Wikipedia article</a> on the specification pattern gives us a pretty good definition (as well as some sample C# code) to start with:</p>
+
+<blockquote>
+  <p>In computer programming, the <strong>specification pattern</strong> is a particular <a href="https://en.wikipedia.org/wiki/Software_design_pattern">software design pattern</a>, whereby <a href="https://en.wikipedia.org/wiki/Business_rules">business rules</a> can be recombined by chaining the business rules together using boolean logic.</p>
+</blockquote>
+
+<p><a href="https://www.martinfowler.com/apsupp/spec.pdf">Evans and Fowler</a> identify the core problems to which the specification pattern is applicable:</p>
+
+<blockquote>
+  <ul>
+    <li>Selection: You need to select a subset of objects based on some criteria, and to refresh the selection at various times</li>
+    <li>Validation: You need to check that only suitable objects are used for a certain purpose</li>
+    <li>Construction-to-order: You need to describe what an object might do, without explaining the details of how the object does it, but in such a way that a candidate might be built to fulfill the requirement.</li>
+  </ul>
+</blockquote>
+
+<p>The solution to each of these problems is to build a specification that defines the criteria that an object must meet to satisfy the specification.  Typically, a specification has a method <code class="highlighter-rouge">IsSatisfied(candidate)</code> that takes the candidate object as a parameter.  The method returns <code class="highlighter-rouge">true</code> or <code class="highlighter-rouge">false</code>, depending on whether the candidate satisfies the criteria of the specification.</p>
+
+<p>In this post, we’ll focus on a particular type of specification, a <strong>composite specification</strong>, to build our rules engine.  This type of specification gets its name from the fact that it is an implementation of another commonly used design pattern: the composite pattern.</p>
+
+<h2 id="the-composite-pattern">The Composite Pattern</h2>
+
+<p><a href="https://www.amazon.com/gp/product/0201633612/ref=as_li_tl?ie=UTF8&amp;camp=1789&amp;creative=9325&amp;creativeASIN=0201633612&amp;linkCode=as2&amp;tag=jon100-20&amp;linkId=a0440d199ca01de7a55bd344a1aa4f7b"><img src="Design Patterns.jpg" alt="&quot;Design Patterns&quot;" class="float-right" /></a></p>
+
+<p>The composite pattern is one of the twenty-three software design patterns introduced in the Gang of Four’s  (GoF) seminal work, <a href="https://www.amazon.com/gp/product/0201633612/ref=as_li_tl?ie=UTF8&amp;tag=jon100-20&amp;camp=1789&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=0201633612&amp;linkId=ce0a3b2651f5de39016ad1aa1f003b80">Design Patterns: Elements of Reusable Object-Oriented Software</a>.  The authors classify the patterns into one of three categories: creational, structural and behavioral.  The composite pattern is a structural pattern, meaning it is a pattern that describes how entities relate to each other with the goal of simplifying the structure of a system.</p>
+
+<p>The composite pattern describes a group of entities that can be combined into a tree-like structure, where the individual parts have the same interface as the structure as a whole, allowing clients to interact with the parts and the whole uniformly.  This is where the advantage of the composite pattern lies.  By treating the composite and its components uniformly, clients avoid having to discriminate between a leaf node and a branch, reducing complexity and the potential for error.</p>
+
+<p>Further, by structuring a component as a composite of primitive objects that are recombinable, we get the benefits of code reuse as we are able to leverage existing components to build other composites.  We’ll see this in practice as we get into the code for our rules engine.</p>
+
+<h2 id="specification-building-blocks">Specification Building Blocks</h2>
+
+<p>So let’s move from the abstract to the concrete and see some code.  Before we start to think about domain-specific rules that we need to implement, we’ll need a few building blocks first.</p>
+
+<h3 id="ispecification">ISpecification</h3>
+
+<p>First, we need an interface for interacting with the composite specification as a whole, as well as its individual component specifications.  So here’s our <code class="highlighter-rouge">ISpecification</code> interface:</p>
+
+<div class="language-c# highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">interface</span> <span class="nc">ISpecification</span><span class="p">&lt;</span><span class="k">in</span> <span class="n">TCandidate</span><span class="p">&gt;</span>
+<span class="p">{</span>
+    <span class="kt">bool</span> <span class="nf">IsSatisfiedBy</span><span class="p">(</span><span class="n">TCandidate</span> <span class="n">candidate</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>It’s a very simple interface consisting of one method, <code class="highlighter-rouge">IsSatisfiedBy(TCandidate candidate)</code>, which returns true or false depending on whether the given specification is satisfied by the candidate passed to it.</p>
+
+<p>The type parameter <code class="highlighter-rouge">TCandidate</code> specifies the type of object that the specification will be used to evaluate.  In the case of a composite specification, the type of candidate object passed to the root node will be passed to the child nodes, so the type is expected to be the same for all individual specifications that make up a composite specification.</p>
+
+<h3 id="compositespecification">CompositeSpecification</h3>
+
+<p>Next, we have an abstract class <code class="highlighter-rouge">CompositeSpecification</code>, which will be the base class for any branch (non-leaf) nodes in our composite specification:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">abstract</span> <span class="k">class</span> <span class="nc">CompositeSpecification</span><span class="p">&lt;</span><span class="n">TCandidate</span><span class="p">&gt;</span> <span class="p">:</span> <span class="n">ISpecification</span><span class="p">&lt;</span><span class="n">TCandidate</span><span class="p">&gt;</span>
+<span class="p">{</span>
+    <span class="k">protected</span> <span class="k">readonly</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">ISpecification</span><span class="p">&lt;</span><span class="n">TCandidate</span><span class="p">&gt;&gt;</span> <span class="n">_childSpecifications</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">ISpecification</span><span class="p">&lt;</span><span class="n">TCandidate</span><span class="p">&gt;&gt;();</span>
+
+    <span class="k">public</span> <span class="k">void</span> <span class="nf">AddChildSpecification</span><span class="p">(</span><span class="n">ISpecification</span><span class="p">&lt;</span><span class="n">TCandidate</span><span class="p">&gt;</span> <span class="n">childSpecification</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">_childSpecifications</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="n">childSpecification</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">abstract</span> <span class="kt">bool</span> <span class="nf">IsSatisfiedBy</span><span class="p">(</span><span class="n">TCandidate</span> <span class="n">candidate</span><span class="p">);</span>
+
+    <span class="k">public</span> <span class="n">IReadOnlyCollection</span><span class="p">&lt;</span><span class="n">ISpecification</span><span class="p">&lt;</span><span class="n">TCandidate</span><span class="p">&gt;&gt;</span> <span class="n">Children</span> <span class="p">=&gt;</span> <span class="n">_childSpecifications</span><span class="p">.</span><span class="nf">AsReadOnly</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>The main behavior that <code class="highlighter-rouge">CompositeSpecification</code> implements here is the management of a node’s child specifications.  It handles the addition of a child specification to the composite specification, and it exposes the child specifications as a read-only collection that can be traversed.</p>
+
+<h3 id="boolean-specifications">Boolean Specifications</h3>
+
+<p>The branches (non-leaf nodes) are specifications that represent Boolean operations that connect 1..n other specifications, and they derive from <code class="highlighter-rouge">CompositeSpecification</code>.  For our initial implementation, we have <strong>AND</strong> and <strong>OR</strong> specifications (short-circuited).</p>
+
+<p><code class="highlighter-rouge">AndSpecification</code>:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">AndSpecification</span><span class="p">&lt;</span><span class="n">TCandidate</span><span class="p">&gt;</span> <span class="p">:</span> <span class="n">CompositeSpecification</span><span class="p">&lt;</span><span class="n">TCandidate</span><span class="p">&gt;</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">override</span> <span class="kt">bool</span> <span class="nf">IsSatisfiedBy</span><span class="p">(</span><span class="n">TCandidate</span> <span class="n">candidate</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(!</span><span class="n">_childSpecifications</span><span class="p">.</span><span class="nf">Any</span><span class="p">())</span> <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
+
+        <span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">s</span> <span class="k">in</span> <span class="n">_childSpecifications</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(!</span><span class="n">s</span><span class="p">.</span><span class="nf">IsSatisfiedBy</span><span class="p">(</span><span class="n">candidate</span><span class="p">))</span> <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="k">true</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><code class="highlighter-rouge">OrSpecification</code>:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">OrSpecification</span><span class="p">&lt;</span><span class="n">TCandidate</span><span class="p">&gt;</span> <span class="p">:</span> <span class="n">CompositeSpecification</span><span class="p">&lt;</span><span class="n">TCandidate</span><span class="p">&gt;</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">override</span> <span class="kt">bool</span> <span class="nf">IsSatisfiedBy</span><span class="p">(</span><span class="n">TCandidate</span> <span class="n">candidate</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(!</span><span class="n">_childSpecifications</span><span class="p">.</span><span class="nf">Any</span><span class="p">())</span> <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
+
+        <span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">s</span> <span class="k">in</span> <span class="n">_childSpecifications</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">s</span><span class="p">.</span><span class="nf">IsSatisfiedBy</span><span class="p">(</span><span class="n">candidate</span><span class="p">))</span> <span class="k">return</span> <span class="k">true</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Of course, other Boolean operators, such as <strong>NOT</strong> and <strong>XOR</strong>, could be implemented without too much difficulty, but these are the only two that I’ve needed so far for my application, and they are sufficient for demonstrating the pattern.</p>
+
+<h4 id="unit-testing-the-boolean-specifications">Unit Testing the Boolean Specifications</h4>
+
+<p>Before we move on to the domain-specification specifications, let’s talk briefly about unit testing.  One of the attractive characteristics of the specification pattern is the ease with which specifications can be unit-tested due to the clear boundaries around small, individual chunks of logic.</p>
+
+<p>To assist with unit-testing, I’ve implemented very simple <strong>True</strong> and <strong>False</strong> specifications:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">TrueSpecification</span><span class="p">&lt;</span><span class="n">TCandidate</span><span class="p">&gt;</span> <span class="p">:</span> <span class="n">ISpecification</span><span class="p">&lt;</span><span class="n">TCandidate</span><span class="p">&gt;</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="kt">bool</span> <span class="nf">IsSatisfiedBy</span><span class="p">(</span><span class="n">TCandidate</span> <span class="n">candidate</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="k">true</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">public</span> <span class="k">class</span> <span class="nc">FalseSpecification</span><span class="p">&lt;</span><span class="n">TCandidate</span><span class="p">&gt;</span> <span class="p">:</span> <span class="n">ISpecification</span><span class="p">&lt;</span><span class="n">TCandidate</span><span class="p">&gt;</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="kt">bool</span> <span class="nf">IsSatisfiedBy</span><span class="p">(</span><span class="n">TCandidate</span> <span class="n">candidate</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="k">false</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>These one-line specifications aren’t useful in application code, but they come in handy when unit-testing the branch (non-leaf) node specifications.  Here’s one of the unit tests for the <code class="highlighter-rouge">AndSpecification</code>, utilizing the <code class="highlighter-rouge">TrueSpecification</code>:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="n">Fact</span><span class="p">]</span>
+<span class="k">public</span> <span class="k">void</span> <span class="nf">IsSatisfiedBy_TwoTrueChildren_True</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="c1">// Arrange</span>
+    <span class="kt">var</span> <span class="n">spec</span> <span class="p">=</span> <span class="k">new</span> <span class="n">AndSpecification</span><span class="p">&lt;</span><span class="n">AlertEvaluationMessage</span><span class="p">&gt;();</span>
+    <span class="n">spec</span><span class="p">.</span><span class="nf">AddChildSpecification</span><span class="p">(</span><span class="k">new</span> <span class="n">TrueSpecification</span><span class="p">&lt;</span><span class="n">AlertEvaluationMessage</span><span class="p">&gt;());</span>
+    <span class="n">spec</span><span class="p">.</span><span class="nf">AddChildSpecification</span><span class="p">(</span><span class="k">new</span> <span class="n">TrueSpecification</span><span class="p">&lt;</span><span class="n">AlertEvaluationMessage</span><span class="p">&gt;());</span>
+    <span class="kt">var</span> <span class="n">message</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">AlertEvaluationMessage</span><span class="p">();</span>
+
+    <span class="c1">// Act</span>
+    <span class="kt">var</span> <span class="n">result</span> <span class="p">=</span> <span class="n">spec</span><span class="p">.</span><span class="nf">IsSatisfiedBy</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+
+    <span class="c1">// Assert</span>
+    <span class="n">result</span><span class="p">.</span><span class="nf">Should</span><span class="p">().</span><span class="nf">BeTrue</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><code class="highlighter-rouge">TrueSpecification</code> and <code class="highlighter-rouge">FalseSpecification</code> facilitate the writing of straight-forward unit tests like the one above that zero in on the unit under test (<code class="highlighter-rouge">AndSpecification.IsSatisfiedBy(..)</code> in this case).  (You may be wondering about <code class="highlighter-rouge">AlertEvaluationMessage</code> - it is the type of the candidate object that we are evaluating, which we’ll examine in a bit.)</p>
+
+<h2 id="domain-specific-specifications">Domain-Specific Specifications</h2>
+
+<p>Now that we have the building blocks needed to build <em>any</em> specification, we’re ready to look at the things we’ll need to build specifications specific to our domain: stock alerts.  As we transition from discussing the Boolean specifications to talking about domain-specific specifications, our focus is moving from the branch (non-leaf) nodes of the composite specification to the leaf nodes.</p>
+
+<h3 id="pricespecification">PriceSpecification</h3>
+
+<p>One of the main criteria that our specification will have to test for is, when given a new price quote, whether the new price exceeds a certain level.  For this, we’ll create a <code class="highlighter-rouge">PriceSpecification</code> that is aware of an alert criteria specifying an important price level, and it will return true or false depending on whether a new stock quote breaches that level:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">PriceSpecification</span> <span class="p">:</span> <span class="n">ISpecification</span><span class="p">&lt;</span><span class="n">AlertEvaluationMessage</span><span class="p">&gt;</span>
+<span class="p">{</span>
+    <span class="k">private</span> <span class="k">readonly</span> <span class="n">AlertCriteria</span> <span class="n">_alertCriteria</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="nf">PriceSpecification</span><span class="p">(</span><span class="n">AlertCriteria</span> <span class="n">alertCriteria</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">_alertCriteria</span> <span class="p">=</span> <span class="n">alertCriteria</span> <span class="p">??</span> <span class="k">throw</span> <span class="k">new</span> <span class="nf">ArgumentNullException</span><span class="p">(</span><span class="k">nameof</span><span class="p">(</span><span class="n">alertCriteria</span><span class="p">));</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="kt">bool</span> <span class="nf">IsSatisfiedBy</span><span class="p">(</span><span class="n">AlertEvaluationMessage</span> <span class="n">candidate</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">_alertCriteria</span><span class="p">.</span><span class="n">Operator</span> <span class="p">==</span> <span class="n">CriteriaOperator</span><span class="p">.</span><span class="n">GreaterThan</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">return</span> <span class="n">candidate</span><span class="p">.</span><span class="n">LastPrice</span> <span class="p">&gt;</span> <span class="n">_alertCriteria</span><span class="p">.</span><span class="n">Level</span> <span class="p">&amp;&amp;</span>
+                <span class="n">candidate</span><span class="p">.</span><span class="n">PreviousLastPrice</span> <span class="p">&lt;=</span> <span class="n">_alertCriteria</span><span class="p">.</span><span class="n">Level</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">_alertCriteria</span><span class="p">.</span><span class="n">Operator</span> <span class="p">==</span> <span class="n">CriteriaOperator</span><span class="p">.</span><span class="n">GreaterThanOrEqualTo</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">return</span> <span class="n">candidate</span><span class="p">.</span><span class="n">LastPrice</span> <span class="p">&gt;=</span> <span class="n">_alertCriteria</span><span class="p">.</span><span class="n">Level</span> <span class="p">&amp;&amp;</span>
+                   <span class="n">candidate</span><span class="p">.</span><span class="n">PreviousLastPrice</span> <span class="p">&lt;</span> <span class="n">_alertCriteria</span><span class="p">.</span><span class="n">Level</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">_alertCriteria</span><span class="p">.</span><span class="n">Operator</span> <span class="p">==</span> <span class="n">CriteriaOperator</span><span class="p">.</span><span class="n">Equals</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">return</span> <span class="n">candidate</span><span class="p">.</span><span class="n">LastPrice</span> <span class="p">==</span> <span class="n">_alertCriteria</span><span class="p">.</span><span class="n">Level</span> <span class="p">&amp;&amp;</span>
+                   <span class="n">candidate</span><span class="p">.</span><span class="n">PreviousLastPrice</span> <span class="p">!=</span> <span class="n">_alertCriteria</span><span class="p">.</span><span class="n">Level</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">_alertCriteria</span><span class="p">.</span><span class="n">Operator</span> <span class="p">==</span> <span class="n">CriteriaOperator</span><span class="p">.</span><span class="n">LessThanOrEqualTo</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">return</span> <span class="n">candidate</span><span class="p">.</span><span class="n">LastPrice</span> <span class="p">&lt;=</span> <span class="n">_alertCriteria</span><span class="p">.</span><span class="n">Level</span> <span class="p">&amp;&amp;</span>
+                   <span class="n">candidate</span><span class="p">.</span><span class="n">PreviousLastPrice</span> <span class="p">&gt;</span> <span class="n">_alertCriteria</span><span class="p">.</span><span class="n">Level</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">_alertCriteria</span><span class="p">.</span><span class="n">Operator</span> <span class="p">==</span> <span class="n">CriteriaOperator</span><span class="p">.</span><span class="n">LessThan</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">return</span> <span class="n">candidate</span><span class="p">.</span><span class="n">LastPrice</span> <span class="p">&lt;</span> <span class="n">_alertCriteria</span><span class="p">.</span><span class="n">Level</span> <span class="p">&amp;&amp;</span>
+                   <span class="n">candidate</span><span class="p">.</span><span class="n">PreviousLastPrice</span> <span class="p">&gt;=</span> <span class="n">_alertCriteria</span><span class="p">.</span><span class="n">Level</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h4 id="alertcriteria">AlertCriteria</h4>
+
+<p>This specification has a domain model passed to it at the time it is constructed: <code class="highlighter-rouge">AlertCriteria</code>.  We’ll look at just the few properties of <code class="highlighter-rouge">AlertCriteria</code> that are relevant to this particular specification for now:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">AlertCriteria</span>
+<span class="p">{</span>
+    <span class="c1">// snip</span>
+
+    <span class="k">public</span> <span class="n">CriteriaType</span> <span class="n">Type</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+
+    <span class="k">public</span> <span class="n">CriteriaOperator</span> <span class="n">Operator</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+
+    <span class="k">public</span> <span class="kt">decimal</span><span class="p">?</span> <span class="n">Level</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+
+    <span class="c1">// snip</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><code class="highlighter-rouge">Type</code> specifies the alert <a href="https://github.com/jonblankenship/stock-alerts/blob/master/StockAlerts/StockAlerts.Core/Enums/CriteriaType.cs"><code class="highlighter-rouge">CriteriaType</code></a> that we’re evaluating.  Possible values are <code class="highlighter-rouge">Composite</code>, <code class="highlighter-rouge">Price</code>, <code class="highlighter-rouge">DailyPercentageGainLoss</code>, and there will likely be more.  <code class="highlighter-rouge">Operator</code> specifies the <a href="https://github.com/jonblankenship/stock-alerts/blob/master/StockAlerts/StockAlerts.Core/Enums/CriteriaOperator.cs"><code class="highlighter-rouge">CriteriaOperator</code></a> that applies for the particular scenario we’re evaluating.  Finally, if we need to trigger a price alert, we need to know at which level it should be triggered, which is what is specified by the <code class="highlighter-rouge">Level</code> property.  With these three pieces of data, we have what we need to know to create a specification that represents a price alert for a given stock’s price becomes greater than or equal to $150, for example.</p>
+
+<p>The <code class="highlighter-rouge">AlertCriteria</code> domain object will ultimately come from the database, and is a key part of the data model that will make this a data-driven rules engine.  We’ll look at it more closely in bit.</p>
+
+<h4 id="alertevaluationmessage">AlertEvaluationMessage</h4>
+
+<p>The next piece needed for our <code class="highlighter-rouge">PriceSpecification</code> is <code class="highlighter-rouge">AlertEvaluationMessage</code>, which is the type of candidate object that our specification is designed to evaluate.  In our example, <code class="highlighter-rouge">AlertEvaluationMessage</code> represents a new price quote (named <code class="highlighter-rouge">Message</code> since in this particular case it’s being pulled off of a message queue).</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">AlertEvaluationMessage</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="n">Guid</span> <span class="n">AlertDefinitionId</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+
+    <span class="k">public</span> <span class="kt">decimal</span> <span class="n">LastPrice</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+
+    <span class="k">public</span> <span class="kt">decimal</span> <span class="n">PreviousLastPrice</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+
+    <span class="k">public</span> <span class="kt">decimal</span> <span class="n">OpenPrice</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>The relevant properties here for our <code class="highlighter-rouge">PriceSpecification</code> are <code class="highlighter-rouge">LastPrice</code> and <code class="highlighter-rouge">PreviousLastPrice</code>, so that we can determine whether a price has crossed a certain price level.</p>
+
+<h4 id="issatisfiedbyalertevaluationmessage-candidate">IsSatisfiedBy(AlertEvaluationMessage candidate)</h4>
+
+<p>Now that we have the required information, we can evaluate whether the <code class="highlighter-rouge">PriceSpecification</code> for our particular <code class="highlighter-rouge">AlertCriteria</code> is satisfied by the candidate <code class="highlighter-rouge">AlertEvaluationMessage</code> object.  <code class="highlighter-rouge">IsSatisfiedBy(AlertEvaluationMessage candidate)</code> is a fairly simple set of <code class="highlighter-rouge">if</code> statements that perform comparisons between <code class="highlighter-rouge">_alertCriteria.Level</code> and <code class="highlighter-rouge">candidate.LastPrice</code> and <code class="highlighter-rouge">candidate.PreviousLastPrice</code> depending on <code class="highlighter-rouge">_alertCriteria.Operator</code> and returns <code class="highlighter-rouge">true</code> or <code class="highlighter-rouge">false</code> to indicate whether the price level has been breached.</p>
+
+<h3 id="other-domain-specific-specifications">Other Domain-Specific Specifications</h3>
+
+<p>I’ve also implemented a <a href="https://github.com/jonblankenship/stock-alerts/blob/master/StockAlerts/StockAlerts.Domain/Specifications/DailyPercentageGainLossSpecification.cs"><code class="highlighter-rouge">DailyPercentageGainLossSpecification</code></a>, which returns <code class="highlighter-rouge">true</code> or <code class="highlighter-rouge">false</code> depending on whether the stock price has exceeded a given percentage gain or loss for the day.  Its logic is very similar to the <code class="highlighter-rouge">PriceSpecification</code> that we just discussed.</p>
+
+<p>Other types of specifications that I plan to implement in the future are things like <code class="highlighter-rouge">DividendYieldSpecification</code>, which would return <code class="highlighter-rouge">true</code> when a stock’s dividend yield breaches a certain percentage, or <code class="highlighter-rouge">PeRatioSpecification</code>, which would return <code class="highlighter-rouge">true</code> when a stock’s PE ratio breaches a certain level.</p>
+
+<p>The sky is the limit in terms of what kinds of specifications we can implement and combine into a composite specification.  The specifications that we build are generic in the sense that the specific parameters (price level, operator, etc…) are provided at runtime, so that our <code class="highlighter-rouge">PriceSpecification</code>, for example, can be re-used in any composite specification that needs to test for a price level breach as part of its logic.</p>
+
+<p>Hopefully by now it’s becoming a bit clearer how the specification pattern can be used to construct a complex rule like described at the beginning of this post.</p>
+
+<h2 id="constructing-the-composite-specification">Constructing the Composite Specification</h2>
+
+<p>Now that we have the pieces needed to represent and evaluate a set of criteria, let’s revisit our use case.  Users need to be able to specify their alert criteria at runtime, and the system needs to store these criteria so that it can retrieve them and construct the composite specification and evaluate it on demand when a new stock quote is received.</p>
+
+<h3 id="data-model">Data Model</h3>
+
+<p>The data model to support this use case consists of two tables:</p>
+
+<ul>
+  <li>AlertDefinitions
+    <ul>
+      <li>Contains a record for each user-defined alert.</li>
+      <li>Represents the overall composite specification for an alert for a user for a given stock.</li>
+    </ul>
+  </li>
+  <li>AlertCriteria
+    <ul>
+      <li>Contains a record for each individual criteria that make up an AlertDefinition.</li>
+      <li>Represents an individual specification.</li>
+      <li>One-to-many relationship back to AlertDefinitions.</li>
+      <li>Zero-to-many relationship back to itself.</li>
+      <li>Because AlertCriteria is a self-referencing table, it can be used to represent any number of nodes in a complex composite specification.</li>
+    </ul>
+  </li>
+</ul>
+
+<p><img src="DataModel.PNG" alt="Data Model" /></p>
+
+<h3 id="domain-model">Domain Model</h3>
+
+<p>Moving up to the domain model, we have <a href="https://github.com/jonblankenship/stock-alerts/blob/master/StockAlerts/StockAlerts.Domain/Model/AlertDefinition.cs"><code class="highlighter-rouge">AlertDefinition</code></a> and <a href="https://github.com/jonblankenship/stock-alerts/blob/master/StockAlerts/StockAlerts.Domain/Model/AlertCriteria.cs"><code class="highlighter-rouge">AlertCriteria</code></a> models that are mapped from and correspond with the two tables in the underlying data model.</p>
+
+<p><img src="DomainModel.PNG" alt="Domain Model" /></p>
+
+<p>These domain models make up an aggregate, and <code class="highlighter-rouge">AlertDefinition</code> is the aggregate root.  The persistance of the aggregate is controlled via the <code class="highlighter-rouge">SaveAsync</code> and <code class="highlighter-rouge">DeleteAsync</code> methods on <code class="highlighter-rouge">AlertDefinition</code>.</p>
+
+<p>The domain models contain logic for validating the proper configuration of the composite specification, which is checked at the time the <code class="highlighter-rouge">AlertDefinition</code> is saved.  For example…</p>
+
+<ul>
+  <li>A composite <code class="highlighter-rouge">AlertCriteria</code> can only have certain operators (<code class="highlighter-rouge">AND</code>, <code class="highlighter-rouge">OR</code>, other Boolean operators).</li>
+  <li>A composite <code class="highlighter-rouge">AlertCriteria</code> must have at least one child <code class="highlighter-rouge">AlertCriteria</code>.</li>
+  <li>A non-composite <code class="highlighter-rouge">AlertCriteria</code> cannot have any children.</li>
+  <li>Etc…</li>
+</ul>
+
+<p>The construction and evaluation of the composite specification is triggered in <code class="highlighter-rouge">AlertDefinition.EvaluateAsync(AlertEvaluationMessage message)</code>:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">async</span> <span class="n">Task</span> <span class="nf">EvaluateAsync</span><span class="p">(</span><span class="n">AlertEvaluationMessage</span> <span class="n">message</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">Status</span> <span class="p">==</span> <span class="n">AlertDefinitionStatuses</span><span class="p">.</span><span class="n">Enabled</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(!</span><span class="n">LastSent</span><span class="p">.</span><span class="n">HasValue</span> <span class="p">||</span> <span class="n">DateTimeOffset</span><span class="p">.</span><span class="n">UtcNow</span><span class="p">.</span><span class="n">Date</span> <span class="p">&gt;</span> <span class="n">LastSent</span><span class="p">.</span><span class="n">Value</span><span class="p">.</span><span class="n">Date</span><span class="p">)</span> <span class="c1">// Alert not already sent today</span>
+        <span class="p">{</span>
+            <span class="kt">var</span> <span class="n">specification</span> <span class="p">=</span> <span class="n">_alertCriteriaSpecificationFactory</span><span class="p">.</span><span class="nf">CreateSpecification</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">specification</span><span class="p">.</span><span class="nf">IsSatisfiedBy</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+            <span class="p">{</span>
+                <span class="kt">var</span> <span class="n">subject</span> <span class="p">=</span> <span class="s">$"Stock Alert Triggered: </span><span class="p">{</span><span class="n">Stock</span><span class="p">.</span><span class="n">Symbol</span><span class="p">}</span><span class="s">"</span><span class="p">;</span>
+                <span class="kt">var</span> <span class="n">notificationMessage</span> <span class="p">=</span> <span class="s">$"Stock Alert Triggered </span><span class="p">{</span><span class="n">Environment</span><span class="p">.</span><span class="n">NewLine</span><span class="p">}</span><span class="s">"</span> <span class="p">+</span>
+                                          <span class="s">$"Notification Name: </span><span class="p">{</span><span class="n">Name</span><span class="p">}{</span><span class="n">Environment</span><span class="p">.</span><span class="n">NewLine</span><span class="p">}</span><span class="s">"</span> <span class="p">+</span>
+                                          <span class="s">$"Stock: </span><span class="p">{</span><span class="n">Stock</span><span class="p">.</span><span class="n">Symbol</span><span class="p">}</span><span class="s"> (</span><span class="p">{</span><span class="n">message</span><span class="p">.</span><span class="n">LastPrice</span><span class="p">:</span><span class="n">C</span><span class="p">}</span><span class="s">)</span><span class="p">{</span><span class="n">Environment</span><span class="p">.</span><span class="n">NewLine</span><span class="p">}</span><span class="s">"</span> <span class="p">+</span>
+                                          <span class="s">$"Criteria: </span><span class="p">{</span><span class="n">RootCriteria</span><span class="p">}{</span><span class="n">Environment</span><span class="p">.</span><span class="n">NewLine</span><span class="p">}</span><span class="s">"</span><span class="p">;</span>
+
+                <span class="k">await</span> <span class="nf">TriggerAlertAsync</span><span class="p">(</span><span class="n">subject</span><span class="p">,</span> <span class="n">notificationMessage</span><span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>This is the culmination of all that we’ve been building.  We’ve now got our composite <code class="highlighter-rouge">specification</code> (created by the <code class="highlighter-rouge">_alertCriteriaSpecificationFactory</code>, which we will visit in a moment) representing the user-defined alert definition, and we evaluate the entire set of rules with our call to <code class="highlighter-rouge">specification.IsSatisfiedBy(message)</code>, which simply returns <code class="highlighter-rouge">true</code> or <code class="highlighter-rouge">false</code>.</p>
+
+<p>It may seem rather anti-climactic on the surface, but there is a lot of power within the specification and the beauty of the pattern lies in the simplicity of its interface.  The client simply asks the specification, “Does this object satisfy your criteria?”</p>
+
+<h3 id="factory">Factory</h3>
+
+<p>The <code class="highlighter-rouge">AlertCriteriaSpecificationFactory</code> is the final piece of the puzzle that we’ll look at.  It is responsible for the actual construction of the composite specification and its children from the <code class="highlighter-rouge">AlertDefinition</code>.  It is an example of the <a href="https://en.wikipedia.org/wiki/Factory_method_pattern">factory pattern</a>, a creational design pattern coined by the Gang of Four.</p>
+
+<p>The <code class="highlighter-rouge">AlertCriteriaSpecificationFactory</code> will create any <code class="highlighter-rouge">ISpecification&lt;AlertEvaluationMessage&gt;</code> for a given <code class="highlighter-rouge">AlertDefinition</code>:</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">interface</span> <span class="nc">IAlertCriteriaSpecificationFactory</span>
+<span class="p">{</span>
+    <span class="n">ISpecification</span><span class="p">&lt;</span><span class="n">AlertEvaluationMessage</span><span class="p">&gt;</span> <span class="nf">CreateSpecification</span><span class="p">(</span><span class="n">AlertDefinition</span> <span class="n">alertDefinition</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Though we only publicly expose a single method in the interface for building an <code class="highlighter-rouge">ISpecification</code> from an <code class="highlighter-rouge">AlertDefinition</code>, in the implementation of the factory we see that it is also responsible for building the <code class="highlighter-rouge">ISpecification</code>s that make up the composite from individual <code class="highlighter-rouge">AlertCriteria</code> objects.  The factory contains private methods for constructing each type of specification, and it recursively traverses the tree of alert criteria building the various individual specifications to construct the full composite specification for the <code class="highlighter-rouge">AlertDefinition</code>:</p>
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">AlertCriteriaSpecificationFactory</span> <span class="p">:</span> <span class="n">IAlertCriteriaSpecificationFactory</span>
+<span class="p">{</span>
+    <span class="k">private</span> <span class="k">readonly</span> <span class="n">IDictionary</span><span class="p">&lt;</span><span class="n">CriteriaType</span><span class="p">,</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">AlertCriteria</span><span class="p">,</span> <span class="n">ISpecification</span><span class="p">&lt;</span><span class="n">AlertEvaluationMessage</span><span class="p">&gt;&gt;&gt;</span> <span class="n">_factoryMethods</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="nf">AlertCriteriaSpecificationFactory</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="n">_factoryMethods</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Dictionary</span><span class="p">&lt;</span><span class="n">CriteriaType</span><span class="p">,</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">AlertCriteria</span><span class="p">,</span> <span class="n">ISpecification</span><span class="p">&lt;</span><span class="n">AlertEvaluationMessage</span><span class="p">&gt;&gt;&gt;</span>
+        <span class="p">{</span>
+            <span class="p">{</span> <span class="n">CriteriaType</span><span class="p">.</span><span class="n">Composite</span><span class="p">,</span> <span class="n">CreateCompositeSpecification</span> <span class="p">},</span>
+            <span class="p">{</span> <span class="n">CriteriaType</span><span class="p">.</span><span class="n">Price</span><span class="p">,</span> <span class="n">CreatePriceSpecification</span> <span class="p">},</span>
+            <span class="p">{</span> <span class="n">CriteriaType</span><span class="p">.</span><span class="n">DailyPercentageGainLoss</span><span class="p">,</span> <span class="n">CreateDailyPercentageGainLossSpecification</span> <span class="p">}</span>
+        <span class="p">};</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="n">ISpecification</span><span class="p">&lt;</span><span class="n">AlertEvaluationMessage</span><span class="p">&gt;</span> <span class="nf">CreateSpecification</span><span class="p">(</span><span class="n">AlertDefinition</span> <span class="n">alertDefinition</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">return</span> <span class="nf">CreateSpecification</span><span class="p">(</span><span class="n">alertDefinition</span><span class="p">.</span><span class="n">RootCriteria</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="n">ISpecification</span><span class="p">&lt;</span><span class="n">AlertEvaluationMessage</span><span class="p">&gt;</span> <span class="nf">CreateSpecification</span><span class="p">(</span><span class="n">AlertCriteria</span> <span class="n">alertCriteria</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="kt">var</span> <span class="n">factoryMethod</span> <span class="p">=</span> <span class="n">_factoryMethods</span><span class="p">[</span><span class="n">alertCriteria</span><span class="p">.</span><span class="n">Type</span><span class="p">];</span>
+        <span class="k">return</span> <span class="n">factoryMethod</span><span class="p">.</span><span class="nf">Invoke</span><span class="p">(</span><span class="n">alertCriteria</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">private</span> <span class="n">ISpecification</span><span class="p">&lt;</span><span class="n">AlertEvaluationMessage</span><span class="p">&gt;</span> <span class="nf">CreateCompositeSpecification</span><span class="p">(</span>
+        <span class="n">AlertCriteria</span> <span class="n">alertCriteria</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">CompositeSpecification</span><span class="p">&lt;</span><span class="n">AlertEvaluationMessage</span><span class="p">&gt;</span> <span class="n">specification</span><span class="p">;</span>
+        
+        <span class="k">if</span> <span class="p">(</span><span class="n">alertCriteria</span><span class="p">.</span><span class="n">Operator</span> <span class="p">==</span> <span class="n">CriteriaOperator</span><span class="p">.</span><span class="n">And</span><span class="p">)</span>
+            <span class="n">specification</span> <span class="p">=</span> <span class="k">new</span> <span class="n">AndSpecification</span><span class="p">&lt;</span><span class="n">AlertEvaluationMessage</span><span class="p">&gt;();</span>
+        <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">alertCriteria</span><span class="p">.</span><span class="n">Operator</span> <span class="p">==</span> <span class="n">CriteriaOperator</span><span class="p">.</span><span class="n">Or</span><span class="p">)</span>
+            <span class="n">specification</span> <span class="p">=</span> <span class="k">new</span> <span class="n">OrSpecification</span><span class="p">&lt;</span><span class="n">AlertEvaluationMessage</span><span class="p">&gt;();</span>
+        <span class="k">else</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nf">ApplicationException</span><span class="p">(</span><span class="s">"Operator not supported."</span><span class="p">);</span>
+
+        <span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">c</span> <span class="k">in</span> <span class="n">alertCriteria</span><span class="p">.</span><span class="n">ChildrenCriteria</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="n">specification</span><span class="p">.</span><span class="nf">AddChildSpecification</span><span class="p">(</span><span class="nf">CreateSpecification</span><span class="p">(</span><span class="n">c</span><span class="p">));</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">specification</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">private</span> <span class="n">ISpecification</span><span class="p">&lt;</span><span class="n">AlertEvaluationMessage</span><span class="p">&gt;</span> <span class="nf">CreatePriceSpecification</span><span class="p">(</span>
+        <span class="n">AlertCriteria</span> <span class="n">alertCriteria</span><span class="p">)</span> <span class="p">=&gt;</span>
+        <span class="k">new</span> <span class="nf">PriceSpecification</span><span class="p">(</span><span class="n">alertCriteria</span><span class="p">);</span>
+
+    <span class="k">private</span> <span class="n">ISpecification</span><span class="p">&lt;</span><span class="n">AlertEvaluationMessage</span><span class="p">&gt;</span> <span class="nf">CreateDailyPercentageGainLossSpecification</span><span class="p">(</span>
+        <span class="n">AlertCriteria</span> <span class="n">alertCriteria</span><span class="p">)</span> <span class="p">=&gt;</span>
+        <span class="k">new</span> <span class="nf">DailyPercentageGainLossSpecification</span><span class="p">(</span><span class="n">alertCriteria</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="wrapping-up">Wrapping Up</h2>
+
+<p>Whew!</p>
+
+<p>This was a long post, but I hope it has been a helpful introduction to the specification pattern.  It’s a powerful pattern for modeling and evaluating complex rules that goes a long way towards minimizing complexity when applied to an appropriate use case.</p>
+
+<p>A composite specification can be constructed at design-time for cases where the rules are known ahead of time.  It simplifies things a bit while still providing all of the benefits of the pattern.  Many use cases fall into this category.</p>
+
+<p>On the other hand, if the rules aren’t known until runtime (as in our case, where the stock alert criteria are user-defined), the composite specification can be created from a representation of the rules stored as records in a database, resulting in a full-blown data-driven rules engine, as we demonstrated in this post.</p>
+
+<p>As always, thanks for reading!</p>
+
+<p>-Jon</p>
+
+      </div>
+      
+      <div class="post-footer">
+          <ul class="post-tags">
+          
+            
+            <li><a href="/tag/stock-alerts">stock-alerts</a></li>
+          
+            
+            <li><a href="/tag/specification-pattern">specification-pattern</a></li>
+          
+            
+            <li><a href="/tag/design-patterns">design-patterns</a></li>
+          
+            
+            <li><a href="/tag/composite-pattern">composite-pattern</a></li>
+          
+            
+            <li><a href="/tag/factory-pattern">factory-pattern</a></li>
+          
+            
+            <li><a href="/tag/domain-driven-design">domain-driven-design</a></li>
+          
+            
+            <li><a href="/tag/architecture">architecture</a></li>
+          
+            
+            <li><a href="/tag/eric-evans">eric-evans</a></li>
+          
+            
+            <li><a href="/tag/martin-fowler">martin-fowler</a></li>
+          
+            
+            <li><a href="/tag/rules-engine">rules-engine</a></li>
+          
+            
+            <li><a href="/tag/c-sharp">c-sharp</a></li>
+          
+          </ul>
+      </div>
+
+        <!-- Configure Disqus --></div>
+  </main></body>
+</html>

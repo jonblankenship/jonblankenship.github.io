@@ -1,4 +1,444 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.6">Jekyll</generator><link href="https://blog.jonblankenship.com//feed.xml" rel="self" type="application/atom+xml" /><link href="https://blog.jonblankenship.com//" rel="alternate" type="text/html" /><updated>2019-09-30T16:05:24-05:00</updated><id>https://blog.jonblankenship.com//feed.xml</id><title type="html">Jon Blankenship</title><subtitle>Developer.</subtitle><entry><title type="html">Create/Edit Screens, Bindable Layouts, and More</title><link href="https://blog.jonblankenship.com//2019/07/21/create-edit-screens-bindable-layouts-and-more-update-2019-07-21/" rel="alternate" type="text/html" title="Create/Edit Screens, Bindable Layouts, and More" /><published>2019-07-21T02:00:00-05:00</published><updated>2019-07-21T02:00:00-05:00</updated><id>https://blog.jonblankenship.com//2019/07/21/create-edit-screens-bindable-layouts-and-more-update-2019-07-21</id><content type="html" xml:base="https://blog.jonblankenship.com//2019/07/21/create-edit-screens-bindable-layouts-and-more-update-2019-07-21/">&lt;p&gt;Since my &lt;a href=&quot;https://blog.jonblankenship.com/2019/07/09/moving-from-http-triggered-azure-functions-to-web-api-update-2019-07-09/&quot;&gt;last update&lt;/a&gt; I’ve been focused on building the Create Alert Definition screen in the Stock Alerts mobile app project. It’s been slow but steady progress, and I’m happy to report that both the Create Alert Definition and Edit Alert Definition screens are now functional. (Technically they’re both the same screen, but I’ve been treating them separately from a work management perspective.)&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.6">Jekyll</generator><link href="https://blog.jonblankenship.com//feed.xml" rel="self" type="application/atom+xml" /><link href="https://blog.jonblankenship.com//" rel="alternate" type="text/html" /><updated>2019-10-04T21:07:26-05:00</updated><id>https://blog.jonblankenship.com//feed.xml</id><title type="html">Jon Blankenship</title><subtitle>Developer.</subtitle><author><name>Jon_Blankenship</name></author><entry><title type="html">Using the Specification Pattern to Build a Data-Driven Rules Engine</title><link href="https://blog.jonblankenship.com//2019/10/04/using-the-specification-pattern-to-build-a-data-driven-rules-engine/" rel="alternate" type="text/html" title="Using the Specification Pattern to Build a Data-Driven Rules Engine" /><published>2019-10-04T02:00:00-05:00</published><updated>2019-10-04T02:00:00-05:00</updated><id>https://blog.jonblankenship.com//2019/10/04/using-the-specification-pattern-to-build-a-data-driven-rules-engine</id><content type="html" xml:base="https://blog.jonblankenship.com//2019/10/04/using-the-specification-pattern-to-build-a-data-driven-rules-engine/">&lt;p&gt;In my &lt;a href=&quot;https://blog.jonblankenship.com/tag/stock-alerts/&quot;&gt;Stock Alerts&lt;/a&gt; project, the user configures criteria for a given stock that should be evaluated continuously and trigger a notification to the user when the criteria are satisfied.&lt;/p&gt;
+
+&lt;p&gt;Rather than simply setting a single price trigger, I want the user to be able to specify multiple types of criteria and combine them using Boolean logic to form a complex rule.&lt;/p&gt;
+
+&lt;!--more--&gt;
+
+&lt;p&gt;For example, a dividend growth investor might want to be notified when JNJ meets the following criteria:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Dividend &amp;gt; 2.5% &lt;strong&gt;AND&lt;/strong&gt;&lt;/li&gt;
+  &lt;li&gt;Payout Ratio &amp;lt; 50% &lt;strong&gt;AND&lt;/strong&gt;&lt;/li&gt;
+  &lt;li&gt;(PE Ratio &amp;lt; 20 &lt;strong&gt;OR&lt;/strong&gt; Price &amp;lt; 130)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&quot;DecisionTree.PNG&quot; alt=&quot;Stock Alert Rules&quot; class=&quot;w-50&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Another investor might want a completely different set of criteria to alert them when their momentum stock darling is about to take off out of a range.&lt;/p&gt;
+
+&lt;p&gt;So how do we accomplish this in a clean, configurable, and testable manner?&lt;/p&gt;
+
+&lt;h2 id=&quot;enter-the-specification-pattern&quot;&gt;Enter the Specification Pattern&lt;/h2&gt;
+
+&lt;p&gt;The specification pattern has been a valuable tool in my toolbox in the past, and it is the perfect tool for the job ahead of us today: building a data-driven rules engine.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://amzn.to/2mqUJXv&quot;&gt;&lt;img src=&quot;Domain-Driven Design.jpg&quot; alt=&quot;Domain-Driven Design&quot; class=&quot;float-right&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;The pattern was introduced by Eric Evans, author of &lt;a href=&quot;https://amzn.to/2mqUJXv&quot;&gt;Domain-Driven Design: Tackling Complexity in the Heart of Software&lt;/a&gt; and father of the domain-driven design (DDD) approach to software development.  Evans and &lt;a href=&quot;https://www.martinfowler.com/&quot;&gt;Martin Fowler&lt;/a&gt; co-wrote a &lt;a href=&quot;https://www.martinfowler.com/apsupp/spec.pdf&quot;&gt;white paper&lt;/a&gt; on specifications that is well worth the read addressing the uses of specification, types of specifications, and consequences of specification.&lt;/p&gt;
+
+&lt;p&gt;The &lt;a href=&quot;https://en.wikipedia.org/wiki/Specification_pattern&quot;&gt;Wikipedia article&lt;/a&gt; on the specification pattern gives us a pretty good definition (as well as some sample C# code) to start with:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;In computer programming, the &lt;strong&gt;specification pattern&lt;/strong&gt; is a particular &lt;a href=&quot;https://en.wikipedia.org/wiki/Software_design_pattern&quot;&gt;software design pattern&lt;/a&gt;, whereby &lt;a href=&quot;https://en.wikipedia.org/wiki/Business_rules&quot;&gt;business rules&lt;/a&gt; can be recombined by chaining the business rules together using boolean logic.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://www.martinfowler.com/apsupp/spec.pdf&quot;&gt;Evans and Fowler&lt;/a&gt; identify the core problems to which the specification pattern is applicable:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;ul&gt;
+    &lt;li&gt;Selection: You need to select a subset of objects based on some criteria, and to refresh the selection at various times&lt;/li&gt;
+    &lt;li&gt;Validation: You need to check that only suitable objects are used for a certain purpose&lt;/li&gt;
+    &lt;li&gt;Construction-to-order: You need to describe what an object might do, without explaining the details of how the object does it, but in such a way that a candidate might be built to fulfill the requirement.&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;The solution to each of these problems is to build a specification that defines the criteria that an object must meet to satisfy the specification.  Typically, a specification has a method &lt;code class=&quot;highlighter-rouge&quot;&gt;IsSatisfied(candidate)&lt;/code&gt; that takes the candidate object as a parameter.  The method returns &lt;code class=&quot;highlighter-rouge&quot;&gt;true&lt;/code&gt; or &lt;code class=&quot;highlighter-rouge&quot;&gt;false&lt;/code&gt;, depending on whether the candidate satisfies the criteria of the specification.&lt;/p&gt;
+
+&lt;p&gt;In this post, we’ll focus on a particular type of specification, a &lt;strong&gt;composite specification&lt;/strong&gt;, to build our rules engine.  This type of specification gets its name from the fact that it is an implementation of another commonly used design pattern: the composite pattern.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-composite-pattern&quot;&gt;The Composite Pattern&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://www.amazon.com/gp/product/0201633612/ref=as_li_tl?ie=UTF8&amp;amp;camp=1789&amp;amp;creative=9325&amp;amp;creativeASIN=0201633612&amp;amp;linkCode=as2&amp;amp;tag=jon100-20&amp;amp;linkId=a0440d199ca01de7a55bd344a1aa4f7b&quot;&gt;&lt;img src=&quot;Design Patterns.jpg&quot; alt=&quot;&amp;quot;Design Patterns&amp;quot;&quot; class=&quot;float-right&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;The composite pattern is one of the twenty-three software design patterns introduced in the Gang of Four’s  (GoF) seminal work, &lt;a href=&quot;https://www.amazon.com/gp/product/0201633612/ref=as_li_tl?ie=UTF8&amp;amp;tag=jon100-20&amp;amp;camp=1789&amp;amp;creative=9325&amp;amp;linkCode=as2&amp;amp;creativeASIN=0201633612&amp;amp;linkId=ce0a3b2651f5de39016ad1aa1f003b80&quot;&gt;Design Patterns: Elements of Reusable Object-Oriented Software&lt;/a&gt;.  The authors classify the patterns into one of three categories: creational, structural and behavioral.  The composite pattern is a structural pattern, meaning it is a pattern that describes how entities relate to each other with the goal of simplifying the structure of a system.&lt;/p&gt;
+
+&lt;p&gt;The composite pattern describes a group of entities that can be combined into a tree-like structure, where the individual parts have the same interface as the structure as a whole, allowing clients to interact with the parts and the whole uniformly.  This is where the advantage of the composite pattern lies.  By treating the composite and its components uniformly, clients avoid having to discriminate between a leaf node and a branch, reducing complexity and the potential for error.&lt;/p&gt;
+
+&lt;p&gt;Further, by structuring a component as a composite of primitive objects that are recombinable, we get the benefits of code reuse as we are able to leverage existing components to build other composites.  We’ll see this in practice as we get into the code for our rules engine.&lt;/p&gt;
+
+&lt;h2 id=&quot;specification-building-blocks&quot;&gt;Specification Building Blocks&lt;/h2&gt;
+
+&lt;p&gt;So let’s move from the abstract to the concrete and see some code.  Before we start to think about domain-specific rules that we need to implement, we’ll need a few building blocks first.&lt;/p&gt;
+
+&lt;h3 id=&quot;ispecification&quot;&gt;ISpecification&lt;/h3&gt;
+
+&lt;p&gt;First, we need an interface for interacting with the composite specification as a whole, as well as its individual component specifications.  So here’s our &lt;code class=&quot;highlighter-rouge&quot;&gt;ISpecification&lt;/code&gt; interface:&lt;/p&gt;
+
+&lt;div class=&quot;language-c# highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;interface&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ISpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TCandidate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;bool&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;IsSatisfiedBy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCandidate&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;candidate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;It’s a very simple interface consisting of one method, &lt;code class=&quot;highlighter-rouge&quot;&gt;IsSatisfiedBy(TCandidate candidate)&lt;/code&gt;, which returns true or false depending on whether the given specification is satisfied by the candidate passed to it.&lt;/p&gt;
+
+&lt;p&gt;The type parameter &lt;code class=&quot;highlighter-rouge&quot;&gt;TCandidate&lt;/code&gt; specifies the type of object that the specification will be used to evaluate.  In the case of a composite specification, the type of candidate object passed to the root node will be passed to the child nodes, so the type is expected to be the same for all individual specifications that make up a composite specification.&lt;/p&gt;
+
+&lt;h3 id=&quot;compositespecification&quot;&gt;CompositeSpecification&lt;/h3&gt;
+
+&lt;p&gt;Next, we have an abstract class &lt;code class=&quot;highlighter-rouge&quot;&gt;CompositeSpecification&lt;/code&gt;, which will be the base class for any branch (non-leaf) nodes in our composite specification:&lt;/p&gt;
+
+&lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;abstract&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;CompositeSpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCandidate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ISpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCandidate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;protected&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;readonly&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ISpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCandidate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_childSpecifications&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ISpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCandidate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&amp;gt;();&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;AddChildSpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ISpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCandidate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;childSpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;_childSpecifications&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;Add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;childSpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;abstract&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;bool&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;IsSatisfiedBy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCandidate&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;candidate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IReadOnlyCollection&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ISpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCandidate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Children&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_childSpecifications&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;AsReadOnly&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The main behavior that &lt;code class=&quot;highlighter-rouge&quot;&gt;CompositeSpecification&lt;/code&gt; implements here is the management of a node’s child specifications.  It handles the addition of a child specification to the composite specification, and it exposes the child specifications as a read-only collection that can be traversed.&lt;/p&gt;
+
+&lt;h3 id=&quot;boolean-specifications&quot;&gt;Boolean Specifications&lt;/h3&gt;
+
+&lt;p&gt;The branches (non-leaf nodes) are specifications that represent Boolean operations that connect 1..n other specifications, and they derive from &lt;code class=&quot;highlighter-rouge&quot;&gt;CompositeSpecification&lt;/code&gt;.  For our initial implementation, we have &lt;strong&gt;AND&lt;/strong&gt; and &lt;strong&gt;OR&lt;/strong&gt; specifications (short-circuited).&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;AndSpecification&lt;/code&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;AndSpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCandidate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CompositeSpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCandidate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;bool&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;IsSatisfiedBy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCandidate&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;candidate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_childSpecifications&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;Any&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+        &lt;span class=&quot;k&quot;&gt;foreach&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;s&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_childSpecifications&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;IsSatisfiedBy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;candidate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;OrSpecification&lt;/code&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;OrSpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCandidate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CompositeSpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCandidate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;bool&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;IsSatisfiedBy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCandidate&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;candidate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_childSpecifications&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;Any&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+        &lt;span class=&quot;k&quot;&gt;foreach&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;s&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_childSpecifications&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;IsSatisfiedBy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;candidate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Of course, other Boolean operators, such as &lt;strong&gt;NOT&lt;/strong&gt; and &lt;strong&gt;XOR&lt;/strong&gt;, could be implemented without too much difficulty, but these are the only two that I’ve needed so far for my application, and they are sufficient for demonstrating the pattern.&lt;/p&gt;
+
+&lt;h4 id=&quot;unit-testing-the-boolean-specifications&quot;&gt;Unit Testing the Boolean Specifications&lt;/h4&gt;
+
+&lt;p&gt;Before we move on to the domain-specification specifications, let’s talk briefly about unit testing.  One of the attractive characteristics of the specification pattern is the ease with which specifications can be unit-tested due to the clear boundaries around small, individual chunks of logic.&lt;/p&gt;
+
+&lt;p&gt;To assist with unit-testing, I’ve implemented very simple &lt;strong&gt;True&lt;/strong&gt; and &lt;strong&gt;False&lt;/strong&gt; specifications:&lt;/p&gt;
+
+&lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;TrueSpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCandidate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ISpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCandidate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;bool&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;IsSatisfiedBy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCandidate&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;candidate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;FalseSpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCandidate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ISpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCandidate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;bool&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;IsSatisfiedBy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TCandidate&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;candidate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;These one-line specifications aren’t useful in application code, but they come in handy when unit-testing the branch (non-leaf) node specifications.  Here’s one of the unit tests for the &lt;code class=&quot;highlighter-rouge&quot;&gt;AndSpecification&lt;/code&gt;, utilizing the &lt;code class=&quot;highlighter-rouge&quot;&gt;TrueSpecification&lt;/code&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Fact&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;IsSatisfiedBy_TwoTrueChildren_True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// Arrange&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;spec&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AndSpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AlertEvaluationMessage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;();&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;spec&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;AddChildSpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TrueSpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AlertEvaluationMessage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;());&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;spec&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;AddChildSpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TrueSpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AlertEvaluationMessage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;());&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;message&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;AlertEvaluationMessage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;// Act&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;spec&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;IsSatisfiedBy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;message&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;// Assert&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;Should&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;BeTrue&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;TrueSpecification&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;FalseSpecification&lt;/code&gt; facilitate the writing of straight-forward unit tests like the one above that zero in on the unit under test (&lt;code class=&quot;highlighter-rouge&quot;&gt;AndSpecification.IsSatisfiedBy(..)&lt;/code&gt; in this case).  (You may be wondering about &lt;code class=&quot;highlighter-rouge&quot;&gt;AlertEvaluationMessage&lt;/code&gt; - it is the type of the candidate object that we are evaluating, which we’ll examine in a bit.)&lt;/p&gt;
+
+&lt;h2 id=&quot;domain-specific-specifications&quot;&gt;Domain-Specific Specifications&lt;/h2&gt;
+
+&lt;p&gt;Now that we have the building blocks needed to build &lt;em&gt;any&lt;/em&gt; specification, we’re ready to look at the things we’ll need to build specifications specific to our domain: stock alerts.  As we transition from discussing the Boolean specifications to talking about domain-specific specifications, our focus is moving from the branch (non-leaf) nodes of the composite specification to the leaf nodes.&lt;/p&gt;
+
+&lt;h3 id=&quot;pricespecification&quot;&gt;PriceSpecification&lt;/h3&gt;
+
+&lt;p&gt;One of the main criteria that our specification will have to test for is, when given a new price quote, whether the new price exceeds a certain level.  For this, we’ll create a &lt;code class=&quot;highlighter-rouge&quot;&gt;PriceSpecification&lt;/code&gt; that is aware of an alert criteria specifying an important price level, and it will return true or false depending on whether a new stock quote breaches that level:&lt;/p&gt;
+
+&lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;PriceSpecification&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ISpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AlertEvaluationMessage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;readonly&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AlertCriteria&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_alertCriteria&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;PriceSpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AlertCriteria&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alertCriteria&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;_alertCriteria&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alertCriteria&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;??&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;throw&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;ArgumentNullException&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;nameof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;alertCriteria&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;bool&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;IsSatisfiedBy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AlertEvaluationMessage&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;candidate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_alertCriteria&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Operator&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CriteriaOperator&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;GreaterThan&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;candidate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LastPrice&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_alertCriteria&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Level&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;candidate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;PreviousLastPrice&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;&amp;lt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_alertCriteria&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Level&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_alertCriteria&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Operator&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CriteriaOperator&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;GreaterThanOrEqualTo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;candidate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LastPrice&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;&amp;gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_alertCriteria&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Level&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt;
+                   &lt;span class=&quot;n&quot;&gt;candidate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;PreviousLastPrice&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_alertCriteria&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Level&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_alertCriteria&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Operator&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CriteriaOperator&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Equals&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;candidate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LastPrice&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_alertCriteria&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Level&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt;
+                   &lt;span class=&quot;n&quot;&gt;candidate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;PreviousLastPrice&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_alertCriteria&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Level&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_alertCriteria&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Operator&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CriteriaOperator&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LessThanOrEqualTo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;candidate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LastPrice&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;&amp;lt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_alertCriteria&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Level&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt;
+                   &lt;span class=&quot;n&quot;&gt;candidate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;PreviousLastPrice&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_alertCriteria&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Level&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_alertCriteria&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Operator&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CriteriaOperator&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LessThan&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;candidate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LastPrice&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_alertCriteria&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Level&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt;
+                   &lt;span class=&quot;n&quot;&gt;candidate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;PreviousLastPrice&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;&amp;gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_alertCriteria&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Level&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h4 id=&quot;alertcriteria&quot;&gt;AlertCriteria&lt;/h4&gt;
+
+&lt;p&gt;This specification has a domain model passed to it at the time it is constructed: &lt;code class=&quot;highlighter-rouge&quot;&gt;AlertCriteria&lt;/code&gt;.  We’ll look at just the few properties of &lt;code class=&quot;highlighter-rouge&quot;&gt;AlertCriteria&lt;/code&gt; that are relevant to this particular specification for now:&lt;/p&gt;
+
+&lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;AlertCriteria&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// snip&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CriteriaType&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Type&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CriteriaOperator&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Operator&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;decimal&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;?&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Level&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;// snip&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;Type&lt;/code&gt; specifies the alert &lt;a href=&quot;https://github.com/jonblankenship/stock-alerts/blob/master/StockAlerts/StockAlerts.Core/Enums/CriteriaType.cs&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;CriteriaType&lt;/code&gt;&lt;/a&gt; that we’re evaluating.  Possible values are &lt;code class=&quot;highlighter-rouge&quot;&gt;Composite&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;Price&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;DailyPercentageGainLoss&lt;/code&gt;, and there will likely be more.  &lt;code class=&quot;highlighter-rouge&quot;&gt;Operator&lt;/code&gt; specifies the &lt;a href=&quot;https://github.com/jonblankenship/stock-alerts/blob/master/StockAlerts/StockAlerts.Core/Enums/CriteriaOperator.cs&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;CriteriaOperator&lt;/code&gt;&lt;/a&gt; that applies for the particular scenario we’re evaluating.  Finally, if we need to trigger a price alert, we need to know at which level it should be triggered, which is what is specified by the &lt;code class=&quot;highlighter-rouge&quot;&gt;Level&lt;/code&gt; property.  With these three pieces of data, we have what we need to know to create a specification that represents a price alert for a given stock’s price becomes greater than or equal to $150, for example.&lt;/p&gt;
+
+&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;AlertCriteria&lt;/code&gt; domain object will ultimately come from the database, and is a key part of the data model that will make this a data-driven rules engine.  We’ll look at it more closely in bit.&lt;/p&gt;
+
+&lt;h4 id=&quot;alertevaluationmessage&quot;&gt;AlertEvaluationMessage&lt;/h4&gt;
+
+&lt;p&gt;The next piece needed for our &lt;code class=&quot;highlighter-rouge&quot;&gt;PriceSpecification&lt;/code&gt; is &lt;code class=&quot;highlighter-rouge&quot;&gt;AlertEvaluationMessage&lt;/code&gt;, which is the type of candidate object that our specification is designed to evaluate.  In our example, &lt;code class=&quot;highlighter-rouge&quot;&gt;AlertEvaluationMessage&lt;/code&gt; represents a new price quote (named &lt;code class=&quot;highlighter-rouge&quot;&gt;Message&lt;/code&gt; since in this particular case it’s being pulled off of a message queue).&lt;/p&gt;
+
+&lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;AlertEvaluationMessage&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Guid&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AlertDefinitionId&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;decimal&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;LastPrice&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;decimal&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;PreviousLastPrice&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;decimal&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;OpenPrice&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The relevant properties here for our &lt;code class=&quot;highlighter-rouge&quot;&gt;PriceSpecification&lt;/code&gt; are &lt;code class=&quot;highlighter-rouge&quot;&gt;LastPrice&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;PreviousLastPrice&lt;/code&gt;, so that we can determine whether a price has crossed a certain price level.&lt;/p&gt;
+
+&lt;h4 id=&quot;issatisfiedbyalertevaluationmessage-candidate&quot;&gt;IsSatisfiedBy(AlertEvaluationMessage candidate)&lt;/h4&gt;
+
+&lt;p&gt;Now that we have the required information, we can evaluate whether the &lt;code class=&quot;highlighter-rouge&quot;&gt;PriceSpecification&lt;/code&gt; for our particular &lt;code class=&quot;highlighter-rouge&quot;&gt;AlertCriteria&lt;/code&gt; is satisfied by the candidate &lt;code class=&quot;highlighter-rouge&quot;&gt;AlertEvaluationMessage&lt;/code&gt; object.  &lt;code class=&quot;highlighter-rouge&quot;&gt;IsSatisfiedBy(AlertEvaluationMessage candidate)&lt;/code&gt; is a fairly simple set of &lt;code class=&quot;highlighter-rouge&quot;&gt;if&lt;/code&gt; statements that perform comparisons between &lt;code class=&quot;highlighter-rouge&quot;&gt;_alertCriteria.Level&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;candidate.LastPrice&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;candidate.PreviousLastPrice&lt;/code&gt; depending on &lt;code class=&quot;highlighter-rouge&quot;&gt;_alertCriteria.Operator&lt;/code&gt; and returns &lt;code class=&quot;highlighter-rouge&quot;&gt;true&lt;/code&gt; or &lt;code class=&quot;highlighter-rouge&quot;&gt;false&lt;/code&gt; to indicate whether the price level has been breached.&lt;/p&gt;
+
+&lt;h3 id=&quot;other-domain-specific-specifications&quot;&gt;Other Domain-Specific Specifications&lt;/h3&gt;
+
+&lt;p&gt;I’ve also implemented a &lt;a href=&quot;https://github.com/jonblankenship/stock-alerts/blob/master/StockAlerts/StockAlerts.Domain/Specifications/DailyPercentageGainLossSpecification.cs&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;DailyPercentageGainLossSpecification&lt;/code&gt;&lt;/a&gt;, which returns &lt;code class=&quot;highlighter-rouge&quot;&gt;true&lt;/code&gt; or &lt;code class=&quot;highlighter-rouge&quot;&gt;false&lt;/code&gt; depending on whether the stock price has exceeded a given percentage gain or loss for the day.  Its logic is very similar to the &lt;code class=&quot;highlighter-rouge&quot;&gt;PriceSpecification&lt;/code&gt; that we just discussed.&lt;/p&gt;
+
+&lt;p&gt;Other types of specifications that I plan to implement in the future are things like &lt;code class=&quot;highlighter-rouge&quot;&gt;DividendYieldSpecification&lt;/code&gt;, which would return &lt;code class=&quot;highlighter-rouge&quot;&gt;true&lt;/code&gt; when a stock’s dividend yield breaches a certain percentage, or &lt;code class=&quot;highlighter-rouge&quot;&gt;PeRatioSpecification&lt;/code&gt;, which would return &lt;code class=&quot;highlighter-rouge&quot;&gt;true&lt;/code&gt; when a stock’s PE ratio breaches a certain level.&lt;/p&gt;
+
+&lt;p&gt;The sky is the limit in terms of what kinds of specifications we can implement and combine into a composite specification.  The specifications that we build are generic in the sense that the specific parameters (price level, operator, etc…) are provided at runtime, so that our &lt;code class=&quot;highlighter-rouge&quot;&gt;PriceSpecification&lt;/code&gt;, for example, can be re-used in any composite specification that needs to test for a price level breach as part of its logic.&lt;/p&gt;
+
+&lt;p&gt;Hopefully by now it’s becoming a bit clearer how the specification pattern can be used to construct a complex rule like described at the beginning of this post.&lt;/p&gt;
+
+&lt;h2 id=&quot;constructing-the-composite-specification&quot;&gt;Constructing the Composite Specification&lt;/h2&gt;
+
+&lt;p&gt;Now that we have the pieces needed to represent and evaluate a set of criteria, let’s revisit our use case.  Users need to be able to specify their alert criteria at runtime, and the system needs to store these criteria so that it can retrieve them and construct the composite specification and evaluate it on demand when a new stock quote is received.&lt;/p&gt;
+
+&lt;h3 id=&quot;data-model&quot;&gt;Data Model&lt;/h3&gt;
+
+&lt;p&gt;The data model to support this use case consists of two tables:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;AlertDefinitions
+    &lt;ul&gt;
+      &lt;li&gt;Contains a record for each user-defined alert.&lt;/li&gt;
+      &lt;li&gt;Represents the overall composite specification for an alert for a user for a given stock.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;AlertCriteria
+    &lt;ul&gt;
+      &lt;li&gt;Contains a record for each individual criteria that make up an AlertDefinition.&lt;/li&gt;
+      &lt;li&gt;Represents an individual specification.&lt;/li&gt;
+      &lt;li&gt;One-to-many relationship back to AlertDefinitions.&lt;/li&gt;
+      &lt;li&gt;Zero-to-many relationship back to itself.&lt;/li&gt;
+      &lt;li&gt;Because AlertCriteria is a self-referencing table, it can be used to represent any number of nodes in a complex composite specification.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&quot;DataModel.PNG&quot; alt=&quot;Data Model&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;domain-model&quot;&gt;Domain Model&lt;/h3&gt;
+
+&lt;p&gt;Moving up to the domain model, we have &lt;a href=&quot;https://github.com/jonblankenship/stock-alerts/blob/master/StockAlerts/StockAlerts.Domain/Model/AlertDefinition.cs&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;AlertDefinition&lt;/code&gt;&lt;/a&gt; and &lt;a href=&quot;https://github.com/jonblankenship/stock-alerts/blob/master/StockAlerts/StockAlerts.Domain/Model/AlertCriteria.cs&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;AlertCriteria&lt;/code&gt;&lt;/a&gt; models that are mapped from and correspond with the two tables in the underlying data model.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;DomainModel.PNG&quot; alt=&quot;Domain Model&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;These domain models make up an aggregate, and &lt;code class=&quot;highlighter-rouge&quot;&gt;AlertDefinition&lt;/code&gt; is the aggregate root.  The persistance of the aggregate is controlled via the &lt;code class=&quot;highlighter-rouge&quot;&gt;SaveAsync&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;DeleteAsync&lt;/code&gt; methods on &lt;code class=&quot;highlighter-rouge&quot;&gt;AlertDefinition&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;The domain models contain logic for validating the proper configuration of the composite specification, which is checked at the time the &lt;code class=&quot;highlighter-rouge&quot;&gt;AlertDefinition&lt;/code&gt; is saved.  For example…&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;A composite &lt;code class=&quot;highlighter-rouge&quot;&gt;AlertCriteria&lt;/code&gt; can only have certain operators (&lt;code class=&quot;highlighter-rouge&quot;&gt;AND&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;OR&lt;/code&gt;, other Boolean operators).&lt;/li&gt;
+  &lt;li&gt;A composite &lt;code class=&quot;highlighter-rouge&quot;&gt;AlertCriteria&lt;/code&gt; must have at least one child &lt;code class=&quot;highlighter-rouge&quot;&gt;AlertCriteria&lt;/code&gt;.&lt;/li&gt;
+  &lt;li&gt;A non-composite &lt;code class=&quot;highlighter-rouge&quot;&gt;AlertCriteria&lt;/code&gt; cannot have any children.&lt;/li&gt;
+  &lt;li&gt;Etc…&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The construction and evaluation of the composite specification is triggered in &lt;code class=&quot;highlighter-rouge&quot;&gt;AlertDefinition.EvaluateAsync(AlertEvaluationMessage message)&lt;/code&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;async&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Task&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;EvaluateAsync&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AlertEvaluationMessage&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;message&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Status&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AlertDefinitionStatuses&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Enabled&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LastSent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;HasValue&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;||&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DateTimeOffset&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;UtcNow&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Date&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;LastSent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Date&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// Alert not already sent today&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;specification&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_alertCriteriaSpecificationFactory&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;CreateSpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;specification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;IsSatisfiedBy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;message&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+            &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+                &lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;subject&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;$&quot;Stock Alert Triggered: &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Stock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Symbol&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+                &lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;notificationMessage&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;$&quot;Stock Alert Triggered &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Environment&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NewLine&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;+&lt;/span&gt;
+                                          &lt;span class=&quot;s&quot;&gt;$&quot;Notification Name: &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Environment&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NewLine&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;+&lt;/span&gt;
+                                          &lt;span class=&quot;s&quot;&gt;$&quot;Stock: &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Stock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Symbol&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s&quot;&gt; (&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;message&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LastPrice&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;C&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Environment&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NewLine&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;+&lt;/span&gt;
+                                          &lt;span class=&quot;s&quot;&gt;$&quot;Criteria: &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RootCriteria&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Environment&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NewLine&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+                &lt;span class=&quot;k&quot;&gt;await&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;TriggerAlertAsync&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;subject&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;notificationMessage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+            &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;This is the culmination of all that we’ve been building.  We’ve now got our composite &lt;code class=&quot;highlighter-rouge&quot;&gt;specification&lt;/code&gt; (created by the &lt;code class=&quot;highlighter-rouge&quot;&gt;_alertCriteriaSpecificationFactory&lt;/code&gt;, which we will visit in a moment) representing the user-defined alert definition, and we evaluate the entire set of rules with our call to &lt;code class=&quot;highlighter-rouge&quot;&gt;specification.IsSatisfiedBy(message)&lt;/code&gt;, which simply returns &lt;code class=&quot;highlighter-rouge&quot;&gt;true&lt;/code&gt; or &lt;code class=&quot;highlighter-rouge&quot;&gt;false&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;It may seem rather anti-climactic on the surface, but there is a lot of power within the specification and the beauty of the pattern lies in the simplicity of its interface.  The client simply asks the specification, “Does this object satisfy your criteria?”&lt;/p&gt;
+
+&lt;h3 id=&quot;factory&quot;&gt;Factory&lt;/h3&gt;
+
+&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;AlertCriteriaSpecificationFactory&lt;/code&gt; is the final piece of the puzzle that we’ll look at.  It is responsible for the actual construction of the composite specification and its children from the &lt;code class=&quot;highlighter-rouge&quot;&gt;AlertDefinition&lt;/code&gt;.  It is an example of the &lt;a href=&quot;https://en.wikipedia.org/wiki/Factory_method_pattern&quot;&gt;factory pattern&lt;/a&gt;, a creational design pattern coined by the Gang of Four.&lt;/p&gt;
+
+&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;AlertCriteriaSpecificationFactory&lt;/code&gt; will create any &lt;code class=&quot;highlighter-rouge&quot;&gt;ISpecification&amp;lt;AlertEvaluationMessage&amp;gt;&lt;/code&gt; for a given &lt;code class=&quot;highlighter-rouge&quot;&gt;AlertDefinition&lt;/code&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;interface&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;IAlertCriteriaSpecificationFactory&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;ISpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AlertEvaluationMessage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;CreateSpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AlertDefinition&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alertDefinition&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Though we only publicly expose a single method in the interface for building an &lt;code class=&quot;highlighter-rouge&quot;&gt;ISpecification&lt;/code&gt; from an &lt;code class=&quot;highlighter-rouge&quot;&gt;AlertDefinition&lt;/code&gt;, in the implementation of the factory we see that it is also responsible for building the &lt;code class=&quot;highlighter-rouge&quot;&gt;ISpecification&lt;/code&gt;s that make up the composite from individual &lt;code class=&quot;highlighter-rouge&quot;&gt;AlertCriteria&lt;/code&gt; objects.  The factory contains private methods for constructing each type of specification, and it recursively traverses the tree of alert criteria building the various individual specifications to construct the full composite specification for the &lt;code class=&quot;highlighter-rouge&quot;&gt;AlertDefinition&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;AlertCriteriaSpecificationFactory&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IAlertCriteriaSpecificationFactory&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;readonly&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IDictionary&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CriteriaType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Func&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AlertCriteria&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ISpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AlertEvaluationMessage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_factoryMethods&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;AlertCriteriaSpecificationFactory&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;_factoryMethods&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Dictionary&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CriteriaType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Func&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AlertCriteria&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ISpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AlertEvaluationMessage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CriteriaType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Composite&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CreateCompositeSpecification&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
+            &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CriteriaType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Price&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CreatePriceSpecification&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
+            &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CriteriaType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DailyPercentageGainLoss&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CreateDailyPercentageGainLossSpecification&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ISpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AlertEvaluationMessage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;CreateSpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AlertDefinition&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alertDefinition&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;CreateSpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;alertDefinition&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RootCriteria&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ISpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AlertEvaluationMessage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;CreateSpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AlertCriteria&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alertCriteria&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;factoryMethod&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_factoryMethods&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;alertCriteria&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;factoryMethod&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;Invoke&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;alertCriteria&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ISpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AlertEvaluationMessage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;CreateCompositeSpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;AlertCriteria&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alertCriteria&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;CompositeSpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AlertEvaluationMessage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;specification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;alertCriteria&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Operator&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CriteriaOperator&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;And&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;specification&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AndSpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AlertEvaluationMessage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;();&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;alertCriteria&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Operator&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CriteriaOperator&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Or&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;specification&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;OrSpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AlertEvaluationMessage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;();&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;throw&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;ApplicationException&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Operator not supported.&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+        &lt;span class=&quot;k&quot;&gt;foreach&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alertCriteria&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ChildrenCriteria&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;specification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;AddChildSpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;CreateSpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;specification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ISpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AlertEvaluationMessage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;CreatePriceSpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;AlertCriteria&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alertCriteria&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;PriceSpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;alertCriteria&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ISpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AlertEvaluationMessage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;CreateDailyPercentageGainLossSpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;AlertCriteria&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alertCriteria&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;DailyPercentageGainLossSpecification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;alertCriteria&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;wrapping-up&quot;&gt;Wrapping Up&lt;/h2&gt;
+
+&lt;p&gt;Whew!&lt;/p&gt;
+
+&lt;p&gt;This was a long post, but I hope it has been a helpful introduction to the specification pattern.  It’s a powerful pattern for modeling and evaluating complex rules that goes a long way towards minimizing complexity when applied to an appropriate use case.&lt;/p&gt;
+
+&lt;p&gt;A composite specification can be constructed at design-time for cases where the rules are known ahead of time.  It simplifies things a bit while still providing all of the benefits of the pattern.  Many use cases fall into this category.&lt;/p&gt;
+
+&lt;p&gt;On the other hand, if the rules aren’t known until runtime (as in our case, where the stock alert criteria are user-defined), the composite specification can be created from a representation of the rules stored as records in a database, resulting in a full-blown data-driven rules engine, as we demonstrated in this post.&lt;/p&gt;
+
+&lt;p&gt;As always, thanks for reading!&lt;/p&gt;
+
+&lt;p&gt;-Jon&lt;/p&gt;</content><author><name>Jon_Blankenship</name></author><category term="stock-alerts" /><category term="specification-pattern" /><category term="design-patterns" /><category term="composite-pattern" /><category term="factory-pattern" /><category term="domain-driven-design" /><category term="architecture" /><category term="eric-evans" /><category term="martin-fowler" /><category term="rules-engine" /><category term="c-sharp" /><summary type="html">In my Stock Alerts project, the user configures criteria for a given stock that should be evaluated continuously and trigger a notification to the user when the criteria are satisfied. Rather than simply setting a single price trigger, I want the user to be able to specify multiple types of criteria and combine them using Boolean logic to form a complex rule.</summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://blog.jonblankenship.com//2019/10/04/using-the-specification-pattern-to-build-a-data-driven-rules-engine/DecisionTree.PNG" /></entry><entry><title type="html">Create/Edit Screens, Bindable Layouts, and More</title><link href="https://blog.jonblankenship.com//2019/07/21/create-edit-screens-bindable-layouts-and-more-update-2019-07-21/" rel="alternate" type="text/html" title="Create/Edit Screens, Bindable Layouts, and More" /><published>2019-07-21T02:00:00-05:00</published><updated>2019-07-21T02:00:00-05:00</updated><id>https://blog.jonblankenship.com//2019/07/21/create-edit-screens-bindable-layouts-and-more-update-2019-07-21</id><content type="html" xml:base="https://blog.jonblankenship.com//2019/07/21/create-edit-screens-bindable-layouts-and-more-update-2019-07-21/">&lt;p&gt;Since my &lt;a href=&quot;https://blog.jonblankenship.com/2019/07/09/moving-from-http-triggered-azure-functions-to-web-api-update-2019-07-09/&quot;&gt;last update&lt;/a&gt; I’ve been focused on building the Create Alert Definition screen in the Stock Alerts mobile app project. It’s been slow but steady progress, and I’m happy to report that both the Create Alert Definition and Edit Alert Definition screens are now functional. (Technically they’re both the same screen, but I’ve been treating them separately from a work management perspective.)&lt;/p&gt;
+
+&lt;!--more--&gt;
 
 &lt;p&gt;For those just tuning in, these &lt;a href=&quot;https://blog.jonblankenship.com/category/side-projects/stock-alerts/&quot;&gt;past posts&lt;/a&gt; will bring you up to speed on the &lt;a href=&quot;https://blog.jonblankenship.com/2019/06/25/working-on-a-new-side-project-in-public/&quot;&gt;project&lt;/a&gt;, the &lt;a href=&quot;https://blog.jonblankenship.com/2019/06/28/stock-alerts-features/&quot;&gt;features&lt;/a&gt; I’m building, the &lt;a href=&quot;https://blog.jonblankenship.com/2019/07/01/stock-alerts-infrastructure/&quot;&gt;infrastructure&lt;/a&gt;, etc…&lt;/p&gt;
 
@@ -149,7 +589,9 @@
 
 &lt;p&gt;Thanks for reading!&lt;/p&gt;
 
-&lt;p&gt;-Jon&lt;/p&gt;</content><author><name></name></author><category term="bindable-layouts" /><category term="freshessentials" /><category term="icommand" /><category term="mvvm" /><category term="prism" /><category term="segmentedbuttongroup" /><category term="stock-alerts-update" /><category term="view" /><category term="viewmodel" /><category term="xamarin.forms" /><summary type="html">Since my last update I’ve been focused on building the Create Alert Definition screen in the Stock Alerts mobile app project. It’s been slow but steady progress, and I’m happy to report that both the Create Alert Definition and Edit Alert Definition screens are now functional. (Technically they’re both the same screen, but I’ve been treating them separately from a work management perspective.)</summary></entry><entry><title type="html">Moving from HTTP-Triggered Azure Functions to Web API</title><link href="https://blog.jonblankenship.com//2019/07/09/moving-from-http-triggered-azure-functions-to-web-api-update-2019-07-09/" rel="alternate" type="text/html" title="Moving from HTTP-Triggered Azure Functions to Web API" /><published>2019-07-09T02:00:00-05:00</published><updated>2019-07-09T02:00:00-05:00</updated><id>https://blog.jonblankenship.com//2019/07/09/moving-from-http-triggered-azure-functions-to-web-api-update-2019-07-09</id><content type="html" xml:base="https://blog.jonblankenship.com//2019/07/09/moving-from-http-triggered-azure-functions-to-web-api-update-2019-07-09/">&lt;p&gt;This past weekend was a long one due to the Fourth of July, and despite a weekend filled with cookouts, swimming, fireworks, an anniversary date night, and a trip to St. Louis, I was able to knock off an important task on my &lt;a href=&quot;https://blog.jonblankenship.com/category/side-projects/stock-alerts/&quot;&gt;side project&lt;/a&gt;‘s &lt;a href=&quot;https://github.com/jonblankenship/stock-alerts/blob/master/TODO.md&quot;&gt;TODO List&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;-Jon&lt;/p&gt;</content><author><name>Jon_Blankenship</name></author><category term="bindable-layouts" /><category term="freshessentials" /><category term="icommand" /><category term="mvvm" /><category term="prism" /><category term="segmentedbuttongroup" /><category term="stock-alerts-update" /><category term="view" /><category term="viewmodel" /><category term="xamarin.forms" /><summary type="html">Since my last update I’ve been focused on building the Create Alert Definition screen in the Stock Alerts mobile app project. It’s been slow but steady progress, and I’m happy to report that both the Create Alert Definition and Edit Alert Definition screens are now functional. (Technically they’re both the same screen, but I’ve been treating them separately from a work management perspective.)</summary></entry><entry><title type="html">Moving from HTTP-Triggered Azure Functions to Web API</title><link href="https://blog.jonblankenship.com//2019/07/09/moving-from-http-triggered-azure-functions-to-web-api-update-2019-07-09/" rel="alternate" type="text/html" title="Moving from HTTP-Triggered Azure Functions to Web API" /><published>2019-07-09T02:00:00-05:00</published><updated>2019-07-09T02:00:00-05:00</updated><id>https://blog.jonblankenship.com//2019/07/09/moving-from-http-triggered-azure-functions-to-web-api-update-2019-07-09</id><content type="html" xml:base="https://blog.jonblankenship.com//2019/07/09/moving-from-http-triggered-azure-functions-to-web-api-update-2019-07-09/">&lt;p&gt;This past weekend was a long one due to the Fourth of July, and despite a weekend filled with cookouts, swimming, fireworks, an anniversary date night, and a trip to St. Louis, I was able to knock off an important task on my &lt;a href=&quot;https://blog.jonblankenship.com/category/side-projects/stock-alerts/&quot;&gt;side project&lt;/a&gt;‘s &lt;a href=&quot;https://github.com/jonblankenship/stock-alerts/blob/master/TODO.md&quot;&gt;TODO List&lt;/a&gt;.&lt;/p&gt;
+
+&lt;!--more--&gt;
 
 &lt;h2 id=&quot;refactoring-http-triggered-azure-functions-into-a-web-api-service&quot;&gt;Refactoring HTTP-Triggered Azure Functions into a Web API Service&lt;/h2&gt;
 
@@ -281,7 +723,9 @@
 
 &lt;p&gt;Thanks for reading!&lt;/p&gt;
 
-&lt;p&gt;-Jon&lt;/p&gt;</content><author><name></name></author><category term="asp-net-core" /><category term="authentication" /><category term="authorization" /><category term="azure-functions" /><category term="controllers" /><category term="error-handling" /><category term="http-triggered-function" /><category term="middleware" /><category term="side-project" /><category term="stock-alerts" /><category term="web-api" /><summary type="html">This past weekend was a long one due to the Fourth of July, and despite a weekend filled with cookouts, swimming, fireworks, an anniversary date night, and a trip to St. Louis, I was able to knock off an important task on my side project‘s TODO List.</summary></entry><entry><title type="html">Stock Alerts Update</title><link href="https://blog.jonblankenship.com//2019/07/03/stock-alerts-update-2019-07-03/" rel="alternate" type="text/html" title="Stock Alerts Update" /><published>2019-07-03T02:00:00-05:00</published><updated>2019-07-03T02:00:00-05:00</updated><id>https://blog.jonblankenship.com//2019/07/03/stock-alerts-update-2019-07-03</id><content type="html" xml:base="https://blog.jonblankenship.com//2019/07/03/stock-alerts-update-2019-07-03/">&lt;p&gt;I’d been meaning to get this update out over the weekend, but a stomach bug visited our house and threw off my schedule. I’d like to get these updates out about once a week going forward, but since this is a side project and I’m working on it for fun in my off hours, I’m not going to sweat it too much.&lt;/p&gt;
+&lt;p&gt;-Jon&lt;/p&gt;</content><author><name>Jon_Blankenship</name></author><category term="asp-net-core" /><category term="authentication" /><category term="authorization" /><category term="azure-functions" /><category term="controllers" /><category term="error-handling" /><category term="http-triggered-function" /><category term="middleware" /><category term="side-project" /><category term="stock-alerts" /><category term="stock-alerts" /><category term="web-api" /><summary type="html">This past weekend was a long one due to the Fourth of July, and despite a weekend filled with cookouts, swimming, fireworks, an anniversary date night, and a trip to St. Louis, I was able to knock off an important task on my side project‘s TODO List.</summary></entry><entry><title type="html">Stock Alerts Update</title><link href="https://blog.jonblankenship.com//2019/07/03/stock-alerts-update-2019-07-03/" rel="alternate" type="text/html" title="Stock Alerts Update" /><published>2019-07-03T02:00:00-05:00</published><updated>2019-07-03T02:00:00-05:00</updated><id>https://blog.jonblankenship.com//2019/07/03/stock-alerts-update-2019-07-03</id><content type="html" xml:base="https://blog.jonblankenship.com//2019/07/03/stock-alerts-update-2019-07-03/">&lt;p&gt;I’d been meaning to get this update out over the weekend, but a stomach bug visited our house and threw off my schedule. I’d like to get these updates out about once a week going forward, but since this is a side project and I’m working on it for fun in my off hours, I’m not going to sweat it too much.&lt;/p&gt;
+
+&lt;!--more--&gt;
 
 &lt;p&gt;Also, as I mentioned in my &lt;a href=&quot;https://blog.jonblankenship.com/2019/06/25/working-on-a-new-side-project-in-public/&quot;&gt;first post&lt;/a&gt;, these updates will be pretty informal and unpolished. I just want to talk in detail about some of the things I did in the past week on the project, and what I plan to do in the coming week.&lt;/p&gt;
 
@@ -508,7 +952,9 @@
 
 &lt;p&gt;Thanks for reading, and Happy Fourth of July!&lt;/p&gt;
 
-&lt;p&gt;-Jon&lt;/p&gt;</content><author><name></name></author><category term="asp-net-core" /><category term="async-await" /><category term="cancellation-token" /><category term="httpclient" /><category term="httpclientfactory" /><category term="inotifypropertychanged" /><category term="mvvm" /><category term="notifytask" /><category term="stock-alerts-update" /><category term="xamarin.forms" /><summary type="html">I’d been meaning to get this update out over the weekend, but a stomach bug visited our house and threw off my schedule. I’d like to get these updates out about once a week going forward, but since this is a side project and I’m working on it for fun in my off hours, I’m not going to sweat it too much.</summary></entry><entry><title type="html">Stock Alerts Infrastructure</title><link href="https://blog.jonblankenship.com//2019/07/01/stock-alerts-infrastructure/" rel="alternate" type="text/html" title="Stock Alerts Infrastructure" /><published>2019-07-01T02:00:00-05:00</published><updated>2019-07-01T02:00:00-05:00</updated><id>https://blog.jonblankenship.com//2019/07/01/stock-alerts-infrastructure</id><content type="html" xml:base="https://blog.jonblankenship.com//2019/07/01/stock-alerts-infrastructure/">&lt;p&gt;We’ve &lt;a href=&quot;https://blog.jonblankenship.com/2019/06/28/stock-alerts-features/&quot;&gt;talked about the features&lt;/a&gt; that we’ll be implementing in Stock Alerts. Today we’ll look at the infrastructure that will be needed to support those features.&lt;/p&gt;
+&lt;p&gt;-Jon&lt;/p&gt;</content><author><name>Jon_Blankenship</name></author><category term="asp-net-core" /><category term="async-await" /><category term="cancellation-token" /><category term="httpclient" /><category term="httpclientfactory" /><category term="inotifypropertychanged" /><category term="mvvm" /><category term="notifytask" /><category term="stock-alerts" /><category term="stock-alerts-update" /><category term="xamarin.forms" /><summary type="html">I’d been meaning to get this update out over the weekend, but a stomach bug visited our house and threw off my schedule. I’d like to get these updates out about once a week going forward, but since this is a side project and I’m working on it for fun in my off hours, I’m not going to sweat it too much.</summary></entry><entry><title type="html">Stock Alerts Infrastructure</title><link href="https://blog.jonblankenship.com//2019/07/01/stock-alerts-infrastructure/" rel="alternate" type="text/html" title="Stock Alerts Infrastructure" /><published>2019-07-01T02:00:00-05:00</published><updated>2019-07-01T02:00:00-05:00</updated><id>https://blog.jonblankenship.com//2019/07/01/stock-alerts-infrastructure</id><content type="html" xml:base="https://blog.jonblankenship.com//2019/07/01/stock-alerts-infrastructure/">&lt;p&gt;We’ve &lt;a href=&quot;https://blog.jonblankenship.com/2019/06/28/stock-alerts-features/&quot;&gt;talked about the features&lt;/a&gt; that we’ll be implementing in Stock Alerts. Today we’ll look at the infrastructure that will be needed to support those features.&lt;/p&gt;
+
+&lt;!--more--&gt;
 
 &lt;p&gt;I’ve been working in &lt;a href=&quot;https://azure.microsoft.com/en-us/&quot;&gt;Azure&lt;/a&gt; for several years now, both in my work life and on side projects. Being a primarily .NET developer, it makes sense that Azure is my preferred cloud. One of these days I will probably check out AWS, but for this project we’ll be hosting our backend services in Azure.&lt;/p&gt;
 
@@ -570,7 +1016,9 @@
 
 &lt;p&gt;That’s all for now. Thanks for reading.&lt;/p&gt;
 
-&lt;p&gt;-Jon&lt;/p&gt;</content><author><name></name></author><category term="asp-net-core" /><category term="azure-functions" /><category term="azure-service-bus" /><category term="mvp" /><category term="azure-sql" /><category term="http-triggered-function" /><category term="infrastructure" /><category term="serverless" /><category term="service-bus-queue-triggered-function" /><category term="stock-alerts" /><category term="timer-triggered-function" /><summary type="html">We’ve talked about the features that we’ll be implementing in Stock Alerts. Today we’ll look at the infrastructure that will be needed to support those features.</summary></entry><entry><title type="html">Stock Alerts Features</title><link href="https://blog.jonblankenship.com//2019/06/28/stock-alerts-features/" rel="alternate" type="text/html" title="Stock Alerts Features" /><published>2019-06-28T02:00:00-05:00</published><updated>2019-06-28T02:00:00-05:00</updated><id>https://blog.jonblankenship.com//2019/06/28/stock-alerts-features</id><content type="html" xml:base="https://blog.jonblankenship.com//2019/06/28/stock-alerts-features/">&lt;p&gt;In my &lt;a href=&quot;https://blog.jonblankenship.com/2019/06/25/working-on-a-new-side-project-in-public/&quot;&gt;previous post&lt;/a&gt; I revealed my new side project, Stock Alerts, and my intention to build a .NET Core product on the Azure stack, posting regular updates about my work as I go. Before I get down into the weeds in future posts, I thought it might be good to first talk at a higher level about the MVP features I’ll be implementing and the infrastructure that will be needed.&lt;/p&gt;
+&lt;p&gt;-Jon&lt;/p&gt;</content><author><name>Jon_Blankenship</name></author><category term="asp-net-core" /><category term="azure-functions" /><category term="azure-service-bus" /><category term="mvp" /><category term="azure-sql" /><category term="http-triggered-function" /><category term="infrastructure" /><category term="serverless" /><category term="service-bus-queue-triggered-function" /><category term="stock-alerts" /><category term="timer-triggered-function" /><summary type="html">We’ve talked about the features that we’ll be implementing in Stock Alerts. Today we’ll look at the infrastructure that will be needed to support those features.</summary></entry><entry><title type="html">Stock Alerts Features</title><link href="https://blog.jonblankenship.com//2019/06/28/stock-alerts-features/" rel="alternate" type="text/html" title="Stock Alerts Features" /><published>2019-06-28T02:00:00-05:00</published><updated>2019-06-28T02:00:00-05:00</updated><id>https://blog.jonblankenship.com//2019/06/28/stock-alerts-features</id><content type="html" xml:base="https://blog.jonblankenship.com//2019/06/28/stock-alerts-features/">&lt;p&gt;In my &lt;a href=&quot;https://blog.jonblankenship.com/2019/06/25/working-on-a-new-side-project-in-public/&quot;&gt;previous post&lt;/a&gt; I revealed my new side project, Stock Alerts, and my intention to build a .NET Core product on the Azure stack, posting regular updates about my work as I go. Before I get down into the weeds in future posts, I thought it might be good to first talk at a higher level about the MVP features I’ll be implementing and the infrastructure that will be needed.&lt;/p&gt;
+
+&lt;!--more--&gt;
 
 &lt;h2 id=&quot;features&quot;&gt;Features&lt;/h2&gt;
 
@@ -620,9 +1068,11 @@
 
 &lt;p&gt;… but that’s a topic for my next post. Thanks for reading.&lt;/p&gt;
 
-&lt;p&gt;-Jon&lt;/p&gt;</content><author><name></name></author><category term="asp-net-core" /><category term="azure-functions" /><category term="azure-service-bus" /><category term="mvp" /><category term="stock-alerts" /><category term="xamarin.forms" /><summary type="html">In my previous post I revealed my new side project, Stock Alerts, and my intention to build a .NET Core product on the Azure stack, posting regular updates about my work as I go. Before I get down into the weeds in future posts, I thought it might be good to first talk at a higher level about the MVP features I’ll be implementing and the infrastructure that will be needed.</summary></entry><entry><title type="html">Working on a New Side Project in Public</title><link href="https://blog.jonblankenship.com//2019/06/25/working-on-a-new-side-project-in-public/" rel="alternate" type="text/html" title="Working on a New Side Project in Public" /><published>2019-06-25T02:00:00-05:00</published><updated>2019-06-25T02:00:00-05:00</updated><id>https://blog.jonblankenship.com//2019/06/25/working-on-a-new-side-project-in-public</id><content type="html" xml:base="https://blog.jonblankenship.com//2019/06/25/working-on-a-new-side-project-in-public/">&lt;p&gt;For the past month or so I’ve been working on a new side project. It’s a small project that will allow me to exercise existing skills, re-sharpen older skills that I’ve not used in awhile, and learn some new ones.&lt;/p&gt;
+&lt;p&gt;-Jon&lt;/p&gt;</content><author><name>Jon_Blankenship</name></author><category term="asp-net-core" /><category term="azure-functions" /><category term="azure-service-bus" /><category term="mvp" /><category term="stock-alerts" /><category term="xamarin.forms" /><summary type="html">In my previous post I revealed my new side project, Stock Alerts, and my intention to build a .NET Core product on the Azure stack, posting regular updates about my work as I go. Before I get down into the weeds in future posts, I thought it might be good to first talk at a higher level about the MVP features I’ll be implementing and the infrastructure that will be needed.</summary></entry><entry><title type="html">Working on a New Side Project in Public</title><link href="https://blog.jonblankenship.com//2019/06/25/working-on-a-new-side-project-in-public/" rel="alternate" type="text/html" title="Working on a New Side Project in Public" /><published>2019-06-25T02:00:00-05:00</published><updated>2019-06-25T02:00:00-05:00</updated><id>https://blog.jonblankenship.com//2019/06/25/working-on-a-new-side-project-in-public</id><content type="html" xml:base="https://blog.jonblankenship.com//2019/06/25/working-on-a-new-side-project-in-public/">&lt;p&gt;For the past month or so I’ve been working on a new side project. It’s a small project that will allow me to exercise existing skills, re-sharpen older skills that I’ve not used in awhile, and learn some new ones.&lt;/p&gt;
 
 &lt;p&gt;I’d like to share it with you…&lt;/p&gt;
+
+&lt;!--more--&gt;
 
 &lt;h2 id=&quot;working-in-public&quot;&gt;Working in Public&lt;/h2&gt;
 
@@ -705,7 +1155,9 @@
 
 &lt;p&gt;-Jon&lt;/p&gt;
 
-&lt;p&gt;(* After spending several months working on &lt;a href=&quot;https://openshippers.com/&quot;&gt;Open Shippers&lt;/a&gt;, I was burned out on it by the time I launched it in preview in February. I failed to differentiate it from other similar services out there, and I didn’t have any gas left in the tank to work on building an audience and making it successful. Someday I may do a post-mortem on the project. Open Shippers wasn’t a total failure though – I learned quite a bit while working on it, particularly about ASP.NET Core and Blazor, and I’ve reused several things I developed for Open Shippers in more recent projects. The site is still live, and I may revive efforts around it at some point, but I’m content to work on something else for the time being.)&lt;/p&gt;</content><author><name></name></author><category term="asp-net-core" /><category term="azure" /><category term="azure-devops" /><category term="azure-functions" /><category term="azure-service-bus" /><category term="azure-sql" /><category term="blazor" /><category term="ef-core" /><category term="prism" /><category term="side-project" /><category term="stock-alerts" /><category term="web-api" /><category term="work-in-public" /><category term="xamarin.forms" /><summary type="html">For the past month or so I’ve been working on a new side project. It’s a small project that will allow me to exercise existing skills, re-sharpen older skills that I’ve not used in awhile, and learn some new ones.</summary></entry><entry><title type="html">Open Shippers in Limited Preview</title><link href="https://blog.jonblankenship.com//2019/02/18/open-shippers-in-limited-preview/" rel="alternate" type="text/html" title="Open Shippers in Limited Preview" /><published>2019-02-18T01:00:00-06:00</published><updated>2019-02-18T01:00:00-06:00</updated><id>https://blog.jonblankenship.com//2019/02/18/open-shippers-in-limited-preview</id><content type="html" xml:base="https://blog.jonblankenship.com//2019/02/18/open-shippers-in-limited-preview/">&lt;p&gt;For the past few months I’ve been working on Open Shippers (&lt;a href=&quot;https://openshippers.io/&quot;&gt;openshippers.io&lt;/a&gt;), a place for solo makers to build and ship projects in the open, publicly sharing their progress as they take their products from conception to launch and beyond. Makers will post daily standups, log decisions made, and provide general commentary about their projects in real-time while receiving support, feedback, and accountability from the community.&lt;/p&gt;
+&lt;p&gt;(* After spending several months working on &lt;a href=&quot;https://openshippers.com/&quot;&gt;Open Shippers&lt;/a&gt;, I was burned out on it by the time I launched it in preview in February. I failed to differentiate it from other similar services out there, and I didn’t have any gas left in the tank to work on building an audience and making it successful. Someday I may do a post-mortem on the project. Open Shippers wasn’t a total failure though – I learned quite a bit while working on it, particularly about ASP.NET Core and Blazor, and I’ve reused several things I developed for Open Shippers in more recent projects. The site is still live, and I may revive efforts around it at some point, but I’m content to work on something else for the time being.)&lt;/p&gt;</content><author><name>Jon_Blankenship</name></author><category term="asp-net-core" /><category term="azure" /><category term="azure-devops" /><category term="azure-functions" /><category term="azure-service-bus" /><category term="azure-sql" /><category term="blazor" /><category term="ef-core" /><category term="prism" /><category term="side-project" /><category term="stock-alerts" /><category term="web-api" /><category term="work-in-public" /><category term="xamarin.forms" /><summary type="html">For the past month or so I’ve been working on a new side project. It’s a small project that will allow me to exercise existing skills, re-sharpen older skills that I’ve not used in awhile, and learn some new ones. I’d like to share it with you…</summary></entry><entry><title type="html">Open Shippers in Limited Preview</title><link href="https://blog.jonblankenship.com//2019/02/18/open-shippers-in-limited-preview/" rel="alternate" type="text/html" title="Open Shippers in Limited Preview" /><published>2019-02-18T01:00:00-06:00</published><updated>2019-02-18T01:00:00-06:00</updated><id>https://blog.jonblankenship.com//2019/02/18/open-shippers-in-limited-preview</id><content type="html" xml:base="https://blog.jonblankenship.com//2019/02/18/open-shippers-in-limited-preview/">&lt;p&gt;For the past few months I’ve been working on Open Shippers (&lt;a href=&quot;https://openshippers.io/&quot;&gt;openshippers.io&lt;/a&gt;), a place for solo makers to build and ship projects in the open, publicly sharing their progress as they take their products from conception to launch and beyond. Makers will post daily standups, log decisions made, and provide general commentary about their projects in real-time while receiving support, feedback, and accountability from the community.&lt;/p&gt;
+
+&lt;!--more--&gt;
 
 &lt;p&gt;&lt;a href=&quot;https://openshippers.io/&quot;&gt;&lt;img src=&quot;OS-Screenshot-768x397.png&quot; alt=&quot;Open Shippers home page.&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
 
@@ -751,7 +1203,9 @@
 
 &lt;p&gt;Thanks for reading! What will you ship today?&lt;/p&gt;
 
-&lt;p&gt;-Jon&lt;/p&gt;</content><author><name></name></author><category term="beta" /><category term="daily-standup" /><category term="makers" /><category term="mvp" /><category term="open-shippers" /><category term="open-startup" /><summary type="html">For the past few months I’ve been working on Open Shippers (openshippers.io), a place for solo makers to build and ship projects in the open, publicly sharing their progress as they take their products from conception to launch and beyond. Makers will post daily standups, log decisions made, and provide general commentary about their projects in real-time while receiving support, feedback, and accountability from the community.</summary></entry><entry><title type="html">Setting Environment for EF Core Data Migrations</title><link href="https://blog.jonblankenship.com//2019/02/01/setting-environment-for-ef-core-data-migrations/" rel="alternate" type="text/html" title="Setting Environment for EF Core Data Migrations" /><published>2019-02-01T01:00:00-06:00</published><updated>2019-02-01T01:00:00-06:00</updated><id>https://blog.jonblankenship.com//2019/02/01/setting-environment-for-ef-core-data-migrations</id><content type="html" xml:base="https://blog.jonblankenship.com//2019/02/01/setting-environment-for-ef-core-data-migrations/">&lt;p&gt;Most of my side project work is in ASP.NET Core lately, and my main side project uses EF Core for data access with &lt;a href=&quot;https://docs.microsoft.com/en-us/ef/core/managing-schemas/migrations/&quot;&gt;data migrations&lt;/a&gt;. My application is deployed in Azure using Azure SQL as the database. When developing and running locally, I hit a LocalDB instance on my machine.&lt;/p&gt;
+&lt;p&gt;-Jon&lt;/p&gt;</content><author><name>Jon_Blankenship</name></author><category term="beta" /><category term="daily-standup" /><category term="makers" /><category term="mvp" /><category term="open-shippers" /><category term="open-startup" /><summary type="html">For the past few months I’ve been working on Open Shippers (openshippers.io), a place for solo makers to build and ship projects in the open, publicly sharing their progress as they take their products from conception to launch and beyond. Makers will post daily standups, log decisions made, and provide general commentary about their projects in real-time while receiving support, feedback, and accountability from the community.</summary></entry><entry><title type="html">Setting Environment for EF Core Data Migrations</title><link href="https://blog.jonblankenship.com//2019/02/01/setting-environment-for-ef-core-data-migrations/" rel="alternate" type="text/html" title="Setting Environment for EF Core Data Migrations" /><published>2019-02-01T01:00:00-06:00</published><updated>2019-02-01T01:00:00-06:00</updated><id>https://blog.jonblankenship.com//2019/02/01/setting-environment-for-ef-core-data-migrations</id><content type="html" xml:base="https://blog.jonblankenship.com//2019/02/01/setting-environment-for-ef-core-data-migrations/">&lt;p&gt;Most of my side project work is in ASP.NET Core lately, and my main side project uses EF Core for data access with &lt;a href=&quot;https://docs.microsoft.com/en-us/ef/core/managing-schemas/migrations/&quot;&gt;data migrations&lt;/a&gt;. My application is deployed in Azure using Azure SQL as the database. When developing and running locally, I hit a LocalDB instance on my machine.&lt;/p&gt;
+
+&lt;!--more--&gt;
 
 &lt;p&gt;When I need to make changes to the data model, I make the code changes, run &lt;code class=&quot;highlighter-rouge&quot;&gt;Add-Migration Update###&lt;/code&gt; and then &lt;code class=&quot;highlighter-rouge&quot;&gt;Update-Database&lt;/code&gt; in package manager console, and my local database happily gets updated. But when I’m ready to make the changes to the SQL Azure database, how can I change the connection string that the EF database context is using?&lt;/p&gt;
 
@@ -809,7 +1263,9 @@ Microsoft.EntityFrameworkCore.SqlServer mydatabase   tcp:acme.database.windows.n
 
 &lt;p&gt;Thanks for reading!&lt;/p&gt;
 
-&lt;p&gt;–Jon&lt;/p&gt;</content><author><name></name></author><category term="asp.net-core" /><category term="asp.net-core-configuration" /><category term="ef-core" /><category term="ef-data-migrations" /><category term="package-manager-console" /><category term="powershell" /><summary type="html">Most of my side project work is in ASP.NET Core lately, and my main side project uses EF Core for data access with data migrations. My application is deployed in Azure using Azure SQL as the database. When developing and running locally, I hit a LocalDB instance on my machine.</summary></entry><entry><title type="html">Safely Rendering Markdown in Blazor</title><link href="https://blog.jonblankenship.com//2019/01/27/safely-rendering-markdown-in-blazor/" rel="alternate" type="text/html" title="Safely Rendering Markdown in Blazor" /><published>2019-01-27T01:00:00-06:00</published><updated>2019-01-27T01:00:00-06:00</updated><id>https://blog.jonblankenship.com//2019/01/27/safely-rendering-markdown-in-blazor</id><content type="html" xml:base="https://blog.jonblankenship.com//2019/01/27/safely-rendering-markdown-in-blazor/">&lt;p&gt;This week I added the ability to post and properly display markdown content in my &lt;a href=&quot;https://blazor.net/&quot;&gt;Blazor&lt;/a&gt; (server-side Blazor, actually… Razor Components) project. Markdown is a lightweight, standardized way of formatting text without having to resort to HTML or depend on a &lt;a href=&quot;https://en.wikipedia.org/wiki/WYSIWYG&quot;&gt;WYSIWYG&lt;/a&gt; editor. There’s a nice markdown quick reference &lt;a href=&quot;https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;–Jon&lt;/p&gt;</content><author><name>Jon_Blankenship</name></author><category term="asp.net-core" /><category term="asp.net-core-configuration" /><category term="ef-core" /><category term="ef-data-migrations" /><category term="package-manager-console" /><category term="powershell" /><summary type="html">Most of my side project work is in ASP.NET Core lately, and my main side project uses EF Core for data access with data migrations. My application is deployed in Azure using Azure SQL as the database. When developing and running locally, I hit a LocalDB instance on my machine.</summary></entry><entry><title type="html">Safely Rendering Markdown in Blazor</title><link href="https://blog.jonblankenship.com//2019/01/27/safely-rendering-markdown-in-blazor/" rel="alternate" type="text/html" title="Safely Rendering Markdown in Blazor" /><published>2019-01-27T01:00:00-06:00</published><updated>2019-01-27T01:00:00-06:00</updated><id>https://blog.jonblankenship.com//2019/01/27/safely-rendering-markdown-in-blazor</id><content type="html" xml:base="https://blog.jonblankenship.com//2019/01/27/safely-rendering-markdown-in-blazor/">&lt;p&gt;This week I added the ability to post and properly display markdown content in my &lt;a href=&quot;https://blazor.net/&quot;&gt;Blazor&lt;/a&gt; (server-side Blazor, actually… Razor Components) project. Markdown is a lightweight, standardized way of formatting text without having to resort to HTML or depend on a &lt;a href=&quot;https://en.wikipedia.org/wiki/WYSIWYG&quot;&gt;WYSIWYG&lt;/a&gt; editor. There’s a nice markdown quick reference &lt;a href=&quot;https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;!--more--&gt;
 
 &lt;h2 id=&quot;leveraging-the-work-of-others&quot;&gt;Leveraging the Work of Others&lt;/h2&gt;
 
@@ -916,255 +1372,4 @@ Microsoft.EntityFrameworkCore.SqlServer mydatabase   tcp:acme.database.windows.n
 
 &lt;p&gt;Thanks for reading!&lt;/p&gt;
 
-&lt;p&gt;–Jon&lt;/p&gt;</content><author><name></name></author><category term="asp.net-core" /><category term="blazor" /><category term="c#" /><category term="cross-site-scripting" /><category term="markdown" /><category term="razor-components" /><category term="sanitize-html" /><category term="xss" /><summary type="html">This week I added the ability to post and properly display markdown content in my Blazor (server-side Blazor, actually… Razor Components) project. Markdown is a lightweight, standardized way of formatting text without having to resort to HTML or depend on a WYSIWYG editor. There’s a nice markdown quick reference here.</summary></entry><entry><title type="html">Creating a Loading Overlay for a Composite Blazor View</title><link href="https://blog.jonblankenship.com//2019/01/06/creating-a-loading-overlay-for-a-composite-blazor-view/" rel="alternate" type="text/html" title="Creating a Loading Overlay for a Composite Blazor View" /><published>2019-01-06T01:00:00-06:00</published><updated>2019-01-06T01:00:00-06:00</updated><id>https://blog.jonblankenship.com//2019/01/06/creating-a-loading-overlay-for-a-composite-blazor-view</id><content type="html" xml:base="https://blog.jonblankenship.com//2019/01/06/creating-a-loading-overlay-for-a-composite-blazor-view/">&lt;p&gt;One of my projects’ home screen is composed of multiple Blazor components that make a web service calls in their respective &lt;code class=&quot;highlighter-rouge&quot;&gt;OnInitAsync()&lt;/code&gt;s to retrieve their data.  When loading the page, all of the components render immediately in their unpopulated state; each one then updates and fills out as the various web service calls complete and their data loads.  I’m not a fan of this – I’d rather have a nice overlay with some sort of loading indicator hiding the components while they’re loading that disappears when the last component is ready for display.  This weekend I developed a simple pattern for accomplishing just that.&lt;/p&gt;
-
-&lt;p&gt;The full source code for this example can be found &lt;a href=&quot;https://github.com/jonblankenship/blazorplayground/tree/master/PageLoadingOverlay&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;what-were-building&quot;&gt;What We’re Building&lt;/h2&gt;
-
-&lt;p&gt;Below is an example of a Blazor page that contains three components, each one simulating a web service call on initialization that completes from one to three seconds after it is initialized.  We see them show up empty at first, then resize, and finally load their text, all at different times.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;PageLoadWithoutOverlay.gif&quot; alt=&quot;Blazor page load without loading overlay.&quot; /&gt;&lt;em&gt;Blazor page load without loading overlay.&lt;/em&gt;&lt;/p&gt;
-
-&lt;p&gt;Instead, we want our end product to look like the following.  When the page loads we see a nice little loading indicator (I pulled a free one from &lt;a href=&quot;https://github.com/CamdenFoucht/LoadLab&quot;&gt;here&lt;/a&gt;) on an overlay that hides the components while they’re doing their business of intializing, resizing, and loading their data before they’re ready to be seen.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;PageLoadWithOverlay.gif&quot; alt=&quot;Blazor page load with loading overlay.&quot; /&gt;&lt;em&gt;Blazor page load with loading overlay.&lt;/em&gt;&lt;/p&gt;
-
-&lt;p&gt;Now that we know what we’re building, let’s see some code…&lt;/p&gt;
-
-&lt;h2 id=&quot;blazor-components&quot;&gt;Blazor Components&lt;/h2&gt;
-
-&lt;h3 id=&quot;index-view-and-model&quot;&gt;Index View and Model&lt;/h3&gt;
-
-&lt;p&gt;We’ll start with our Blazor components.  Our IndexView.cshtml is the main page, and it looks like this:&lt;/p&gt;
-
-&lt;div class=&quot;language-html highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;@inherits PageLoadingOverlay.App.Features.Home.IndexModel
-@page &quot;/&quot;
-@layout Layout.MainLayout
-
-&lt;span class=&quot;c&quot;&gt;&amp;lt;!-- Loading overlay that displays until all individual components have loaded their data --&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;LoadingOverlayView&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;LoadStateManager=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;@LoadStateManager&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&amp;lt;/LoadingOverlayView&amp;gt;&lt;/span&gt;
-
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;div&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;class=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;row&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;div&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;class=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;col-3 component-div component-1-div&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-        &lt;span class=&quot;nt&quot;&gt;&amp;lt;ComponentView&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;LoadStateManager=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;@LoadStateManager&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;Number=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;1&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;Delay=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;2000&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&amp;lt;/ComponentView&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;div&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;class=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;col-3 component-div component-2-div&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-        &lt;span class=&quot;nt&quot;&gt;&amp;lt;ComponentView&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;LoadStateManager=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;@LoadStateManager&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;Number=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;2&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;Delay=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;1000&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&amp;lt;/ComponentView&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;div&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;class=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;col-3 component-div component-3-div&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-        &lt;span class=&quot;nt&quot;&gt;&amp;lt;ComponentView&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;LoadStateManager=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;@LoadStateManager&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;Number=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;3&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;Delay=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;3000&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&amp;lt;/ComponentView&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Note that we have four components in this view: three instances of &lt;code class=&quot;highlighter-rouge&quot;&gt;ComponentView&lt;/code&gt; that load data on initialization, and an instance of &lt;code class=&quot;highlighter-rouge&quot;&gt;LoadingOverlayView&lt;/code&gt; that hides the other components until they are all loaded. We’ll look at these components shortly.&lt;/p&gt;
-
-&lt;p&gt;The corresponding &lt;code class=&quot;highlighter-rouge&quot;&gt;IndexModel&lt;/code&gt; for this view has a single property:&lt;/p&gt;
-
-&lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;IndexModel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;BlazorComponent&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;/// &amp;lt;summary&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;/// The &amp;lt;see cref=&quot;LoadStateManager&quot;/&amp;gt; for this view&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;/// &amp;lt;/summary&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;/// &amp;lt;remarks&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;/// Since this is the parent view that contains the loading overlay, we new&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;/// up an instance of the &amp;lt;see cref=&quot;LoadStateManager&quot;/&amp;gt; here, and pass it&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;/// to child components.&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;/// &amp;lt;/remarks&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;LoadStateManager&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;LoadStateManager&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;LoadStateManager&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;We instantiate a new instance of &lt;code class=&quot;highlighter-rouge&quot;&gt;LoadStateManager&lt;/code&gt; here, which will manage the loading state of the child components and tell the loading overlay when all components are loaded and it can disappear.&lt;/p&gt;
-
-&lt;h3 id=&quot;component-view-and-model&quot;&gt;Component View and Model&lt;/h3&gt;
-
-&lt;p&gt;The three instances of the component that we’re loading have these properties:&lt;/p&gt;
-
-&lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ComponentModel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;BlazorComponent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ILoadableComponent&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Parameter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;protected&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;LoadStateManager&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;LoadStateManager&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-    &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Parameter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;protected&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Number&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-    &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Parameter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;protected&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Delay&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-    
-    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Title&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;$&quot;Component &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Number&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-
-    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Status&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ComponentLoadState&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;LoadState&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;ComponentLoadState&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;LoadStateManager&lt;/code&gt; from the parent view is passed to the component, as well as a couple of other parameters (like &lt;code class=&quot;highlighter-rouge&quot;&gt;Number&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;Delay&lt;/code&gt;) that control the component’s behavior.&lt;/p&gt;
-
-&lt;p&gt;The component implements interface &lt;code class=&quot;highlighter-rouge&quot;&gt;ILoadableComponent&lt;/code&gt; which defines a single property:&lt;/p&gt;
-
-&lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;/// &amp;lt;summary&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;/// Defines a component whose &amp;lt;see cref=&quot;ComponentLoadState&quot;/&amp;gt; can be managed by a &amp;lt;see cref=&quot;LoadStateManager&quot;/&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;/// &amp;lt;/summary&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;interface&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ILoadableComponent&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;/// &amp;lt;summary&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;/// The load state of a component&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;/// &amp;lt;/summary&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;ComponentLoadState&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;LoadState&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Note that when we implement &lt;code class=&quot;highlighter-rouge&quot;&gt;ILoadableComponent&lt;/code&gt; in our component, we go ahead and instantiate a new instance of &lt;code class=&quot;highlighter-rouge&quot;&gt;ComponentLoadState&lt;/code&gt; to manage the loading state of this individual component.&lt;/p&gt;
-
-&lt;p&gt;Back to our &lt;code class=&quot;highlighter-rouge&quot;&gt;ComponentModel&lt;/code&gt;, we want to register our component with the &lt;code class=&quot;highlighter-rouge&quot;&gt;LoadStateManager&lt;/code&gt; when its parameters are set, like so:&lt;/p&gt;
-
-&lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;protected&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;OnParametersSet&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;base&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;OnParametersSet&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
-
-    &lt;span class=&quot;c1&quot;&gt;// Register this component with the LoadStateManager&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;LoadStateManager&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;Register&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;This call makes the &lt;code class=&quot;highlighter-rouge&quot;&gt;LoadStateManager&lt;/code&gt; aware of this component and ensures that it will wait for this component to finish loading before alerts the parent view that all child components are done loading.&lt;/p&gt;
-
-&lt;p&gt;Finally, we have our good friend, &lt;code class=&quot;highlighter-rouge&quot;&gt;OnInitAsync()&lt;/code&gt; which simulates a web service call with a &lt;code class=&quot;highlighter-rouge&quot;&gt;Task.Delay(Delay)&lt;/code&gt;, sets our &lt;code class=&quot;highlighter-rouge&quot;&gt;Status&lt;/code&gt;, and finishes up with by telling the component’s &lt;code class=&quot;highlighter-rouge&quot;&gt;LoadState&lt;/code&gt; that we’re done loading:&lt;/p&gt;
-
-&lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;protected&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;async&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Task&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;OnInitAsync&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;// Simulate a web service call to get data&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;await&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Task&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;Delay&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Delay&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-    &lt;span class=&quot;n&quot;&gt;Status&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StringConstants&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RandomText&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-
-    &lt;span class=&quot;c1&quot;&gt;// Ok - we're done loading. Notify the LoadStateManager!&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;LoadState&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;OnLoadingComplete&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;loading-overlay-view-and-model&quot;&gt;Loading Overlay View and Model&lt;/h3&gt;
-
-&lt;p&gt;The final view is the &lt;code class=&quot;highlighter-rouge&quot;&gt;LoadingOverlayView&lt;/code&gt;:&lt;/p&gt;
-
-&lt;div class=&quot;language-html highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;@inherits LoadingOverlayModel
-
-@if (!LoadStateManager.IsLoadingComplete)
-{
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;div&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;class=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;loading-overlay&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-        &lt;span class=&quot;nt&quot;&gt;&amp;lt;div&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;class=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;loader-container&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-            &lt;span class=&quot;nt&quot;&gt;&amp;lt;div&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;class=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;dot-loader&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
-            &lt;span class=&quot;nt&quot;&gt;&amp;lt;div&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;class=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;dot-loader&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
-            &lt;span class=&quot;nt&quot;&gt;&amp;lt;div&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;class=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;dot-loader&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
-        &lt;span class=&quot;nt&quot;&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;   
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
-}
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;This is essentially a &lt;code class=&quot;highlighter-rouge&quot;&gt;div&lt;/code&gt; that covers the main content area with a simple CSS loading animation in the middle that is displayed as long as &lt;code class=&quot;highlighter-rouge&quot;&gt;LoadStateManager.IsLoadingComplete&lt;/code&gt; is &lt;code class=&quot;highlighter-rouge&quot;&gt;false&lt;/code&gt;. (The CSS for this overlay is not my main focus for this post, but it can be found towards the bottom of the standard site.css that was created for my new project &lt;a href=&quot;https://github.com/jonblankenship/blazorplayground/blob/master/PageLoadingOverlay/PageLoadingOverlay.App/wwwroot/css/site.css&quot;&gt;here&lt;/a&gt; for those interested.) This is the same &lt;code class=&quot;highlighter-rouge&quot;&gt;LoadStateManager&lt;/code&gt; that is instantiated in the &lt;code class=&quot;highlighter-rouge&quot;&gt;IndexModel&lt;/code&gt; and passed to the child components.&lt;/p&gt;
-
-&lt;p&gt;Here’s the corresponding model:&lt;/p&gt;
-
-&lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;/// &amp;lt;summary&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;/// Model class for &amp;lt;see cref=&quot;LoadingOverlayView&quot;/&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;/// &amp;lt;/summary&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;LoadingOverlayModel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;BlazorComponent&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;/// &amp;lt;summary&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;/// The &amp;lt;see cref=&quot;LoadStateManager&quot;/&amp;gt; for this &amp;lt;see cref=&quot;LoadingOverlayModel&quot;/&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;/// &amp;lt;/summary&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Parameter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;protected&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;LoadStateManager&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;LoadStateManager&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-    &lt;span class=&quot;k&quot;&gt;protected&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;async&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Task&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;OnInitAsync&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;c1&quot;&gt;// When LoadStateManager indicates that all components are loaded, notify&lt;/span&gt;
-        &lt;span class=&quot;c1&quot;&gt;// this component of the state change&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;LoadStateManager&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LoadingComplete&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sender&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;StateHasChanged&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
-
-        &lt;span class=&quot;k&quot;&gt;await&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Task&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CompletedTask&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;In this model, we subscribe to the &lt;code class=&quot;highlighter-rouge&quot;&gt;LoadStateManager.LoadingComplete&lt;/code&gt; event, which will fire when all of the components that the &lt;code class=&quot;highlighter-rouge&quot;&gt;LoadStateManager&lt;/code&gt; is monitoring have completed loading. When the event fires, we simply need to call &lt;code class=&quot;highlighter-rouge&quot;&gt;StateHasChanged()&lt;/code&gt; to alert the component to update itself. since it is bound directly to &lt;code class=&quot;highlighter-rouge&quot;&gt;LoadStateManager.IsLoadingComplete&lt;/code&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;helper-classes&quot;&gt;Helper Classes&lt;/h2&gt;
-
-&lt;h3 id=&quot;loadstatemanager&quot;&gt;LoadStateManager&lt;/h3&gt;
-
-&lt;p&gt;As we’ve already mentioned, &lt;code class=&quot;highlighter-rouge&quot;&gt;LoadStateManager&lt;/code&gt; manages the load state of a collection of components on a screen. Components register themselves with the &lt;code class=&quot;highlighter-rouge&quot;&gt;LoadStateManager&lt;/code&gt;. The &lt;code class=&quot;highlighter-rouge&quot;&gt;LoadStateManager&lt;/code&gt; keeps a collection of their &lt;code class=&quot;highlighter-rouge&quot;&gt;ComponentLoadState&lt;/code&gt;s and subscribes to each one’s &lt;code class=&quot;highlighter-rouge&quot;&gt;LoadingComplete&lt;/code&gt; event, triggering the &lt;code class=&quot;highlighter-rouge&quot;&gt;LoadingComplete&lt;/code&gt; event when the last one completes:&lt;/p&gt;
-
-&lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;/// &amp;lt;summary&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;/// Manages the &amp;lt;see cref=&quot;ComponentLoadState&quot;/&amp;gt;s for a particular view&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;/// &amp;lt;/summary&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;LoadStateManager&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;readonly&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ICollection&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ComponentLoadState&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_componentLoadStates&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ComponentLoadState&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;();&lt;/span&gt;
-    
-    &lt;span class=&quot;c1&quot;&gt;/// &amp;lt;summary&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;/// Gets a value indicating whether all registered components are loaded&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;/// &amp;lt;/summary&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;bool&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IsLoadingComplete&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_componentLoadStates&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;All&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;c&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IsLoaded&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-    &lt;span class=&quot;c1&quot;&gt;/// &amp;lt;summary&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;/// Registers an &amp;lt;see cref=&quot;ILoadableComponent&quot;/&amp;gt; with this &amp;lt;see cref=&quot;LoadStateManager&quot;/&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;/// &amp;lt;/summary&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;/// &amp;lt;param name=&quot;component&quot;&amp;gt;&amp;lt;/param&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;Register&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ILoadableComponent&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;component&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;_componentLoadStates&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;Add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;component&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LoadState&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-        &lt;span class=&quot;n&quot;&gt;component&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LoadState&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LoadingComplete&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sender&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&amp;gt;&lt;/span&gt;
-        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-            &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IsLoadingComplete&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;OnLoadingComplete&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
-        &lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-    &lt;span class=&quot;c1&quot;&gt;/// &amp;lt;summary&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;/// Notifies subscribers that all loading is complete for all registered components&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;/// &amp;lt;/summary&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;event&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;EventHandler&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;LoadingComplete&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-    
-    &lt;span class=&quot;k&quot;&gt;protected&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;OnLoadingComplete&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;LoadingComplete&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;?.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;Invoke&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;EventArgs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;());&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;componentloadstate&quot;&gt;ComponentLoadState&lt;/h3&gt;
-
-&lt;p&gt;Finally we have &lt;code class=&quot;highlighter-rouge&quot;&gt;ComponentLoadState&lt;/code&gt;, which represents the load state of an individual component. It exposes an &lt;code class=&quot;highlighter-rouge&quot;&gt;IsLoaded&lt;/code&gt; property, a &lt;code class=&quot;highlighter-rouge&quot;&gt;LoadingComplete&lt;/code&gt; event, and an &lt;code class=&quot;highlighter-rouge&quot;&gt;OnLoadingComplete()&lt;/code&gt; method for storing and communicating the component’s load state:&lt;/p&gt;
-
-&lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;/// &amp;lt;summary&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;/// Represents the load state of an individual component&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;/// &amp;lt;/summary&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ComponentLoadState&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;/// &amp;lt;summary&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;/// Gets a value indicating whether this component is loaded&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;/// &amp;lt;/summary&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;bool&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IsLoaded&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-    &lt;span class=&quot;c1&quot;&gt;/// &amp;lt;summary&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;/// Notifies the &amp;lt;see cref=&quot;LoadStateManager&quot;/&amp;gt; that this component has completed loading&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;/// &amp;lt;/summary&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;event&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;EventHandler&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;LoadingComplete&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-
-    &lt;span class=&quot;c1&quot;&gt;/// &amp;lt;summary&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;/// Invoked by the corresponding component to indicate that it has completed loading&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;/// &amp;lt;/summary&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;OnLoadingComplete&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;IsLoaded&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;LoadingComplete&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;?.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;Invoke&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;EventArgs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;());&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;putting-it-all-together&quot;&gt;Putting It All Together&lt;/h2&gt;
-
-&lt;p&gt;Once you have your helper classes and overlay view and spinner created, it’s fairly trivial to add this functionality to a Blazor page. The page view just needs to instantiate the &lt;code class=&quot;highlighter-rouge&quot;&gt;LoadStateManager&lt;/code&gt; and pass it to its children, and the child components need to define properties for the &lt;code class=&quot;highlighter-rouge&quot;&gt;LoadStateManager&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;ComponentLoadState&lt;/code&gt;, register with the &lt;code class=&quot;highlighter-rouge&quot;&gt;LoadStateManager&lt;/code&gt;, and tell their &lt;code class=&quot;highlighter-rouge&quot;&gt;ComponentLoadState&lt;/code&gt; when they’re done loading.&lt;/p&gt;
-
-&lt;p&gt;I hope you’ve found this post helpful. You can find the full source code for this sample &lt;a href=&quot;https://github.com/jonblankenship/blazorplayground/tree/master/PageLoadingOverlay&quot;&gt;here&lt;/a&gt;. Thanks for reading!&lt;/p&gt;
-
-&lt;p&gt;–Jon&lt;/p&gt;</content><author><name></name></author><category term="asp.net-core" /><category term="blazor" /><category term="blazor-components" /><category term="server-side-blazor" /><summary type="html">One of my projects’ home screen is composed of multiple Blazor components that make a web service calls in their respective OnInitAsync()s to retrieve their data. When loading the page, all of the components render immediately in their unpopulated state; each one then updates and fills out as the various web service calls complete and their data loads. I’m not a fan of this – I’d rather have a nice overlay with some sort of loading indicator hiding the components while they’re loading that disappears when the last component is ready for display. This weekend I developed a simple pattern for accomplishing just that.</summary></entry></feed>
+&lt;p&gt;–Jon&lt;/p&gt;</content><author><name>Jon_Blankenship</name></author><category term="asp.net-core" /><category term="blazor" /><category term="c#" /><category term="cross-site-scripting" /><category term="markdown" /><category term="razor-components" /><category term="sanitize-html" /><category term="xss" /><summary type="html">This week I added the ability to post and properly display markdown content in my Blazor (server-side Blazor, actually… Razor Components) project. Markdown is a lightweight, standardized way of formatting text without having to resort to HTML or depend on a WYSIWYG editor. There’s a nice markdown quick reference here.</summary></entry></feed>
