@@ -907,6 +907,15 @@ header {
 ul {
   font-weight: 100; }
 
+.site-title {
+  text-transform: uppercase;
+  font-weight: 300;
+  margin: 0;
+  line-height: 1.2em; }
+
+@media screen and (min-width: 320px) {
+  .site-title {
+    font-size: calc(36px + 12 * ((100vw - 320px) / 960)); } }
 .texture-black {
   background-image: url("/assets/textures/black.jpg"); }
   .texture-black h2 {
