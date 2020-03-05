@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<link href="https://fonts.googleapis.com/css?family=Nunito+Sans:400,400i,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/style.css">
+<!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Excepticon: Exception Monitoring for .NET | Jon Blankenship</title>
+<meta name="generator" content="Jekyll v3.8.6" />
+<meta property="og:title" content="Excepticon: Exception Monitoring for .NET" />
+<meta name="author" content="Jon_Blankenship" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Today I’m pleased to announce the launch of Excepticon, an exception monitoring SaaS for .NET applications and services. Excepticon is easy to configure and simple to use, and it’s geared specifically towards .NET developers. If you’re a .NET developer and you’re in the market for an exception monitoring service for your application or service, I invite you to try it out. I’d love to get your feedback on how I could improve it to meet your needs." />
+<meta property="og:description" content="Today I’m pleased to announce the launch of Excepticon, an exception monitoring SaaS for .NET applications and services. Excepticon is easy to configure and simple to use, and it’s geared specifically towards .NET developers. If you’re a .NET developer and you’re in the market for an exception monitoring service for your application or service, I invite you to try it out. I’d love to get your feedback on how I could improve it to meet your needs." />
+<link rel="canonical" href="https://blog.jonblankenship.com//2020/03/05/excepticon-exception-monitoring-for-dot-net/" />
+<meta property="og:url" content="https://blog.jonblankenship.com//2020/03/05/excepticon-exception-monitoring-for-dot-net/" />
+<meta property="og:site_name" content="Jon Blankenship" />
+<meta property="og:image" content="https://blog.jonblankenship.com//2020/03/05/excepticon-exception-monitoring-for-dot-net/Excepticon%20Landing%20Page.PNG" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2020-03-05T06:15:00-06:00" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","url":"https://blog.jonblankenship.com//2020/03/05/excepticon-exception-monitoring-for-dot-net/","headline":"Excepticon: Exception Monitoring for .NET","dateModified":"2020-03-05T06:15:00-06:00","datePublished":"2020-03-05T06:15:00-06:00","image":"https://blog.jonblankenship.com//2020/03/05/excepticon-exception-monitoring-for-dot-net/Excepticon%20Landing%20Page.PNG","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.jonblankenship.com//2020/03/05/excepticon-exception-monitoring-for-dot-net/"},"author":{"@type":"Person","name":"Jon_Blankenship"},"description":"Today I’m pleased to announce the launch of Excepticon, an exception monitoring SaaS for .NET applications and services. Excepticon is easy to configure and simple to use, and it’s geared specifically towards .NET developers. If you’re a .NET developer and you’re in the market for an exception monitoring service for your application or service, I invite you to try it out. I’d love to get your feedback on how I could improve it to meet your needs.","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  
+
+
+
+
+
+
+
+<!-- Twitter cards -->
+<meta name="twitter:site"    content="@Jon_Blankenship">
+<meta name="twitter:creator" content="@Jon_Blankenship">
+<meta name="twitter:title"   content="Excepticon: Exception Monitoring for .NET">
+
+
+<meta name="twitter:description" content="Developer.">
+
+
+
+<meta name="twitter:card"  content="summary_large_image">
+<meta name="twitter:image" content="https://blog.jonblankenship.com/2020/03/05/excepticon-exception-monitoring-for-dot-net/Excepticon Landing Page.PNG">
+
+<!-- end of Twitter cards -->
+
+
+  <!-- Use $env:JEKYLL_ENV="production"; bundle exec jekyll build to build for production. -->
+  <!-- Fathom - simple website analytics - https://usefathom.com -->
+  <script>
+      (function(f, a, t, h, o, m){
+      a[h]=a[h]||function(){
+          (a[h].q=a[h].q||[]).push(arguments)
+      };
+      o=f.createElement('script'),
+      m=f.getElementsByTagName('script')[0];
+      o.async=1; o.src=t; o.id='fathom-script';
+      m.parentNode.insertBefore(o,m)
+      })(document, window, '//cdn.usefathom.com/tracker.js', 'fathom');
+      fathom('set', 'siteId', 'VHYCR');
+      fathom('trackPageview');
+  </script>
+  <!-- / Fathom -->
+</head>
+<body>
+  <header class="texture-black">
+    <div class="container"></div><div class="container page-header post-header">
+	<div class="site-title"><a href="/">Jon Blankenship</a></div>
+	<h2>Developer.</h2>
+</div>
+	</header>
+  <main>
+    <div class="container">
+      <div class="post-title">        
+          <div class="post-date">
+              Mar 5, 2020
+            </div>
+          <h1>Excepticon: Exception Monitoring for .NET</h1>
+          <h4 class="post-description"></h4>
+      </div>
+
+      <div class="post-container">
+          <p>Today I’m pleased to announce the launch of <a href="https://excepticon.io">Excepticon</a>, an exception monitoring SaaS for .NET applications and services.  Excepticon is easy to configure and simple to use, and it’s geared specifically towards .NET developers.</p>
+
+<p><img src="Excepticon Landing Page.PNG" alt="Excepticon Landing Page" class="w-100" /></p>
+
+<p>If you’re a .NET developer and you’re in the market for an exception monitoring service for your application or service, I invite you to try out either the free <a href="https://excepticon.io/plans">Developer plan</a> or a 15-day trial on one of the paid <a href="https://excepticon.io/plans">plans</a>.  I’d love to get your feedback on how I could improve it to meet your needs.</p>
+
+<p>The application is very much an MVP at this stage - it performs its core function and it does it well, but there’s more to come.  I’ll be building it out, improving the UI/UX, and adding features in the coming months.</p>
+
+<p>Here’s a peek at an exception in Excepticon:</p>
+
+<p><img src="Exception Instance 3.PNG" alt="Excepticon Exception Instance" class="w-100" /></p>
+
+<p>So how did Excepticon come to be?</p>
+
+<h3 id="inception">Inception</h3>
+
+<p>On more than one of my past side-projects over the last couple of years I’d had the thought, “When I launch this, I’m going to need an easy way to stay on top of any exceptions that my app is throwing.  I should build an exception monitoring service.”</p>
+
+<p>Typical developer, right?</p>
+
+<p>It seemed like a fun little project that I could build in a relatively short amount of time to meet my needs.  There’s some interesting aspects to it.  I understood the domain.  I knew what features I’d want.  Maybe others would want to use it too.</p>
+
+<p>Why not?</p>
+
+<p>Why not.</p>
+
+<p>Well, for one, there’s already other well-established, full-featured exception monitoring services out there.</p>
+
+<p>Oh well.</p>
+
+<p>Idea dismissed.  Back to whatever I was working on before the thought entered my brain.</p>
+
+<p>Time passes.  Seasons change.  Fast-forward several months…</p>
+
+<h5 id="the-decision-to-build">The Decision to Build</h5>
+
+<p>Last fall, I listened to a podcast where the guest was a founder of a bootstrapped business that had launched into a market where there was existing competition.  He and his cofounders were enjoying success despite incumbents in their niche because they were executing on their vision of the product, offering a different version of what was already out there, and making themselves a part of their product.  He encouraged the listener to not view existing competition as a barrier to success.</p>
+
+<p>I’d heard similar advice before from guests of the <a href="https://www.indiehackers.com/podcast">Indie Hackers podcast</a>:</p>
+
+<blockquote>
+  <p>Your idea doesn’t have to be original.
+Existing competition validates that there’s a market for your product.
+The internet’s a big place.</p>
+</blockquote>
+
+<p>The idea for what would become Excepticon resurfaced as I listened to the episode, but this time I was thinking about it in a new light.</p>
+
+<p>“Maybe the market is big enough for a new service in this space.  There are things about the current products that I would do differently, features that are missing.  There are ways that I can differentiate myself from the competition.”</p>
+
+<p>As I considered these things, I grew more excited about the project.  This would be a fun thing to build.  I’d build something that I’ll use, and I’d test the notion that it’s ok to build an app that solves an already solved problem.</p>
+
+<p>Unlike the prior times I’d considered the idea, this time I committed to building it and got to work.</p>
+
+<p><img src="Exceptions List Mobile 1.PNG" alt="Exceptions List" class="w-50" /></p>
+
+<h3 id="objectives">Objectives</h3>
+
+<p>I have a few objectives for Excepticon, some of which I’ve already mentioned, and several of which I plan to elaborate on in future posts.  Here they are, in no particular order:</p>
+
+<h4 id="1-test-the-theory-your-idea-doesnt-have-to-be-unique">1. Test the theory, “Your idea doesn’t have to be unique.”</h4>
+
+<p>Many folks wanting to build an app or start a business spend a lot of time trying to come up with a completely original idea, which is hard when you consider that many of the problems worth solving have already been solved.</p>
+
+<p>However there’s quite a bit of anecdotal evidence suggesting that success can be found in executing on an idea for which there’s already a solution by building a better product, targeting a slightly different niche, or differentiating yourself somehow.  Many companies that are thriving in, and in some cases even dominating, their respective industries today were not the first to market.  This is true for most of the top names in tech today, including Google, Apple, and Facebook, as well as hundreds of lesser-known companies operating very successfully on a smaller scale.</p>
+
+<p>Existing competition needn’t be feared.  The fact that other companies exist and people are paying them money to solve the same pain point validates the idea as well as the market.  There are billions of people on the internet; if your niche is large enough, you execute well, and you differentiate your product in some way, there’s usually room for another competitor.</p>
+
+<p>Or, at least, so goes the prevailing wisdom.</p>
+
+<p>One of my objectives for Excepticon is to test first-hand this notion that “your idea doesn’t have to be unique.”</p>
+
+<h4 id="2-build-the-features-that-i-want">2. Build the features that I want</h4>
+
+<p>There are several good exception monitoring services out there, but none of them tick all of the boxes of features that I’m looking for in a solution.  Excepticon doesn’t either in its current MVP state, but it will.  I’ll be prioritizing the features that matter to me as I plan out the post-MVP roadmap along with suggested features and changes that I receive from my users.</p>
+
+<h4 id="3-build-for-the-net-developer-not-the-enterprise">3. Build for the .NET developer, not the enterprise</h4>
+
+<p>Of the other exception monitoring services on the market, some of them target applications written in non-.NET languages and either don’t support .NET or .NET support is an afterthought, relying on the community to maintain a third-party Nuget package to integrate with their service.</p>
+
+<p>Of the ones that do target .NET, many are part of a larger suite of enterprise tools that are marketed to C-level executives with buzzwords like “synergies,” “AI,” and “business intelligence.”</p>
+
+<p>I’m building Excepticon for the .NET developer working independently or as part of a small team who needs a service to simply monitor their apps and services and to do it well.</p>
+
+<h4 id="4-eat-my-own-dog-food">4. Eat my own dog food</h4>
+
+<p>One of the best ways to understand how to improve your product is to be a user of your product.  With Excepticon I’m eating my own dog food.  Excepticon is using the same packages available to my end-users, and I’m monitoring for exceptions thrown by the Excepticon web app and API, which is already helping me to identify and fix pain points and things that can be improved.</p>
+
+<p>Not only am I using Excepticon to monitor Excepticon, but I plan to use it on future projects as well.</p>
+
+<h4 id="5-have-fun">5. Have fun</h4>
+
+<p>A side project should be something you enjoy working on.  Anything that consumes as much free time as building a SaaS does should bring some personal fulfillment, especially in the early days when it’s not making any money.  Further, if your heart’s not in it, you won’t stick to it and see it to completion.</p>
+
+<p>I’m having fun building Excepticon.  I’m excited about the features that are on the roadmap and the things that I will learn along the way.</p>
+
+<hr />
+
+<p>I invite you to check out out <a href="https://excepticon.io">Excepticon</a> today!</p>
+
+<p>– Jon</p>
+
+      </div>
+      
+      <div class="post-footer">
+          <ul class="post-tags">
+          
+            
+            <li><a href="/tag/excepticon">excepticon</a></li>
+          
+            
+            <li><a href="/tag/exception-monitoring">exception-monitoring</a></li>
+          
+            
+            <li><a href="/tag/dotnet">dotnet</a></li>
+          
+            
+            <li><a href="/tag/bootstrap">bootstrap</a></li>
+          
+            
+            <li><a href="/tag/indie-hacker">indie-hacker</a></li>
+          
+            
+            <li><a href="/tag/saas">saas</a></li>
+          
+            
+            <li><a href="/tag/competition">competition</a></li>
+          
+          </ul>
+      </div>
+
+        <!-- Configure Disqus --></div>
+  </main></body>
+</html>

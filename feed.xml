@@ -1,4 +1,104 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.6">Jekyll</generator><link href="https://blog.jonblankenship.com//feed.xml" rel="self" type="application/atom+xml" /><link href="https://blog.jonblankenship.com//" rel="alternate" type="text/html" /><updated>2020-02-28T06:14:15-06:00</updated><id>https://blog.jonblankenship.com//feed.xml</id><title type="html">Jon Blankenship</title><subtitle>Developer.</subtitle><author><name>Jon_Blankenship</name></author><entry><title type="html">Using the Specification Pattern to Build a Data-Driven Rules Engine</title><link href="https://blog.jonblankenship.com//2019/10/04/using-the-specification-pattern-to-build-a-data-driven-rules-engine/" rel="alternate" type="text/html" title="Using the Specification Pattern to Build a Data-Driven Rules Engine" /><published>2019-10-04T21:34:00-05:00</published><updated>2019-10-04T21:34:00-05:00</updated><id>https://blog.jonblankenship.com//2019/10/04/using-the-specification-pattern-to-build-a-data-driven-rules-engine</id><content type="html" xml:base="https://blog.jonblankenship.com//2019/10/04/using-the-specification-pattern-to-build-a-data-driven-rules-engine/">&lt;p&gt;In my &lt;a href=&quot;https://blog.jonblankenship.com/tag/stock-alerts/&quot;&gt;Stock Alerts&lt;/a&gt; project, the user configures criteria for a given stock that should be evaluated continuously and trigger a notification to the user when the criteria are satisfied.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.6">Jekyll</generator><link href="https://blog.jonblankenship.com//feed.xml" rel="self" type="application/atom+xml" /><link href="https://blog.jonblankenship.com//" rel="alternate" type="text/html" /><updated>2020-03-05T06:19:33-06:00</updated><id>https://blog.jonblankenship.com//feed.xml</id><title type="html">Jon Blankenship</title><subtitle>Developer.</subtitle><author><name>Jon_Blankenship</name></author><entry><title type="html">Excepticon: Exception Monitoring for .NET</title><link href="https://blog.jonblankenship.com//2020/03/05/excepticon-exception-monitoring-for-dot-net/" rel="alternate" type="text/html" title="Excepticon: Exception Monitoring for .NET" /><published>2020-03-05T06:15:00-06:00</published><updated>2020-03-05T06:15:00-06:00</updated><id>https://blog.jonblankenship.com//2020/03/05/excepticon-exception-monitoring-for-dot-net</id><content type="html" xml:base="https://blog.jonblankenship.com//2020/03/05/excepticon-exception-monitoring-for-dot-net/">&lt;p&gt;Today I’m pleased to announce the launch of &lt;a href=&quot;https://excepticon.io&quot;&gt;Excepticon&lt;/a&gt;, an exception monitoring SaaS for .NET applications and services.  Excepticon is easy to configure and simple to use, and it’s geared specifically towards .NET developers.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;Excepticon Landing Page.PNG&quot; alt=&quot;Excepticon Landing Page&quot; class=&quot;w-100&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;If you’re a .NET developer and you’re in the market for an exception monitoring service for your application or service, I invite you to try out either the free &lt;a href=&quot;https://excepticon.io/plans&quot;&gt;Developer plan&lt;/a&gt; or a 15-day trial on one of the paid &lt;a href=&quot;https://excepticon.io/plans&quot;&gt;plans&lt;/a&gt;.  I’d love to get your feedback on how I could improve it to meet your needs.&lt;/p&gt;
+
+&lt;p&gt;The application is very much an MVP at this stage - it performs its core function and it does it well, but there’s more to come.  I’ll be building it out, improving the UI/UX, and adding features in the coming months.&lt;/p&gt;
+
+&lt;p&gt;Here’s a peek at an exception in Excepticon:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;Exception Instance 3.PNG&quot; alt=&quot;Excepticon Exception Instance&quot; class=&quot;w-100&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;So how did Excepticon come to be?&lt;/p&gt;
+
+&lt;h3 id=&quot;inception&quot;&gt;Inception&lt;/h3&gt;
+
+&lt;p&gt;On more than one of my past side-projects over the last couple of years I’d had the thought, “When I launch this, I’m going to need an easy way to stay on top of any exceptions that my app is throwing.  I should build an exception monitoring service.”&lt;/p&gt;
+
+&lt;p&gt;Typical developer, right?&lt;/p&gt;
+
+&lt;p&gt;It seemed like a fun little project that I could build in a relatively short amount of time to meet my needs.  There’s some interesting aspects to it.  I understood the domain.  I knew what features I’d want.  Maybe others would want to use it too.&lt;/p&gt;
+
+&lt;p&gt;Why not?&lt;/p&gt;
+
+&lt;p&gt;Why not.&lt;/p&gt;
+
+&lt;p&gt;Well, for one, there’s already other well-established, full-featured exception monitoring services out there.&lt;/p&gt;
+
+&lt;p&gt;Oh well.&lt;/p&gt;
+
+&lt;p&gt;Idea dismissed.  Back to whatever I was working on before the thought entered my brain.&lt;/p&gt;
+
+&lt;p&gt;Time passes.  Seasons change.  Fast-forward several months…&lt;/p&gt;
+
+&lt;h5 id=&quot;the-decision-to-build&quot;&gt;The Decision to Build&lt;/h5&gt;
+
+&lt;p&gt;Last fall, I listened to a podcast where the guest was a founder of a bootstrapped business that had launched into a market where there was existing competition.  He and his cofounders were enjoying success despite incumbents in their niche because they were executing on their vision of the product, offering a different version of what was already out there, and making themselves a part of their product.  He encouraged the listener to not view existing competition as a barrier to success.&lt;/p&gt;
+
+&lt;p&gt;I’d heard similar advice before from guests of the &lt;a href=&quot;https://www.indiehackers.com/podcast&quot;&gt;Indie Hackers podcast&lt;/a&gt;:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Your idea doesn’t have to be original.
+Existing competition validates that there’s a market for your product.
+The internet’s a big place.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;The idea for what would become Excepticon resurfaced as I listened to the episode, but this time I was thinking about it in a new light.&lt;/p&gt;
+
+&lt;p&gt;“Maybe the market is big enough for a new service in this space.  There are things about the current products that I would do differently, features that are missing.  There are ways that I can differentiate myself from the competition.”&lt;/p&gt;
+
+&lt;p&gt;As I considered these things, I grew more excited about the project.  This would be a fun thing to build.  I’d build something that I’ll use, and I’d test the notion that it’s ok to build an app that solves an already solved problem.&lt;/p&gt;
+
+&lt;p&gt;Unlike the prior times I’d considered the idea, this time I committed to building it and got to work.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;Exceptions List Mobile 1.PNG&quot; alt=&quot;Exceptions List&quot; class=&quot;w-50&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;objectives&quot;&gt;Objectives&lt;/h3&gt;
+
+&lt;p&gt;I have a few objectives for Excepticon, some of which I’ve already mentioned, and several of which I plan to elaborate on in future posts.  Here they are, in no particular order:&lt;/p&gt;
+
+&lt;h4 id=&quot;1-test-the-theory-your-idea-doesnt-have-to-be-unique&quot;&gt;1. Test the theory, “Your idea doesn’t have to be unique.”&lt;/h4&gt;
+
+&lt;p&gt;Many folks wanting to build an app or start a business spend a lot of time trying to come up with a completely original idea, which is hard when you consider that many of the problems worth solving have already been solved.&lt;/p&gt;
+
+&lt;p&gt;However there’s quite a bit of anecdotal evidence suggesting that success can be found in executing on an idea for which there’s already a solution by building a better product, targeting a slightly different niche, or differentiating yourself somehow.  Many companies that are thriving in, and in some cases even dominating, their respective industries today were not the first to market.  This is true for most of the top names in tech today, including Google, Apple, and Facebook, as well as hundreds of lesser-known companies operating very successfully on a smaller scale.&lt;/p&gt;
+
+&lt;p&gt;Existing competition needn’t be feared.  The fact that other companies exist and people are paying them money to solve the same pain point validates the idea as well as the market.  There are billions of people on the internet; if your niche is large enough, you execute well, and you differentiate your product in some way, there’s usually room for another competitor.&lt;/p&gt;
+
+&lt;p&gt;Or, at least, so goes the prevailing wisdom.&lt;/p&gt;
+
+&lt;p&gt;One of my objectives for Excepticon is to test first-hand this notion that “your idea doesn’t have to be unique.”&lt;/p&gt;
+
+&lt;h4 id=&quot;2-build-the-features-that-i-want&quot;&gt;2. Build the features that I want&lt;/h4&gt;
+
+&lt;p&gt;There are several good exception monitoring services out there, but none of them tick all of the boxes of features that I’m looking for in a solution.  Excepticon doesn’t either in its current MVP state, but it will.  I’ll be prioritizing the features that matter to me as I plan out the post-MVP roadmap along with suggested features and changes that I receive from my users.&lt;/p&gt;
+
+&lt;h4 id=&quot;3-build-for-the-net-developer-not-the-enterprise&quot;&gt;3. Build for the .NET developer, not the enterprise&lt;/h4&gt;
+
+&lt;p&gt;Of the other exception monitoring services on the market, some of them target applications written in non-.NET languages and either don’t support .NET or .NET support is an afterthought, relying on the community to maintain a third-party Nuget package to integrate with their service.&lt;/p&gt;
+
+&lt;p&gt;Of the ones that do target .NET, many are part of a larger suite of enterprise tools that are marketed to C-level executives with buzzwords like “synergies,” “AI,” and “business intelligence.”&lt;/p&gt;
+
+&lt;p&gt;I’m building Excepticon for the .NET developer working independently or as part of a small team who needs a service to simply monitor their apps and services and to do it well.&lt;/p&gt;
+
+&lt;h4 id=&quot;4-eat-my-own-dog-food&quot;&gt;4. Eat my own dog food&lt;/h4&gt;
+
+&lt;p&gt;One of the best ways to understand how to improve your product is to be a user of your product.  With Excepticon I’m eating my own dog food.  Excepticon is using the same packages available to my end-users, and I’m monitoring for exceptions thrown by the Excepticon web app and API, which is already helping me to identify and fix pain points and things that can be improved.&lt;/p&gt;
+
+&lt;p&gt;Not only am I using Excepticon to monitor Excepticon, but I plan to use it on future projects as well.&lt;/p&gt;
+
+&lt;h4 id=&quot;5-have-fun&quot;&gt;5. Have fun&lt;/h4&gt;
+
+&lt;p&gt;A side project should be something you enjoy working on.  Anything that consumes as much free time as building a SaaS does should bring some personal fulfillment, especially in the early days when it’s not making any money.  Further, if your heart’s not in it, you won’t stick to it and see it to completion.&lt;/p&gt;
+
+&lt;p&gt;I’m having fun building Excepticon.  I’m excited about the features that are on the roadmap and the things that I will learn along the way.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;I invite you to check out out &lt;a href=&quot;https://excepticon.io&quot;&gt;Excepticon&lt;/a&gt; today!&lt;/p&gt;
+
+&lt;p&gt;– Jon&lt;/p&gt;</content><author><name>Jon_Blankenship</name></author><category term="excepticon" /><category term="exception-monitoring" /><category term="dotnet" /><category term="bootstrap" /><category term="indie-hacker" /><category term="saas" /><category term="competition" /><summary type="html">Today I'm pleased to announce the launch of Excepticon, an exception monitoring SaaS for .NET applications and services. Excepticon is easy to configure and simple to use, and it's geared specifically towards .NET developers. If you're a .NET developer and you're in the market for an exception monitoring service for your application or service, I invite you to try it out. I'd love to get your feedback on how I could improve it to meet your needs.</summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://blog.jonblankenship.com//2020/03/05/excepticon-exception-monitoring-for-dot-net/Excepticon%20Landing%20Page.PNG" /></entry><entry><title type="html">Using the Specification Pattern to Build a Data-Driven Rules Engine</title><link href="https://blog.jonblankenship.com//2019/10/04/using-the-specification-pattern-to-build-a-data-driven-rules-engine/" rel="alternate" type="text/html" title="Using the Specification Pattern to Build a Data-Driven Rules Engine" /><published>2019-10-04T21:34:00-05:00</published><updated>2019-10-04T21:34:00-05:00</updated><id>https://blog.jonblankenship.com//2019/10/04/using-the-specification-pattern-to-build-a-data-driven-rules-engine</id><content type="html" xml:base="https://blog.jonblankenship.com//2019/10/04/using-the-specification-pattern-to-build-a-data-driven-rules-engine/">&lt;p&gt;In my &lt;a href=&quot;https://blog.jonblankenship.com/tag/stock-alerts/&quot;&gt;Stock Alerts&lt;/a&gt; project, the user configures criteria for a given stock that should be evaluated continuously and trigger a notification to the user when the criteria are satisfied.&lt;/p&gt;
 
 &lt;p&gt;Rather than simply setting a single price trigger, I want the user to be able to specify multiple types of criteria and combine them using Boolean logic to form a complex rule.&lt;/p&gt;
 
@@ -1263,113 +1363,4 @@ Microsoft.EntityFrameworkCore.SqlServer mydatabase   tcp:acme.database.windows.n
 
 &lt;p&gt;Thanks for reading!&lt;/p&gt;
 
-&lt;p&gt;–Jon&lt;/p&gt;</content><author><name>Jon_Blankenship</name></author><category term="asp.net-core" /><category term="asp.net-core-configuration" /><category term="ef-core" /><category term="ef-data-migrations" /><category term="package-manager-console" /><category term="powershell" /><summary type="html">Most of my side project work is in ASP.NET Core lately, and my main side project uses EF Core for data access with data migrations. My application is deployed in Azure using Azure SQL as the database. When developing and running locally, I hit a LocalDB instance on my machine.</summary></entry><entry><title type="html">Safely Rendering Markdown in Blazor</title><link href="https://blog.jonblankenship.com//2019/01/27/safely-rendering-markdown-in-blazor/" rel="alternate" type="text/html" title="Safely Rendering Markdown in Blazor" /><published>2019-01-27T01:00:00-06:00</published><updated>2019-01-27T01:00:00-06:00</updated><id>https://blog.jonblankenship.com//2019/01/27/safely-rendering-markdown-in-blazor</id><content type="html" xml:base="https://blog.jonblankenship.com//2019/01/27/safely-rendering-markdown-in-blazor/">&lt;p&gt;This week I added the ability to post and properly display markdown content in my &lt;a href=&quot;https://blazor.net/&quot;&gt;Blazor&lt;/a&gt; (server-side Blazor, actually… Razor Components) project. Markdown is a lightweight, standardized way of formatting text without having to resort to HTML or depend on a &lt;a href=&quot;https://en.wikipedia.org/wiki/WYSIWYG&quot;&gt;WYSIWYG&lt;/a&gt; editor. There’s a nice markdown quick reference &lt;a href=&quot;https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;!--more--&gt;
-
-&lt;h2 id=&quot;leveraging-the-work-of-others&quot;&gt;Leveraging the Work of Others&lt;/h2&gt;
-
-&lt;p&gt;My need was simple: display formatted markdown on one screen that was saved as plain text on another. Accomplishing this was almost as simple, thanks to the work of those who have gone before me. I used two libraries:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/lunet-io/markdig&quot;&gt;Markdig&lt;/a&gt; – “a fast, powerful, CommonMark compliant, extensible Markdown processor for .NET.”&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/mganss/HtmlSanitizer&quot;&gt;HtmlSanitizer&lt;/a&gt; – “a .NET library for cleaning HTML fragments and documents from constructs that can lead to XSS attacks.”&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;I also drew from &lt;a href=&quot;https://edcharbeneau.com/&quot;&gt;Ed Charbeneau’s&lt;/a&gt; fantastic work on &lt;a href=&quot;https://github.com/EdCharbeneau/BlazeDown&quot;&gt;BlazeDown&lt;/a&gt;, an experimental markdown editor he wrote using Blazor. He first &lt;a href=&quot;https://edcharbeneau.com/blazedown-with-blazor-02/&quot;&gt;built it&lt;/a&gt; back when Blazor was on release 0.2, and he had to do a little extra work to get it to work due to some deficiencies in Blazor at the time (namely, the inability to render raw HTML). The Blazor team added &lt;a href=&quot;https://blazor.net/api/Microsoft.AspNetCore.Blazor.MarkupString.html&quot;&gt;MarkupString&lt;/a&gt; for rendering raw HTML with release 0.5, which made the task of rendering markup much simpler. He &lt;a href=&quot;https://edcharbeneau.com/blazedown-with-blazor/&quot;&gt;revisited BlazeDown&lt;/a&gt; with release 0.5.1 of Blazor, and updated the project to use the new feature.&lt;/p&gt;
-
-&lt;h2 id=&quot;this-example&quot;&gt;This Example&lt;/h2&gt;
-
-&lt;p&gt;What I’ll show here is just enough code to meet the requirements that I had in my project – simply render a string of in-memory markdown as HTML on the screen and do it safely (more on that later).&lt;/p&gt;
-
-&lt;p&gt;The code for this short sample can be found &lt;a href=&quot;https://github.com/jonblankenship/blazorplayground/tree/master/RenderMarkdown&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;Markdown-768x311.png&quot; alt=&quot;markdown entered as plain text and rendered as HTML&quot; /&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;markdownview-component&quot;&gt;MarkdownView Component&lt;/h2&gt;
-
-&lt;p&gt;Part of the power of Blazor is the ability to componentize commonly used controls and logic for easy reuse.  I created a &lt;code class=&quot;highlighter-rouge&quot;&gt;MarkdownView&lt;/code&gt; Blazor component that is responsible for safely rendering a string of markdown as HTML.&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;MarkdownView&lt;/code&gt; is just two lines:&lt;/p&gt;
-
-&lt;div class=&quot;language-html highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;@inherits MarkdownModel
-
-@HtmlContent
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;The corresponding &lt;code class=&quot;highlighter-rouge&quot;&gt;MarkdownModel&lt;/code&gt; is as follows:&lt;/p&gt;
-
-&lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;MarkdownModel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;BlazorComponent&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_content&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-
-    &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Inject&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IHtmlSanitizer&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;HtmlSanitizer&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-    &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Parameter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;protected&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Content&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;get&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_content&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;set&lt;/span&gt;
-        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;_content&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;HtmlContent&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;ConvertStringToMarkupString&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_content&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;MarkupString&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;HtmlContent&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-    &lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;MarkupString&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;ConvertStringToMarkupString&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(!&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;IsNullOrWhiteSpace&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_content&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
-        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-            &lt;span class=&quot;c1&quot;&gt;// Convert markdown string to HTML&lt;/span&gt;
-            &lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;html&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Markdig&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Markdown&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;ToHtml&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;MarkdownPipelineBuilder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;UseAdvancedExtensions&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;Build&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;());&lt;/span&gt;
-
-            &lt;span class=&quot;c1&quot;&gt;// Sanitize HTML before rendering&lt;/span&gt;
-            &lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sanitizedHtml&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;HtmlSanitizer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;Sanitize&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;html&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-            &lt;span class=&quot;c1&quot;&gt;// Return sanitized HTML as a MarkupString that Blazor can render&lt;/span&gt;
-            &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;MarkupString&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sanitizedHtml&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;MarkupString&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;This is a good simple example to demonstrate a few different concepts. First, I’ve specified a service to inject into the component on instantiation, &lt;code class=&quot;highlighter-rouge&quot;&gt;HtmlSanitizer&lt;/code&gt;. We’ll discuss this more in a bit, but for now just know that it is a dependency registered with the IoC container.&lt;/p&gt;
-
-&lt;p&gt;Second, I’ve specified a parameter, &lt;code class=&quot;highlighter-rouge&quot;&gt;Content&lt;/code&gt;, that is bound to a to a property on the model of parent view. This is how I pass a string of markdown into this component.&lt;/p&gt;
-
-&lt;p&gt;Third, I’ve exposed an &lt;code class=&quot;highlighter-rouge&quot;&gt;HtmlContent&lt;/code&gt; property of type &lt;code class=&quot;highlighter-rouge&quot;&gt;MarkupString&lt;/code&gt;. This is the property that will expose the string of markdown converted to a string of HTML that this component will display.&lt;/p&gt;
-
-&lt;p&gt;When &lt;code class=&quot;highlighter-rouge&quot;&gt;Content&lt;/code&gt; is set, I use a function &lt;code class=&quot;highlighter-rouge&quot;&gt;ConvertStringToMarkupString(..)&lt;/code&gt; to convert the string to HTML, sanitize the string of HTML, and return it as a &lt;code class=&quot;highlighter-rouge&quot;&gt;MarkupString&lt;/code&gt;.&lt;/p&gt;
-
-&lt;p&gt;Usage of the component consists of simply binding it to a string that we want to render:&lt;/p&gt;
-
-&lt;div class=&quot;language-html highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;MarkdownView&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;Content=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;@MarkdownContent&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;be-safe--sanitize-your-html&quot;&gt;Be Safe – Sanitize Your HTML&lt;/h2&gt;
-
-&lt;p&gt;It’s important to sanitize any user-supplied HTML that you will be rendering back as raw HTML to prevent malicious users from injecting scripts into you app and making it vulnerable to cross-site scripting (XSS) attacks. For this task, I use &lt;a href=&quot;https://github.com/mganss/HtmlSanitizer&quot;&gt;HtmlSanitizer&lt;/a&gt;, an actively-maintained, highly-configurable .NET library. I already showed above how it is injected and used in my &lt;code class=&quot;highlighter-rouge&quot;&gt;MarkdownView&lt;/code&gt; component. The only remaining piece is the registration of the &lt;code class=&quot;highlighter-rouge&quot;&gt;HtmlSanitizer&lt;/code&gt; with my IoC container in the &lt;code class=&quot;highlighter-rouge&quot;&gt;ConfigureServices&lt;/code&gt; method in my &lt;code class=&quot;highlighter-rouge&quot;&gt;Startup&lt;/code&gt; class:&lt;/p&gt;
-
-&lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;services&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AddScoped&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IHtmlSanitizer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;HtmlSanitizer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;// Configure sanitizer rules as needed here.&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;// For now, just use default rules + allow class attributes&lt;/span&gt;
-    &lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sanitizer&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Ganss&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;XSS&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;HtmlSanitizer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;sanitizer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AllowedAttributes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;Add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;class&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sanitizer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;By making the sanitation of the HTML a part of the &lt;code class=&quot;highlighter-rouge&quot;&gt;MarkdownView&lt;/code&gt; component’s logic, I ensure that I won’t forget to sanitize a piece of content as long as I always use the component to render my markdown. It’s also wise to sanitize markdown and HTML on ingress prior to writing it to storage.&lt;/p&gt;
-
-&lt;h2 id=&quot;wrapping-up&quot;&gt;Wrapping Up&lt;/h2&gt;
-
-&lt;p&gt;This was a pretty short example demonstrating how to add a feature that can have a big impact. The tools available to us in Blazor and a couple of existing libraries made this a pretty simple task, which is one of the reasons I’m so excited about Blazor: the ability to leverage existing .NET libraries directly in the browser directly translates to a number of significant benefits including faster delivery times, smaller codebases, lower total cost of ownership, etc…&lt;/p&gt;
-
-&lt;p&gt;Thanks for reading!&lt;/p&gt;
-
-&lt;p&gt;–Jon&lt;/p&gt;</content><author><name>Jon_Blankenship</name></author><category term="asp.net-core" /><category term="blazor" /><category term="c#" /><category term="cross-site-scripting" /><category term="markdown" /><category term="razor-components" /><category term="sanitize-html" /><category term="xss" /><summary type="html">This week I added the ability to post and properly display markdown content in my Blazor (server-side Blazor, actually… Razor Components) project. Markdown is a lightweight, standardized way of formatting text without having to resort to HTML or depend on a WYSIWYG editor. There’s a nice markdown quick reference here.</summary></entry></feed>
+&lt;p&gt;–Jon&lt;/p&gt;</content><author><name>Jon_Blankenship</name></author><category term="asp.net-core" /><category term="asp.net-core-configuration" /><category term="ef-core" /><category term="ef-data-migrations" /><category term="package-manager-console" /><category term="powershell" /><summary type="html">Most of my side project work is in ASP.NET Core lately, and my main side project uses EF Core for data access with data migrations. My application is deployed in Azure using Azure SQL as the database. When developing and running locally, I hit a LocalDB instance on my machine.</summary></entry></feed>
