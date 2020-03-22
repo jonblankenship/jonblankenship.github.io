@@ -63,6 +63,10 @@
   content: '\f30c'; }
 
 /* '∩îî' */
+.icon-twitter:before {
+  content: '\f099'; }
+
+/* '∩îä' */
 /*! normalize.css v3.0.2 | MIT License | git.io/normalize */
 html {
   font-family: sans-serif;
@@ -835,10 +839,18 @@ header {
         background-color: rgba(255, 255, 255, 0.15);
         cursor: pointer; }
 
-.archive-index {
-  width: 70%;
+.intro {
+  margin-top: 39px;
+  width: 85%;
   float: right;
-  margin-top: 19px; }
+  font-size: medium; }
+  @media screen and (max-width: 540px) {
+    .intro {
+      float: none; } }
+
+.archive-index {
+  width: 85%;
+  float: right; }
   .archive-index h5 {
     font-size: 16px;
     margin-bottom: 4px; }
@@ -916,6 +928,17 @@ ul {
 @media screen and (min-width: 320px) {
   .site-title {
     font-size: calc(36px + 12 * ((100vw - 320px) / 960)); } }
+.post-tags li:last-child {
+  margin-bottom: 3rem; }
+
+.post-tags li {
+  background-color: #444; }
+  .post-tags li a {
+    color: #ddd; }
+
+blockquote {
+  margin-inline-start: 0; }
+
 .texture-black {
   background-image: url("/assets/textures/black.jpg"); }
   .texture-black h2 {

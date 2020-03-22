@@ -1,4 +1,82 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.6">Jekyll</generator><link href="https://blog.jonblankenship.com//feed.xml" rel="self" type="application/atom+xml" /><link href="https://blog.jonblankenship.com//" rel="alternate" type="text/html" /><updated>2020-03-05T06:25:09-06:00</updated><id>https://blog.jonblankenship.com//feed.xml</id><title type="html">Jon Blankenship</title><subtitle>Developer.</subtitle><author><name>Jon_Blankenship</name></author><entry><title type="html">Excepticon: Exception Monitoring for .NET</title><link href="https://blog.jonblankenship.com//2020/03/05/excepticon-exception-monitoring-for-dot-net/" rel="alternate" type="text/html" title="Excepticon: Exception Monitoring for .NET" /><published>2020-03-05T06:15:00-06:00</published><updated>2020-03-05T06:15:00-06:00</updated><id>https://blog.jonblankenship.com//2020/03/05/excepticon-exception-monitoring-for-dot-net</id><content type="html" xml:base="https://blog.jonblankenship.com//2020/03/05/excepticon-exception-monitoring-for-dot-net/">&lt;p&gt;Today I’m pleased to announce the launch of &lt;a href=&quot;https://excepticon.io&quot;&gt;Excepticon&lt;/a&gt;, an exception monitoring SaaS for .NET applications and services.  Excepticon is easy to configure and simple to use, and it’s geared specifically towards .NET developers.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.6">Jekyll</generator><link href="https://blog.jonblankenship.com//feed.xml" rel="self" type="application/atom+xml" /><link href="https://blog.jonblankenship.com//" rel="alternate" type="text/html" /><updated>2020-03-22T18:43:09-05:00</updated><id>https://blog.jonblankenship.com//feed.xml</id><title type="html">Jon Blankenship</title><subtitle>Developer.</subtitle><author><name>Jon_Blankenship</name></author><entry><title type="html">Differentiating Yourself from the Competition</title><link href="https://blog.jonblankenship.com//2020/03/22/differentiating-yourself-from-the-competition/" rel="alternate" type="text/html" title="Differentiating Yourself from the Competition" /><published>2020-03-22T16:15:00-05:00</published><updated>2020-03-22T16:15:00-05:00</updated><id>https://blog.jonblankenship.com//2020/03/22/differentiating-yourself-from-the-competition</id><content type="html" xml:base="https://blog.jonblankenship.com//2020/03/22/differentiating-yourself-from-the-competition/">&lt;p&gt;I was recently asked this question about &lt;a href=&quot;https://excepticon.io&quot;&gt;Excepticon&lt;/a&gt; in an online forum:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Okay, so the idea is valid, but WHAT makes you different than your competition? If money was not an issue, why would I pick you over something like New Relic?&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;It’s an important question, not only for me specifically, but for anyone launching a product into a market with even one competitor:  &lt;strong&gt;What differentiates your product from your competitors?&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;chess-piece.jpg&quot; alt=&quot;A chess piece that is different from the rest&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;small&gt;&lt;em&gt;Photo by &lt;a href=&quot;https://unsplash.com/@randyfath?utm_source=unsplash&amp;amp;utm_medium=referral&amp;amp;utm_content=creditCopyText&quot;&gt;Randy Fath&lt;/a&gt; on &lt;a href=&quot;https://unsplash.com/s/photos/different?utm_source=unsplash&amp;amp;utm_medium=referral&amp;amp;utm_content=creditCopyText&quot;&gt;Unsplash&lt;/a&gt;&lt;/em&gt;&lt;/small&gt;&lt;/p&gt;
+
+&lt;p&gt;I’ve &lt;a href=&quot;https://blog.jonblankenship.com/2020/03/05/excepticon-exception-monitoring-for-dot-net/&quot;&gt;mentioned before&lt;/a&gt; that one of my reasons for building Excepticon is to test the hypothesis that your idea doesn’t have to be unique, that it’s ok (perhaps even advantageous in some regards) to launch into a market with competitors.  But to do so and be successful, you need to differentiate your product from the alternatives.&lt;/p&gt;
+
+&lt;p&gt;Going up against an incumbent player in a niche &lt;em&gt;without&lt;/em&gt; differentiation is a losing proposition.  Even if the products are identical feature-for-feature, an established competitor have several big advantages over a newcomer:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;An existing user base&lt;/li&gt;
+  &lt;li&gt;Brand recognition/reputation&lt;/li&gt;
+  &lt;li&gt;Proven ability to execute&lt;/li&gt;
+  &lt;li&gt;Market share&lt;/li&gt;
+  &lt;li&gt;Established channels&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Unless there is something different about your product that makes it preferable in the eyes of at a least a segment of the market, you’ll fail to gain any traction.&lt;/p&gt;
+
+&lt;p&gt;Differentiation is key, and it’s important to have a strategy for how you’ll differentiate yourself early on in the process of building your SaaS.&lt;/p&gt;
+
+&lt;h2 id=&quot;how-is-excepticon-different&quot;&gt;How Is Excepticon Different?&lt;/h2&gt;
+
+&lt;p&gt;I am differentiating Excepticon in four main areas:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Target Niche&lt;/strong&gt;&lt;/p&gt;
+
+    &lt;p&gt;I cater to solo .NET devs and small teams.  The forum question I received mentions New Relic - products like New Relic are great, but they’re geared toward the enterprise, or at least that’s what it feels like looking at their landing page and marketing material.  They offer a bunch of different solutions, dashboards, reports, and integrations in their platform that I just don’t need or care about as a solo founder/dev.  Just give me a simple service that does its one or two things that I need well and at a fair price and I’ll buy it.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Features&lt;/strong&gt;&lt;/p&gt;
+
+    &lt;p&gt;There are certain features that I want in a solution that aren’t in the existing services that I’ve evaluated.  I won’t get into specific features here - I’ll be developing them over the coming months.  But I recognize that I can’t compete on features out of the gate, because in the spirit of building an MVP, I launched as soon as I had the core feature set that I felt was needed to launch and still provide value.  As the product develops over the coming months, I’ll be adding features that will help to differentiate Excepticon from other services.  It’s not there yet.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Branding/Personality&lt;/strong&gt;&lt;/p&gt;
+
+    &lt;p&gt;The brand or personality of the company plays a part in consumers’ buying decisions.  My personality (for better or worse) will be a part of Excepticon - it won’t be a faceless product.  I plan to be fairly public about what I’m doing as I build it, market it, and succeed or fail with it.  I’ll be part of the product.  My message may resonate with some folks who want to support indie software and transparent makers, and it may turn some people off.  And that’s ok.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Price&lt;/strong&gt;&lt;/p&gt;
+
+    &lt;p&gt;The question I received on the forum had the caveat “if money was not an issue,” but the fact of the matter is that money plays a big part in consumer’s minds when choosing a service, especially if they’re in the niche that I’m targeting.  So I won’t ignore it - price is a differentiator, and I will be one of the lower-priced options, accessible to my target market.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Out of the gate I can differentiate myself in the first, third, and fourth areas.  It will take a bit of time before I can differentiate on features.&lt;/p&gt;
+
+&lt;h2 id=&quot;how-are-you-different&quot;&gt;How Are You Different?&lt;/h2&gt;
+
+&lt;p&gt;These certainly aren’t the only ways that one can differentiate their product from the rest.  Perhaps your strategy for your product includes differentiating in areas that I’ve not mentioned, like offering customer service that goes above and beyond or leveraging unique marketing and distribution channels, for example.&lt;/p&gt;
+
+&lt;p&gt;Whatever the case may be, identify the ways in which your SaaS will be different than your competition and use that to your advantage.&lt;/p&gt;
+
+&lt;p&gt;I should point out that while your competition has several advantages by being an established player in the market, there are benefits to being a small and nimble newcomer, such as:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Ability to experiment and pivot more easily&lt;/li&gt;
+  &lt;li&gt;Lower overhead/expenses&lt;/li&gt;
+  &lt;li&gt;Ability to ship faster&lt;/li&gt;
+  &lt;li&gt;Ability to do things that don’t scale&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Use these to your advantage.&lt;/p&gt;
+
+&lt;p&gt;As you try to gain a foothold in your market, remember what makes you and your product different from your competitors and push hard on those levers!&lt;/p&gt;
+
+&lt;p&gt;– Jon&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;(I’m a developer and solo SaaS founder who likes to build things and share what I learn with others.  If you’re interested software development, launching things, or random early morning thoughts, consider &lt;a href=&quot;https://twitter.com/Jon_Blankenship&quot;&gt;following me&lt;/a&gt; on Twitter.  Thanks for reading!)&lt;/em&gt;&lt;/p&gt;</content><author><name>Jon_Blankenship</name></author><category term="excepticon" /><category term="exception-monitoring" /><category term="dotnet" /><category term="bootstrap" /><category term="indie-hacker" /><category term="saas" /><category term="competition" /><summary type="html">I was recently asked on an online forum &quot;What makes Excepticon different from the competition?&quot; It's an important question, not only for me specifically, but for anyone launching a product into a market with even one competitor: What differentiates your product from your competitors?</summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://blog.jonblankenship.com//2020/03/22/differentiating-yourself-from-the-competition/chess-piece.jpg" /></entry><entry><title type="html">Excepticon: Exception Monitoring for .NET</title><link href="https://blog.jonblankenship.com//2020/03/05/excepticon-exception-monitoring-for-dot-net/" rel="alternate" type="text/html" title="Excepticon: Exception Monitoring for .NET" /><published>2020-03-05T06:15:00-06:00</published><updated>2020-03-05T06:15:00-06:00</updated><id>https://blog.jonblankenship.com//2020/03/05/excepticon-exception-monitoring-for-dot-net</id><content type="html" xml:base="https://blog.jonblankenship.com//2020/03/05/excepticon-exception-monitoring-for-dot-net/">&lt;p&gt;Today I’m pleased to announce the launch of &lt;a href=&quot;https://excepticon.io&quot;&gt;Excepticon&lt;/a&gt;, an exception monitoring SaaS for .NET applications and services.  Excepticon is easy to configure and simple to use, and it’s geared specifically towards .NET developers.&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;Excepticon Landing Page.PNG&quot; alt=&quot;Excepticon Landing Page&quot; class=&quot;w-100&quot; /&gt;&lt;/p&gt;
 
@@ -1303,64 +1381,4 @@ The internet’s a big place.&lt;/p&gt;
 
 &lt;p&gt;Thanks for reading! What will you ship today?&lt;/p&gt;
 
-&lt;p&gt;-Jon&lt;/p&gt;</content><author><name>Jon_Blankenship</name></author><category term="beta" /><category term="daily-standup" /><category term="makers" /><category term="mvp" /><category term="open-shippers" /><category term="open-startup" /><summary type="html">For the past few months I’ve been working on Open Shippers (openshippers.io), a place for solo makers to build and ship projects in the open, publicly sharing their progress as they take their products from conception to launch and beyond. Makers will post daily standups, log decisions made, and provide general commentary about their projects in real-time while receiving support, feedback, and accountability from the community.</summary></entry><entry><title type="html">Setting Environment for EF Core Data Migrations</title><link href="https://blog.jonblankenship.com//2019/02/01/setting-environment-for-ef-core-data-migrations/" rel="alternate" type="text/html" title="Setting Environment for EF Core Data Migrations" /><published>2019-02-01T01:00:00-06:00</published><updated>2019-02-01T01:00:00-06:00</updated><id>https://blog.jonblankenship.com//2019/02/01/setting-environment-for-ef-core-data-migrations</id><content type="html" xml:base="https://blog.jonblankenship.com//2019/02/01/setting-environment-for-ef-core-data-migrations/">&lt;p&gt;Most of my side project work is in ASP.NET Core lately, and my main side project uses EF Core for data access with &lt;a href=&quot;https://docs.microsoft.com/en-us/ef/core/managing-schemas/migrations/&quot;&gt;data migrations&lt;/a&gt;. My application is deployed in Azure using Azure SQL as the database. When developing and running locally, I hit a LocalDB instance on my machine.&lt;/p&gt;
-
-&lt;!--more--&gt;
-
-&lt;p&gt;When I need to make changes to the data model, I make the code changes, run &lt;code class=&quot;highlighter-rouge&quot;&gt;Add-Migration Update###&lt;/code&gt; and then &lt;code class=&quot;highlighter-rouge&quot;&gt;Update-Database&lt;/code&gt; in package manager console, and my local database happily gets updated. But when I’m ready to make the changes to the SQL Azure database, how can I change the connection string that the EF database context is using?&lt;/p&gt;
-
-&lt;h2 id=&quot;the-aspnetcore_environment-variable&quot;&gt;The ASPNETCORE_ENVIRONMENT Variable&lt;/h2&gt;
-
-&lt;p&gt;First let’s talk about how an ASP.NET Core application knows where it’s running.&lt;/p&gt;
-
-&lt;p&gt;ASP.NET Core &lt;a href=&quot;https://docs.microsoft.com/en-us/aspnet/core/fundamentals/environments?view=aspnetcore-2.2&quot;&gt;uses an environment variable named ASPNETCORE_ENVIRONMENT&lt;/a&gt; to control how an application behaves in different environments. The framework supports three environment values out of the box: &lt;code class=&quot;highlighter-rouge&quot;&gt;Development&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;Staging&lt;/code&gt;, and &lt;code class=&quot;highlighter-rouge&quot;&gt;Production&lt;/code&gt;. When running locally, my app uses the environment variable set up for me by Visual Studio when I created the project on the Debug tab of my project’s properties:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;DebugEnvironmentVariable.png&quot; alt=&quot;The ASPNETCORE_ENVIRONMENT variable set on the Debug tab of Project Properties.&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;em&gt;The ASPNETCORE_ENVIRONMENT variable in project properties.&lt;/em&gt;&lt;/p&gt;
-
-&lt;p&gt;On the Application settings tab for my App Service in Azure, this variable is defined and set to &lt;code class=&quot;highlighter-rouge&quot;&gt;Production&lt;/code&gt; so the deployed instance of my application knows to use production settings and connection strings:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;AzureEnvironmentVariable.png&quot; alt=&quot;The ASPNETCORE_ENVIRONMENT variable set on the Application settings tab on the App Service in Azure.&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;The value of this environment variable can be accessed from within the &lt;code class=&quot;highlighter-rouge&quot;&gt;Startup&lt;/code&gt; class by using a constructor that takes an instance of &lt;code class=&quot;highlighter-rouge&quot;&gt;IHostingEnvironment&lt;/code&gt;:&lt;/p&gt;
-
-&lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;Startup&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IConfiguration&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;configuration&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IHostingEnvironment&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;environment&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;You can then use convenience members, like &lt;code class=&quot;highlighter-rouge&quot;&gt;environment.IsDevelopment&lt;/code&gt; or &lt;code class=&quot;highlighter-rouge&quot;&gt;environment.IsProduction&lt;/code&gt; to switch based on the predefined environments, or access &lt;code class=&quot;highlighter-rouge&quot;&gt;environment.EnvironmentName&lt;/code&gt; directly.&lt;/p&gt;
-
-&lt;p&gt;ASP.NET Core also supports the use of different appsettings.json files, depending on the value of the ASPNETCORE_ENVIRONMENT environment variable. For example, I have an appsettings.Development.json in my project with overrides for settings and connection strings specific to my development environment. When loading configuration options on startup, the framework knows to look for and use any settings defined in an appsettings.{EnvironmentName}.json file, where {EnvironmentName} matches the value of the ASPNETCORE_ENVIRONMENT environment variable.&lt;/p&gt;
-
-&lt;h2 id=&quot;setting-aspnetcore_environment-for-data-migrations&quot;&gt;Setting ASPNETCORE_ENVIRONMENT for Data Migrations&lt;/h2&gt;
-
-&lt;p&gt;All of this is prelude to the point of this post. I’ve never really used package manager console for much more than, well, managing Nuget packages and running the occasional data migration commands. But as it turns out, the Package Manager Console window is a &lt;a href=&quot;https://thoughts.async7.com/productivity-tip-roll-your-own-powershell-scripts-in-the-visual-studio-package-manager-console/&quot;&gt;PowerShell shell that can do much more&lt;/a&gt;. For now, I just need it to help me target the correct database when running my data migrations.&lt;/p&gt;
-
-&lt;p&gt;I can see a list of my application’s &lt;code class=&quot;highlighter-rouge&quot;&gt;DbContext&lt;/code&gt; types and where they’re pointing by issuing &lt;a href=&quot;https://docs.microsoft.com/en-us/ef/core/miscellaneous/cli/powershell&quot;&gt;EF Core Tools&lt;/a&gt; command &lt;code class=&quot;highlighter-rouge&quot;&gt;Get-DbContext&lt;/code&gt; in package manager console. Doing so yields the following output:&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;PM&amp;gt; Get-DbContext
-Microsoft.EntityFrameworkCore.Infrastructure[10403]
-      Entity Framework Core 2.2.1-servicing-10028 initialized 'ApplicationDbContext' using provider 'Microsoft.EntityFrameworkCore.SqlServer' with options: None
-
-providerName                            databaseName  dataSource             options
-------------                            ------------  ----------             -------
-Microsoft.EntityFrameworkCore.SqlServer mydatabase    (localdb)\MSSQLLocalDB None   
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;I can then set the ASPNETCORE_ENVIRONMENT variable to &lt;code class=&quot;highlighter-rouge&quot;&gt;Production&lt;/code&gt; for the context of the package manager window only by issuing the following command:&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;PM&amp;gt; $Env:ASPNETCORE_ENVIRONMENT = &quot;Production&quot;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;All subsequent calls to &lt;code class=&quot;highlighter-rouge&quot;&gt;Update-Database&lt;/code&gt; will be now run against the database configured for my &lt;code class=&quot;highlighter-rouge&quot;&gt;Production&lt;/code&gt; environment. I can double-check to make sure, though, by issuing &lt;code class=&quot;highlighter-rouge&quot;&gt;Get-DbContext&lt;/code&gt; again. This time it shows that I’m pointing to my deployed database:&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;PM&amp;gt; Get-DbContext
-
-providerName                            databaseName dataSource                              options
-------------                            ------------ ----------                              -------
-Microsoft.EntityFrameworkCore.SqlServer mydatabase   tcp:acme.database.windows.net,1433      None
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Thanks for reading!&lt;/p&gt;
-
-&lt;p&gt;–Jon&lt;/p&gt;</content><author><name>Jon_Blankenship</name></author><category term="asp.net-core" /><category term="asp.net-core-configuration" /><category term="ef-core" /><category term="ef-data-migrations" /><category term="package-manager-console" /><category term="powershell" /><summary type="html">Most of my side project work is in ASP.NET Core lately, and my main side project uses EF Core for data access with data migrations. My application is deployed in Azure using Azure SQL as the database. When developing and running locally, I hit a LocalDB instance on my machine.</summary></entry></feed>
+&lt;p&gt;-Jon&lt;/p&gt;</content><author><name>Jon_Blankenship</name></author><category term="beta" /><category term="daily-standup" /><category term="makers" /><category term="mvp" /><category term="open-shippers" /><category term="open-startup" /><summary type="html">For the past few months I’ve been working on Open Shippers (openshippers.io), a place for solo makers to build and ship projects in the open, publicly sharing their progress as they take their products from conception to launch and beyond. Makers will post daily standups, log decisions made, and provide general commentary about their projects in real-time while receiving support, feedback, and accountability from the community.</summary></entry></feed>
