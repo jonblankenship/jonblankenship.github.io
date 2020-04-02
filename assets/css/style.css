@@ -942,6 +942,30 @@ blockquote {
 @media screen and (min-width: 320px) {
   .highlight {
     font-size: calc(11px + 3 * ((100vw - 320px) / 960)); } }
+.formkit-content p {
+  margin: 0; }
+  .formkit-content p:last-child {
+    margin-bottom: 18px; }
+  .formkit-content p:first-child {
+    margin-top: 18px; }
+
+.mt-1 {
+  margin-top: 1rem; }
+
+.mb-1 {
+  margin-bottom: 1rem; }
+
+.button {
+  background-color: #1c87c9;
+  border: none;
+  color: white;
+  padding: 4px 30px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 14px;
+  cursor: pointer; }
+
 .texture-black {
   background-image: url("/assets/textures/black.jpg"); }
   .texture-black h2 {
