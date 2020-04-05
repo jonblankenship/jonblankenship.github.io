@@ -587,7 +587,8 @@ a {
   text-decoration: none;
   transition: border-bottom 0.4s; }
   a:hover {
-    border-bottom: 0.5px solid #1c87c9; }
+    filter: brightness(65%);
+    text-decoration: none; }
 
 h1, h2, h3 {
   line-height: 1.2em; }
@@ -602,7 +603,7 @@ h1 {
       font-size: 48px; } }
 
 h2 {
-  font-weight: bold;
+  font-weight: 400;
   font-size: 20px; }
   @media screen and (min-width: 320px) {
     h2 {
@@ -651,6 +652,8 @@ header {
             font-size: 34px; } }
         header .social li i:hover {
           color: #999; }
+    header .social a:hover {
+      filter: none; }
 
 .clearfix {
   clear: both; }
@@ -719,7 +722,7 @@ header {
     font-size: 32px; }
 
 .post-description {
-  font-weight: bold;
+  font-weight: 400;
   color: #666;
   margin-top: .5em;
   margin-bottom: 1.3em; }
@@ -843,7 +846,8 @@ header {
   margin-top: 39px;
   width: 85%;
   float: right;
-  font-size: medium; }
+  font-size: medium;
+  font-weight: 300; }
   @media screen and (max-width: 540px) {
     .intro {
       float: none; } }
@@ -863,6 +867,8 @@ header {
     list-style-type: none;
     border-bottom: 1px solid #ddd;
     border-top: 1px solid #ddd; }
+  .archive-index a {
+    color: #666; }
   @media screen and (max-width: 540px) {
     .archive-index {
       float: none; } }
@@ -871,7 +877,7 @@ header {
   color: #999;
   font-size: 18px;
   text-transform: uppercase;
-  font-weight: bold;
+  font-weight: 400;
   margin-top: 30px; }
 
 .primary {
