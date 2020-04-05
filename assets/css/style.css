@@ -583,11 +583,11 @@ body {
     font-weight: 100; }
 
 a {
-  color: #999;
+  color: #1c87c9;
   text-decoration: none;
   transition: border-bottom 0.4s; }
   a:hover {
-    border-bottom: 0.5px solid #999; }
+    border-bottom: 0.5px solid #1c87c9; }
 
 h1, h2, h3 {
   line-height: 1.2em; }
@@ -989,6 +989,12 @@ blockquote {
   display: inline-block;
   font-size: 14px;
   cursor: pointer; }
+
+strong {
+  font-weight: 400; }
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 400; }
 
 .texture-black {
   background-image: url("/assets/textures/black.jpg"); }
