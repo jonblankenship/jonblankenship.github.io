@@ -1002,6 +1002,12 @@ strong {
 h1, h2, h3, h4, h5, h6 {
   font-weight: 400; }
 
+code {
+  font-size: .85em; }
+
+pre code {
+  font-size: 1em; }
+
 .texture-black {
   background-image: url("/assets/textures/black.jpg"); }
   .texture-black h2 {
