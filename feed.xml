@@ -1,4 +1,183 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.6">Jekyll</generator><link href="https://blog.jonblankenship.com//feed.xml" rel="self" type="application/atom+xml" /><link href="https://blog.jonblankenship.com//" rel="alternate" type="text/html" /><updated>2020-04-05T13:36:37-05:00</updated><id>https://blog.jonblankenship.com//feed.xml</id><title type="html">Jon Blankenship</title><subtitle>Developer.</subtitle><author><name>Jon_Blankenship</name></author><entry><title type="html">Razor-Powered E-mail in Azure Functions</title><link href="https://blog.jonblankenship.com//2020/04/05/razor-powered-e-mail-in-azure-functions/" rel="alternate" type="text/html" title="Razor-Powered E-mail in Azure Functions" /><published>2020-04-05T09:15:00-05:00</published><updated>2020-04-05T09:15:00-05:00</updated><id>https://blog.jonblankenship.com//2020/04/05/razor-powered-e-mail-in-azure-functions</id><content type="html" xml:base="https://blog.jonblankenship.com//2020/04/05/razor-powered-e-mail-in-azure-functions/">&lt;p&gt;On a couple of recent projects I’ve had the need to send automated e-mails to my users.  For both implementations I chose the same approach:  use &lt;a href=&quot;https://docs.microsoft.com/en-us/aspnet/core/mvc/views/razor?view=aspnetcore-3.1&quot;&gt;Razor&lt;/a&gt; templates combined with &lt;a href=&quot;https://docs.microsoft.com/en-us/azure/azure-functions/&quot;&gt;Azure Functions&lt;/a&gt; to build a simple, maintainable, and loosely-coupled solution for sending transactional e-mails.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.6">Jekyll</generator><link href="https://blog.jonblankenship.com//feed.xml" rel="self" type="application/atom+xml" /><link href="https://blog.jonblankenship.com//" rel="alternate" type="text/html" /><updated>2020-04-12T19:34:29-05:00</updated><id>https://blog.jonblankenship.com//feed.xml</id><title type="html">Jon Blankenship</title><subtitle>Developer.</subtitle><author><name>Jon_Blankenship</name></author><entry><title type="html">Global Exception Handling in ASP.NET Core Web API</title><link href="https://blog.jonblankenship.com//2020/04/12/global-exception-handling-in-aspnet-core-api/" rel="alternate" type="text/html" title="Global Exception Handling in ASP.NET Core Web API" /><published>2020-04-12T19:30:00-05:00</published><updated>2020-04-12T19:30:00-05:00</updated><id>https://blog.jonblankenship.com//2020/04/12/global-exception-handling-in-aspnet-core-api</id><content type="html" xml:base="https://blog.jonblankenship.com//2020/04/12/global-exception-handling-in-aspnet-core-api/">&lt;p&gt;A good web API is consistent and follows established patterns in communicating error states to the client, leveraging the appropriate HTTP status codes.  To that end, a global exception handler can be very helpful in consolidating a service’s error handling logic in one place and translating errors into the appropriate responses to send back to the client.  In this post I’ll show you how you can plug custom exception-handling logic into the ASP.NET Core request pipeline to handle any exceptions that are thrown in your API.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;AspNetCoreMiddleware.png&quot; alt=&quot;ASP.NET Core Middleware&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;ASP.NET Core gives provides the ability to write middleware, which is logic inserted into the pipeline that the framework runs for every request that is received by the application.  ASP.NET Core ships with core middleware components that enable things like rendering MVC pages, defining endpoint routes, and adding authentication support, and these things are configured in the application’s &lt;code class=&quot;highlighter-rouge&quot;&gt;Startup&lt;/code&gt; class, where you can also add your own custom middleware components.  This ability to easily configure and customize how ASP.NET Core processes requests is tremendously useful and powerful.  The &lt;a href=&quot;https://docs.microsoft.com/en-us/aspnet/core/fundamentals/middleware/?view=aspnetcore-3.1&quot;&gt;Microsoft documentation&lt;/a&gt; goes into more detail on how middleware works in ASP.NET Core, so I won’t spend too much more time on this.&lt;/p&gt;
+
+&lt;p&gt;For this post, we’ll be creating exception-handling middleware to catch and handle any exceptions that are thrown during the execution of a request to our service.  This is something I implement in every API that I write, and it not only makes the handling of exceptions and the responses from my API consistent, but it also helps keep my codebase a bit cleaner.&lt;/p&gt;
+
+&lt;p&gt;The source code for the sample project demonstrating what we’ll be implementing here can be found on Github &lt;a href=&quot;https://github.com/jonblankenship/blog-examples/tree/master/ErrorHandlingMiddlewareSample&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;error-handling-middleware&quot;&gt;Error-Handling Middleware&lt;/h2&gt;
+
+&lt;p&gt;Let’s jump straight to the code.  Here’s our &lt;a href=&quot;https://github.com/jonblankenship/blog-examples/blob/master/ErrorHandlingMiddlewareSample/Middleware/ErrorHandlingMiddleware.cs&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;ErrorHandlingMiddleware&lt;/code&gt;&lt;/a&gt; class:&lt;/p&gt;
+
+&lt;div class=&quot;language-c# highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ErrorHandlingMiddleware&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;readonly&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;RequestDelegate&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_next&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;ErrorHandlingMiddleware&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RequestDelegate&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;next&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;_next&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;next&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;async&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Task&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;Invoke&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;HttpContext&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;try&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;await&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;_next&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;catch&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Exception&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;await&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;HandleExceptionAsync&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Task&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;HandleExceptionAsync&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;HttpContext&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Exception&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;exception&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;HttpStatusCode&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;status&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;message&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stackTrace&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Empty&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+        &lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;exceptionType&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;exception&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;GetType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;exceptionType&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;typeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BadRequestException&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;message&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;exception&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Message&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;status&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;HttpStatusCode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BadRequest&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;exceptionType&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;typeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NotFoundException&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;message&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;exception&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Message&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;status&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;HttpStatusCode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NotFound&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;status&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;HttpStatusCode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;InternalServerError&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;message&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;exception&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Message&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;            
+            &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;IsEnvironment&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Development&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;stackTrace&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;exception&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;StackTrace&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+        &lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;JsonSerializer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;Serialize&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;error&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;message&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stackTrace&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ContentType&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;application/json&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;StatusCode&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;status&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;WriteAsync&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;In the &lt;code class=&quot;highlighter-rouge&quot;&gt;Invoke(..)&lt;/code&gt; method of our middleware component, we wrap the invocation of our &lt;code class=&quot;highlighter-rouge&quot;&gt;_next&lt;/code&gt; delegate in a &lt;code class=&quot;highlighter-rouge&quot;&gt;try..catch&lt;/code&gt;.  So any processing that happens further along in the pipeline will be included in this &lt;code class=&quot;highlighter-rouge&quot;&gt;try..catch&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;If there’s an exception, our &lt;code class=&quot;highlighter-rouge&quot;&gt;HandleExceptionAsync(..)&lt;/code&gt; method handles it, where we have access to the &lt;code class=&quot;highlighter-rouge&quot;&gt;HttpContext&lt;/code&gt; for the request, as well as the &lt;code class=&quot;highlighter-rouge&quot;&gt;Exception&lt;/code&gt; that occurred.  If you implement something similar, this is where you’ll likely modify the logic to meet your desired behavior according to your needs.  Here I branch depending on the type of exception that was thrown.&lt;/p&gt;
+
+&lt;p&gt;Note that we’re setting the &lt;code class=&quot;highlighter-rouge&quot;&gt;StatusCode&lt;/code&gt; property on the &lt;code class=&quot;highlighter-rouge&quot;&gt;context.Response&lt;/code&gt; object depending on the type of exception that we’re handling.  We’re also writing out the error message to the response body, as well as the the stack trace, in the case of an unhandled exception when running in the “Development” environment.&lt;/p&gt;
+
+&lt;p&gt;If I’m explicitly throwing an exception in my application, usually I’ll create my own custom exception type that inherits from &lt;code class=&quot;highlighter-rouge&quot;&gt;Exception&lt;/code&gt; for the particular exceptional scenario.  In this case, I’ve created &lt;code class=&quot;highlighter-rouge&quot;&gt;BadRequestException&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;NotFoundException&lt;/code&gt;, which map nicely  to HTTP response codes, but your situation may differ.  Your exceptions may be more specific to your particular API.&lt;/p&gt;
+
+&lt;p&gt;Here’s my rather boring &lt;code class=&quot;highlighter-rouge&quot;&gt;NotFoundException&lt;/code&gt; class:&lt;/p&gt;
+
+&lt;div class=&quot;language-c# highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;NotFoundException&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Exception&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;NotFoundException&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;message&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;base&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;message&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;configuring-the-middleware&quot;&gt;Configuring the Middleware&lt;/h2&gt;
+
+&lt;p&gt;To configure our API to use our new &lt;code class=&quot;highlighter-rouge&quot;&gt;ErrorHandlingMiddleware&lt;/code&gt;, we call &lt;code class=&quot;highlighter-rouge&quot;&gt;app.UseMiddleware(..)&lt;/code&gt;, passing our middleware type in our &lt;a href=&quot;https://github.com/jonblankenship/blog-examples/blob/7d1192f7d21e2532d4deae6d785ff25a06fa5144/ErrorHandlingMiddlewareSample/Startup.cs#L41&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;Program&lt;/code&gt;&lt;/a&gt; class’s &lt;code class=&quot;highlighter-rouge&quot;&gt;Configure(..)&lt;/code&gt; method:&lt;/p&gt;
+
+&lt;div class=&quot;language-c# highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;Configure&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IApplicationBuilder&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;app&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IWebHostEnvironment&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;IsDevelopment&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;app&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;UseDeveloperExceptionPage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;// Hook in the global error-handling middleware&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;app&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;UseMiddleware&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;typeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ErrorHandlingMiddleware&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;// Register any middleware to report exceptions to a third-party service *after* our ErrorHandlingMiddleware&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;app&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;UseExcepticon&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+    
+    &lt;span class=&quot;c1&quot;&gt;// snip&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Note that the order in which you register middleware in your application’s request pipeline matters.  The various middleware components execute sequentially in the order in which they’re registered.  In the case of a global exception handler like our &lt;code class=&quot;highlighter-rouge&quot;&gt;ErrorHandlingMiddleware&lt;/code&gt;, we’ll register it early in the &lt;code class=&quot;highlighter-rouge&quot;&gt;Configure(..)&lt;/code&gt; method so that it captures exceptions that occur in downstream middleware components.&lt;/p&gt;
+
+&lt;p&gt;Also note that if you’re using an exception tracking service that captures the exception for reporting but then re-throws it to allow it to be handled upstream, that middleware registration should happen after the registration of our &lt;code class=&quot;highlighter-rouge&quot;&gt;ErrorHandlingMiddleware&lt;/code&gt;.  In this sample I’m using &lt;a href=&quot;https://excepticon.io&quot;&gt;Excepticon&lt;/a&gt;.  (Full disclosure:  I &lt;a href=&quot;https://blog.jonblankenship.com/2020/03/05/excepticon-exception-monitoring-for-dot-net/&quot;&gt;wrote Excepticon&lt;/a&gt;.)  But using a third-party exception tracking service is absolutely &lt;strong&gt;not&lt;/strong&gt; necessary for implementing global exception handling for you API like what I’m describing in this post.&lt;/p&gt;
+
+&lt;p&gt;When our &lt;code class=&quot;highlighter-rouge&quot;&gt;ErrorHandlingMiddleware&lt;/code&gt; catches an exception, execution of the pipeline halts, it sets the appropriate settings on the response, and the API call immediately returns the response to the client.&lt;/p&gt;
+
+&lt;h2 id=&quot;application-code&quot;&gt;Application Code&lt;/h2&gt;
+
+&lt;p&gt;Handling exceptions globally in our middleware not only gives us a uniform way to handle unexpected exceptions that occur in our API, but it also allows us to eliminate some boilerplate code in our controllers, if desired.&lt;/p&gt;
+
+&lt;p&gt;In the sample project, there’s a &lt;a href=&quot;https://github.com/jonblankenship/blog-examples/blob/7d1192f7d21e2532d4deae6d785ff25a06fa5144/ErrorHandlingMiddlewareSample/Controllers/StocksController.cs#L27&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;StocksController&lt;/code&gt;&lt;/a&gt; that has a &lt;code class=&quot;highlighter-rouge&quot;&gt;GetById(Guid stockId)&lt;/code&gt; method that calls a domain service to get a specific stock by ID.  The controller method returns the requested stock to the caller:&lt;/p&gt;
+
+&lt;div class=&quot;language-c# highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;HttpGet&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;Route&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;{stockId}&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)]&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IActionResult&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;GetById&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Guid&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stockId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stock&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_stocksService&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;GetStock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;stockId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;OkObjectResult&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;stock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;This is a very barebones example and most real controller methods probably won’t be this thin.  But note that we’re only worrying about the happy path here - what if the client sends us a &lt;code class=&quot;highlighter-rouge&quot;&gt;stockId&lt;/code&gt; that we don’t have?&lt;/p&gt;
+
+&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;GetStock(Guid stockId)&lt;/code&gt; method on the &lt;a href=&quot;https://github.com/jonblankenship/blog-examples/blob/7d1192f7d21e2532d4deae6d785ff25a06fa5144/ErrorHandlingMiddlewareSample/Services/StocksService.cs#L24&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;StocksService&lt;/code&gt;&lt;/a&gt; domain service considers a request for a &lt;code class=&quot;highlighter-rouge&quot;&gt;stockId&lt;/code&gt; that doesn’t exist to be an exceptional case.  That is, it shouldn’t happen, and if it does, the service immediately aborts, short-circuiting any further execution, and expects someone upstream to handle the exception.  It throws a &lt;code class=&quot;highlighter-rouge&quot;&gt;NotFoundException&lt;/code&gt; accordingly:&lt;/p&gt;
+
+&lt;div class=&quot;language-c# highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;/// &amp;lt;summary&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;/// Returns the &amp;lt;see cref=&quot;Stock&quot;/&amp;gt; with the requested &amp;lt;see cref=&quot;stockId&quot;/&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;/// &amp;lt;/summary&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;/// &amp;lt;param name=&quot;stockId&quot;&amp;gt;The ID of the &amp;lt;see cref=&quot;Stock&quot;/&amp;gt; to return&amp;lt;/param&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;/// &amp;lt;returns&amp;gt;The &amp;lt;see cref=&quot;Stock&quot;/&amp;gt; with the requested &amp;lt;see cref=&quot;stockId&quot;/&amp;gt;&amp;lt;/returns&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;/// &amp;lt;exception cref=&quot;NotFoundException&quot;&amp;gt;&amp;lt;/exception&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Stock&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;GetStock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Guid&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stockId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stock&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Stocks&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;FirstOrDefault&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;StockId&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stockId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;stock&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;throw&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;NotFoundException&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;$&quot;Stock with ID &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;stockId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s&quot;&gt; not found.&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;When this exception is thrown, the normal execution is interrupted and the &lt;code class=&quot;highlighter-rouge&quot;&gt;catch&lt;/code&gt; block on our &lt;code class=&quot;highlighter-rouge&quot;&gt;ErrorHandlingMiddleware&lt;/code&gt; takes over.  We stop execution closer to where the exception occurs, and avoid branching logic in our controller to determine whether to return a 200- or a 400-series HTTP response code.&lt;/p&gt;
+
+&lt;p&gt;Note that the method documentation indicates the exception type(s) that this method might throw.  This is helpful for consumers of &lt;code class=&quot;highlighter-rouge&quot;&gt;IStockService&lt;/code&gt; to know what types of exceptions might be thrown when invoking the method.&lt;/p&gt;
+
+&lt;h3 id=&quot;a-note-on-this-example&quot;&gt;A Note on this Example&lt;/h3&gt;
+
+&lt;p&gt;Some developers will bristle at the idea of using an exception for the purpose in my example above, arguing that throwing is an expensive operation, and if you can anticipate an exceptional case, you should code for it.  Don’t use exceptions for control flow.&lt;/p&gt;
+
+&lt;p&gt;While I understand and agree with the spirit of this objection, I tend to take a more pragmatic position.&lt;/p&gt;
+
+&lt;p&gt;This approach eliminates a fair amount of boilerplate &lt;code class=&quot;highlighter-rouge&quot;&gt;if...else&lt;/code&gt; branching logic up the callstack until we get to the controller where we can handle it and return the appropriate HTTP response, especially if the callstack is deep or we invoke this method from multiple controller methods.  For me, the benefit in terms of readability and maintainability is worth the cost of throwing the exception in this case, especially since this condition won’t normally happen.  The likelihood of it happening is further reduced in cases where I control both the API and the client(s).&lt;/p&gt;
+
+&lt;p&gt;The ASP.NET Core middleware pattern gives us a clean and elegant way to interrupt execution and handle error conditions.&lt;/p&gt;
+
+&lt;p&gt;I wouldn’t take this approach on an API where I was trying to squeeze out very last drop of performance or an API running at massive scale.  But it has served me well on the APIs that I’ve written.&lt;/p&gt;
+
+&lt;p&gt;Even if you don’t like my example and you choose not to throw exceptions for error conditions like the one above in your API code, implementing a global exception handling middleware component like I’ve described is still a good way to uniformly handle exceptions that you don’t anticipate.&lt;/p&gt;
+
+&lt;h2 id=&quot;testing-it-out&quot;&gt;Testing It Out&lt;/h2&gt;
+
+&lt;p&gt;If we run the sample, we see that a call to the &lt;code class=&quot;highlighter-rouge&quot;&gt;GET /stocks/{stockId}&lt;/code&gt; endpoint with a valid ID returns a 200 response with the stock data in the response body:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;GetStock200.png&quot; alt=&quot;Get Stock Postman Call - 200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;If we switch the &lt;code class=&quot;highlighter-rouge&quot;&gt;stockId&lt;/code&gt; to an ID that doesn’t exist, we see that the API returns a &lt;code class=&quot;highlighter-rouge&quot;&gt;404 Not Found&lt;/code&gt; and the message we included with our exception is included in the message body:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;GetStock404.png&quot; alt=&quot;Get Stock Postman Call - 404&quot; /&gt;Further, if we manually throw an &lt;code class=&quot;highlighter-rouge&quot;&gt;ApplicationException&lt;/code&gt; in the &lt;code class=&quot;highlighter-rouge&quot;&gt;StocksService.Get(Guid stockId)&lt;/code&gt; method, we get a &lt;code class=&quot;highlighter-rouge&quot;&gt;500 Internal Service&lt;/code&gt; response with the error and stackTrace included in the response body, since &lt;code class=&quot;highlighter-rouge&quot;&gt;ApplicationException&lt;/code&gt; is not one of the exception types that we’re specifically handling in &lt;code class=&quot;highlighter-rouge&quot;&gt;ErrorHandlingMiddleware&lt;/code&gt;:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;GetStock500.png&quot; alt=&quot;Get Stock Postman Call - 500&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;wrapping-up&quot;&gt;Wrapping Up&lt;/h2&gt;
+
+&lt;p&gt;In this post we’ve shown how to implement a global exception handler in an ASP.NET Core web API.  By creating an ASP.NET Core middleware component, we’re able to catch and handle exceptions uniformly and ensure that the API is returning consistent and expected responses to its callers.&lt;/p&gt;</content><author><name>Jon_Blankenship</name></author><category term="dotnet" /><category term="asp-net-core" /><category term="middleware" /><category term="web-api" /><category term="exception-handling" /><summary type="html">A good web API is consistent and follows established patterns in communicating error states to the client, leveraging the appropriate HTTP status codes. To that end, a global exception handler can be very helpful in consolidating a service's error handling logic in one place and translating errors into the appropriate responses to send back to the caller. In this post I'll show you how you can plug your custom exception-handling logic into the ASP.NET Core request pipeline to handle any exceptions that are thrown in your service.</summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://blog.jonblankenship.com//2020/04/12/global-exception-handling-in-aspnet-core-api/AspNetCoreMiddleware.png" /></entry><entry><title type="html">Razor-Powered E-mail in Azure Functions</title><link href="https://blog.jonblankenship.com//2020/04/05/razor-powered-e-mail-in-azure-functions/" rel="alternate" type="text/html" title="Razor-Powered E-mail in Azure Functions" /><published>2020-04-05T09:15:00-05:00</published><updated>2020-04-05T09:15:00-05:00</updated><id>https://blog.jonblankenship.com//2020/04/05/razor-powered-e-mail-in-azure-functions</id><content type="html" xml:base="https://blog.jonblankenship.com//2020/04/05/razor-powered-e-mail-in-azure-functions/">&lt;p&gt;On a couple of recent projects I’ve had the need to send automated e-mails to my users.  For both implementations I chose the same approach:  use &lt;a href=&quot;https://docs.microsoft.com/en-us/aspnet/core/mvc/views/razor?view=aspnetcore-3.1&quot;&gt;Razor&lt;/a&gt; templates combined with &lt;a href=&quot;https://docs.microsoft.com/en-us/azure/azure-functions/&quot;&gt;Azure Functions&lt;/a&gt; to build a simple, maintainable, and loosely-coupled solution for sending transactional e-mails.&lt;/p&gt;
 
 &lt;p&gt;In this post I’ll show you how to do the same.&lt;/p&gt;
 
@@ -1520,91 +1699,4 @@ The internet’s a big place.&lt;/p&gt;
 
 &lt;p&gt;So now that we know what features we’ll be building, we’re ready to talk about the infrastructure needed to support those features!&lt;/p&gt;
 
-&lt;p&gt;… but that’s a topic for my next post. Thanks for reading.&lt;/p&gt;</content><author><name>Jon_Blankenship</name></author><category term="asp-net-core" /><category term="azure-functions" /><category term="azure-service-bus" /><category term="mvp" /><category term="stock-alerts" /><category term="xamarin.forms" /><summary type="html">In my previous post I revealed my new side project, Stock Alerts, and my intention to build a .NET Core product on the Azure stack, posting regular updates about my work as I go. Before I get down into the weeds in future posts, I thought it might be good to first talk at a higher level about the MVP features I’ll be implementing and the infrastructure that will be needed.</summary></entry><entry><title type="html">Working on a New Side Project in Public</title><link href="https://blog.jonblankenship.com//2019/06/25/working-on-a-new-side-project-in-public/" rel="alternate" type="text/html" title="Working on a New Side Project in Public" /><published>2019-06-25T02:00:00-05:00</published><updated>2019-06-25T02:00:00-05:00</updated><id>https://blog.jonblankenship.com//2019/06/25/working-on-a-new-side-project-in-public</id><content type="html" xml:base="https://blog.jonblankenship.com//2019/06/25/working-on-a-new-side-project-in-public/">&lt;p&gt;For the past month or so I’ve been working on a new side project. It’s a small project that will allow me to exercise existing skills, re-sharpen older skills that I’ve not used in awhile, and learn some new ones.&lt;/p&gt;
-
-&lt;p&gt;I’d like to share it with you…&lt;/p&gt;
-
-&lt;!--more--&gt;
-
-&lt;h2 id=&quot;working-in-public&quot;&gt;Working in Public&lt;/h2&gt;
-
-&lt;p&gt;I’ve been working my side project every weekday morning for an hour or two before my workday starts and on the occasional weeknight or weekend. I toil away mostly in solitude, except when I solicit feedback or ask for advice from a colleague and buddy who’s working on his own project.&lt;/p&gt;
-
-&lt;p&gt;I’ve recently been inspired by a few folks on various podcasts to start working in public. They speak of the benefits of sharing what you’re learning, developing, building with your audience as you’re working on it, an idea that strikes fear in the hearts of those who, like me, are inclined towards self-conscious perfectionism. It’s difficult to put your in-progress work out there for all to see, warts and all.&lt;/p&gt;
-
-&lt;p&gt;There’s been an increasing trend towards working in public, particularly among indie makers and developers. I dipped my toe into those waters with my last project, &lt;a href=&quot;https://openshippers.com/&quot;&gt;Open Shippers&lt;/a&gt;, earlier this year*, and I plan to get back in the pool with this project.&lt;/p&gt;
-
-&lt;p&gt;My plan is to post fairly regular (weekly?) updates about what I’m doing on the project:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;What did I do the prior week?&lt;/li&gt;
-  &lt;li&gt;Is there a particular problem I solved, pattern I used, or trick I learned that is worth sharing?&lt;/li&gt;
-  &lt;li&gt;What do I plan to work on in the coming week?&lt;/li&gt;
-  &lt;li&gt;Any particular challenges worth mentioning?&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Things like that.&lt;/p&gt;
-
-&lt;p&gt;These will be pretty rough, unpolished posts. Sometimes a particular topic I encounter will be worthy of becoming a more in-depth, polished post, and put these up from time to time.&lt;/p&gt;
-
-&lt;h2 id=&quot;goals&quot;&gt;Goals&lt;/h2&gt;
-
-&lt;p&gt;So what are my goals with working on this new project, and doing so in public?&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Get into the habit of writing regularly.&lt;/li&gt;
-  &lt;li&gt;Sharpen old skills and learn new ones.&lt;/li&gt;
-  &lt;li&gt;Share what I’m working on and what I’ve learned. Hopefully it is helpful to someone.&lt;/li&gt;
-  &lt;li&gt;Demonstrate the process of taking a product from concept to market.&lt;/li&gt;
-  &lt;li&gt;Demonstrate well-architected, working product on the Azure / .NET Core stack.&lt;/li&gt;
-  &lt;li&gt;Teach.&lt;/li&gt;
-  &lt;li&gt;Learn.&lt;/li&gt;
-  &lt;li&gt;Have fun.&lt;/li&gt;
-  &lt;li&gt;Make some lunch money if anyone subscribes to the service.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;whats-the-project&quot;&gt;What’s the Project?&lt;/h2&gt;
-
-&lt;h3 id=&quot;concept&quot;&gt;CONCEPT&lt;/h3&gt;
-
-&lt;p&gt;The idea is not particularly novel or interesting, but it’s a good candidate for what I’m trying to achieve with this project.&lt;/p&gt;
-
-&lt;p&gt;I’m building a stock alerts app (hereafter referred to as Stock Alerts until I think of a good name for it) that will allow the user to create an alert definition for a given stock based on a set of criteria that they define. When the alert is triggered, the user will be notified according to their preferences by push notification, SMS, and/or e-mail.&lt;/p&gt;
-
-&lt;p&gt;&lt;em&gt;“Aren’t there a ton of other stock alert apps out there?”&lt;/em&gt; Yes, there are. Some just let you set a simple price alert; others offer many more features. I plan to support complex alert criteria that include not only simple price alerts, but eventually also technical and fundamental alerts as well, which will differentiate the app from a portion of the market.&lt;/p&gt;
-
-&lt;p&gt;I also want to challenge the idea that you have to have a completely novel idea to succeed in building an app that people will pay for. There’s room for multiple competitors in most markets, and oftentimes your app will be the right choice for a segment of the market that’s not currently being served well.&lt;/p&gt;
-
-&lt;p&gt;To be clear, I have no illusions of replacing my income with this app, but it will be great fodder for achieving the goals I mentioned above, and it should be a fun little project.&lt;/p&gt;
-
-&lt;h3 id=&quot;tech&quot;&gt;TECH&lt;/h3&gt;
-
-&lt;p&gt;Here’s the some of the technology I’m using:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Hosted in &lt;a href=&quot;https://blog.jonblankenship.com/2019/06/25/working-on-a-new-side-project-in-public/[https://azure.microsoft.com](https://azure.microsoft.com/)&quot;&gt;Azure&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://dotnet.microsoft.com/learn/web/what-is-aspnet-core&quot;&gt;ASP.NET Core&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://azure.microsoft.com/en-us/services/functions/&quot;&gt;Azure Functions&lt;/a&gt; for the data feed, alert definition evaluation, and notification processing&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-queues-topics-subscriptions&quot;&gt;Azure Service Bus Queues&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://dotnet.microsoft.com/apps/aspnet/apis&quot;&gt;Web API&lt;/a&gt; &lt;a href=&quot;https://docs.microsoft.com/en-us/azure/app-service/&quot;&gt;Azure App Service&lt;/a&gt; for the user and alert definition management&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://azure.microsoft.com/en-us/services/sql-database/&quot;&gt;Azure SQL&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://docs.microsoft.com/en-us/ef/core/&quot;&gt;Entity Framework Core&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://docs.microsoft.com/en-us/xamarin/xamarin-forms/&quot;&gt;Xamarin Forms&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/PrismLibrary/Prism&quot;&gt;Prism&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://dotnet.microsoft.com/apps/aspnet/web-apps/client&quot;&gt;Blazor&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://azure.microsoft.com/en-us/services/devops/&quot;&gt;Azure DevOps for CI/CD&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;current-status&quot;&gt;CURRENT STATUS&lt;/h3&gt;
-
-&lt;p&gt;The backend API is coded and running in Azure. I’ll share more detail about the API and how it’s built in future posts, including the overall architecture. I’ve been working on the mobile app for about a week now. I’m able to register/login through the mobile app and display my current alert definitions. Last week I put together some UI wireframes for the Create Alert Definition screens, and I’ll be working on implementing those screens this week.&lt;/p&gt;
-
-&lt;h2 id=&quot;wrapping-up&quot;&gt;Wrapping Up&lt;/h2&gt;
-
-&lt;p&gt;In the spirit of working in public, I’ve made the Stock Alerts repository public: https://github.com/jonblankenship/stock-alerts. As with most projects, there are areas of the codebase that need some work and refinement, but we’ll address those things together down the road.&lt;/p&gt;
-
-&lt;p&gt;Thanks for reading! Until next time,&lt;/p&gt;
-
-&lt;p&gt;-Jon&lt;/p&gt;
-
-&lt;p&gt;(* After spending several months working on &lt;a href=&quot;https://openshippers.com/&quot;&gt;Open Shippers&lt;/a&gt;, I was burned out on it by the time I launched it in preview in February. I failed to differentiate it from other similar services out there, and I didn’t have any gas left in the tank to work on building an audience and making it successful. Someday I may do a post-mortem on the project. Open Shippers wasn’t a total failure though – I learned quite a bit while working on it, particularly about ASP.NET Core and Blazor, and I’ve reused several things I developed for Open Shippers in more recent projects. The site is still live, and I may revive efforts around it at some point, but I’m content to work on something else for the time being.)&lt;/p&gt;</content><author><name>Jon_Blankenship</name></author><category term="asp-net-core" /><category term="azure" /><category term="azure-devops" /><category term="azure-functions" /><category term="azure-service-bus" /><category term="azure-sql" /><category term="blazor" /><category term="ef-core" /><category term="prism" /><category term="side-project" /><category term="stock-alerts" /><category term="web-api" /><category term="work-in-public" /><category term="xamarin.forms" /><summary type="html">For the past month or so I’ve been working on a new side project. It’s a small project that will allow me to exercise existing skills, re-sharpen older skills that I’ve not used in awhile, and learn some new ones. I’d like to share it with you…</summary></entry></feed>
+&lt;p&gt;… but that’s a topic for my next post. Thanks for reading.&lt;/p&gt;</content><author><name>Jon_Blankenship</name></author><category term="asp-net-core" /><category term="azure-functions" /><category term="azure-service-bus" /><category term="mvp" /><category term="stock-alerts" /><category term="xamarin.forms" /><summary type="html">In my previous post I revealed my new side project, Stock Alerts, and my intention to build a .NET Core product on the Azure stack, posting regular updates about my work as I go. Before I get down into the weeds in future posts, I thought it might be good to first talk at a higher level about the MVP features I’ll be implementing and the infrastructure that will be needed.</summary></entry></feed>
