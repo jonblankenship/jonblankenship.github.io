@@ -105,6 +105,13 @@
 			<div class="post-date"></i>Apr 12, 2020</div>
 		</div>
 		<div class="post">A good web API is consistent and follows established patterns for communicating error states to the client, leveraging the appropriate HTTP status codes.  To that end, a global exception handler can be very helpful in consolidating a service's error handling logic in one place and translating errors into the appropriate responses to send back to the caller.  In this post I'll show you how you can plug your custom exception-handling logic into the ASP.NET Core request pipeline to handle any exceptions that are thrown in your service.</div>
+	</li><li><div class="post-meta">
+			<a class="post-link" href="/2020/05/03/custom-date-deserialization-in-aspnet-core-web-api/">
+				<h2 class="post-excerpt-title">Custom Date Deserialization in ASP.NET Core Web API</h2>
+			</a>
+			<div class="post-date"></i>May 3, 2020</div>
+		</div>
+		<div class="post">This weekend I came across some oddly formatted datetimes while playing around with Twitter webhooks.  When it came time to test my API endpoint to receive the Twitter event, I received a 400 response with a message indicating that one of the date fields the JSON payload could not be deserialized into a DateTimeOffset.  In this post I'll demonstrate how to write a custom converter to solve this and similar JSON deserialization problems in an ASP.NET Core Web API.</div>
 	</li></ul>
 		</div>
 	</main></body>

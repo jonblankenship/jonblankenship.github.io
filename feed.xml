@@ -1,4 +1,87 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.6">Jekyll</generator><link href="https://blog.jonblankenship.com//feed.xml" rel="self" type="application/atom+xml" /><link href="https://blog.jonblankenship.com//" rel="alternate" type="text/html" /><updated>2020-04-13T13:06:27-05:00</updated><id>https://blog.jonblankenship.com//feed.xml</id><title type="html">Jon Blankenship</title><subtitle>Developer.</subtitle><author><name>Jon_Blankenship</name></author><entry><title type="html">Global Exception Handling in ASP.NET Core Web API</title><link href="https://blog.jonblankenship.com//2020/04/12/global-exception-handling-in-aspnet-core-api/" rel="alternate" type="text/html" title="Global Exception Handling in ASP.NET Core Web API" /><published>2020-04-12T19:30:00-05:00</published><updated>2020-04-12T19:30:00-05:00</updated><id>https://blog.jonblankenship.com//2020/04/12/global-exception-handling-in-aspnet-core-api</id><content type="html" xml:base="https://blog.jonblankenship.com//2020/04/12/global-exception-handling-in-aspnet-core-api/">&lt;p&gt;A good web API is consistent and follows established patterns for communicating error states to the client, leveraging the appropriate HTTP status codes.  To that end, a global exception handler can be very helpful in consolidating a service’s error handling logic in one place and translating errors into the appropriate responses to send back to the client.  In this post I’ll show you how you can plug custom exception-handling logic into the ASP.NET Core request pipeline to handle any exceptions that are thrown in your API.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.6">Jekyll</generator><link href="https://blog.jonblankenship.com//feed.xml" rel="self" type="application/atom+xml" /><link href="https://blog.jonblankenship.com//" rel="alternate" type="text/html" /><updated>2020-05-03T19:18:14-05:00</updated><id>https://blog.jonblankenship.com//feed.xml</id><title type="html">Jon Blankenship</title><subtitle>Developer.</subtitle><author><name>Jon_Blankenship</name></author><entry><title type="html">Custom Date Deserialization in ASP.NET Core Web API</title><link href="https://blog.jonblankenship.com//2020/05/03/custom-date-deserialization-in-aspnet-core-web-api/" rel="alternate" type="text/html" title="Custom Date Deserialization in ASP.NET Core Web API" /><published>2020-05-03T16:30:00-05:00</published><updated>2020-05-03T16:30:00-05:00</updated><id>https://blog.jonblankenship.com//2020/05/03/custom-date-deserialization-in-aspnet-core-web-api</id><content type="html" xml:base="https://blog.jonblankenship.com//2020/05/03/custom-date-deserialization-in-aspnet-core-web-api/">&lt;p&gt;This weekend I came across some oddly formatted datetimes while playing around with Twitter webhooks.  When it came time to test my API endpoint to receive the Twitter event, I received a 400 response with a message indicating that one of the date fields the JSON payload could not be deserialized into a DateTimeOffset.  In this post I’ll demonstrate how to write a custom converter to solve this and similar JSON deserialization problems in an ASP.NET Core Web API.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;clock.jpg&quot; alt=&quot;A clock&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;small&gt;&lt;em&gt;Photo by &lt;a href=&quot;https://unsplash.com/@laurachouette?utm_source=unsplash&amp;amp;utm_medium=referral&amp;amp;utm_content=creditCopyText&quot;&gt;Laura Chouette&lt;/a&gt; on &lt;a href=&quot;https://unsplash.com/s/photos/clock-nature?utm_source=unsplash&amp;amp;utm_medium=referral&amp;amp;utm_content=creditCopyText&quot;&gt;Unsplash&lt;/a&gt;&lt;/em&gt;&lt;/small&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;the-problem&quot;&gt;The Problem&lt;/h2&gt;
+
+&lt;p&gt;Sadly, there’s not a universally accepted format for sending dates in JSON.  Dates in JSON are just strings after all, and although the &lt;a href=&quot;[https://en.wikipedia.org/wiki/ISO_8601](https://en.wikipedia.org/wiki/ISO_8601)&quot;&gt;ISO 8601&lt;/a&gt; format is the most commonly used and de facto standard, it’s far from universal.&lt;/p&gt;
+
+&lt;p&gt;An ISO 8601 datetime looks like this: &lt;code class=&quot;highlighter-rouge&quot;&gt;2018-10-10T20:19:24-00:00&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Twitter formats their datetimes like this: &lt;code class=&quot;highlighter-rouge&quot;&gt;Wed Oct 10 20:19:24 +0000 2018&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;I don’t know if this is a format that’s used anywhere outside of Twitter or not, but I do know that the .NET JSON deserializer doesn’t know what to do with it.&lt;/p&gt;
+
+&lt;p&gt;When a payload with a datetime like that is &lt;code class=&quot;highlighter-rouge&quot;&gt;POST&lt;/code&gt;ed to my ASP.NET Core Web API endpoint, my API complains:&lt;/p&gt;
+
+&lt;div class=&quot;language-json highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+    &lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;type&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;https://tools.ietf.org/html/rfc7231#section-6.5.1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+    &lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;title&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;One or more validation errors occurred.&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+    &lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;status&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;400&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+    &lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;traceId&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;|1fb1cbcd-465ead216a3ec717.&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+    &lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;errors&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+        &lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;$.tweet_create_events[0].created_at&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+            &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;The JSON value could not be converted to System.DateTimeOffset. Path: $.tweet_create_events[0].created_at | LineNumber: 5 | BytePositionInLine: 49.&quot;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+        &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+    &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;the-solution&quot;&gt;The Solution&lt;/h2&gt;
+
+&lt;p&gt;I need to configure my API to deserialize datetimes in the Twitter format into a .NET &lt;code class=&quot;highlighter-rouge&quot;&gt;DateTimeOffset&lt;/code&gt;.  To do this, I’ll create a custom &lt;code class=&quot;highlighter-rouge&quot;&gt;JsonConverter&lt;/code&gt; and add it to the collection of JSON converters my service wires up at start-up.&lt;/p&gt;
+
+&lt;p&gt;Note that I’m using the &lt;code class=&quot;highlighter-rouge&quot;&gt;System.Text.Json&lt;/code&gt; serializer that was introduced with .NET Core 3.0, not the &lt;code class=&quot;highlighter-rouge&quot;&gt;Newtonsoft.Json&lt;/code&gt; serializer.&lt;/p&gt;
+
+&lt;p&gt;First let’s create the custom converter.&lt;/p&gt;
+
+&lt;h4 id=&quot;twitterdatetimeoffsetconverter&quot;&gt;TwitterDateTimeOffsetConverter&lt;/h4&gt;
+
+&lt;p&gt;My custom converter derives from &lt;code class=&quot;highlighter-rouge&quot;&gt;JsonConverter&amp;lt;DateTimeOffset&amp;gt;&lt;/code&gt;.  The generic type parameter specifies the data type that we’ll be deserializing to/serializing from on the .NET side.&lt;/p&gt;
+
+&lt;p&gt;The converter implements two methods, &lt;code class=&quot;highlighter-rouge&quot;&gt;Read(..)&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;Write(..)&lt;/code&gt;,  which deserialize from and serialize to our custom datetime format specified in the &lt;code class=&quot;highlighter-rouge&quot;&gt;TwitterDateFormat&lt;/code&gt; constant.&lt;/p&gt;
+
+&lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;TwitterDateTimeOffsetConverter&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;JsonConverter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DateTimeOffset&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TwitterDateFormat&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;ddd MMM dd HH:mm:ss +ffff yyyy&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DateTimeOffset&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;Read&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;ref&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Utf8JsonReader&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;reader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; 
+        &lt;span class=&quot;n&quot;&gt;Type&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;typeToConvert&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; 
+        &lt;span class=&quot;n&quot;&gt;JsonSerializerOptions&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;options&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;DateTimeOffset&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;ParseExact&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;reader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;GetString&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TwitterDateFormat&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CultureInfo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;InvariantCulture&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;Write&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;Utf8JsonWriter&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;writer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; 
+        &lt;span class=&quot;n&quot;&gt;DateTimeOffset&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; 
+        &lt;span class=&quot;n&quot;&gt;JsonSerializerOptions&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;options&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;writer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;WriteStringValue&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;ToString&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TwitterDateFormat&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CultureInfo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;InvariantCulture&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h4 id=&quot;startup-configuration&quot;&gt;Startup Configuration&lt;/h4&gt;
+
+&lt;p&gt;The only thing left to do now is to add my new converter to the collection of JSON converters that ASP.NET Core will use when handling requests to my API.  I do that in the &lt;code class=&quot;highlighter-rouge&quot;&gt;ConfigureServices(..)&lt;/code&gt; method in my Startup.cs:&lt;/p&gt;
+
+&lt;div class=&quot;language-csharp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;ConfigureServices&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IServiceCollection&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;services&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;services&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;AddMvc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;AddJsonOptions&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;opts&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;            
+            &lt;span class=&quot;n&quot;&gt;opts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;JsonSerializerOptions&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Converters&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;Add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;TwitterDateTimeOffsetConverter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;());&lt;/span&gt;
+            &lt;span class=&quot;c1&quot;&gt;// Add any other converters here&lt;/span&gt;
+            &lt;span class=&quot;c1&quot;&gt;// I typically add JsonStringEnumConverter to my APIs&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;...&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;I restart my service and send a test payload to my endpoint and everything is &lt;code class=&quot;highlighter-rouge&quot;&gt;200 - OK&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Life is good.  :-)&lt;/p&gt;</content><author><name>Jon_Blankenship</name></author><category term="dotnet" /><category term="asp-net-core" /><category term="json" /><category term="serialization" /><category term="web-api" /><category term="twitter" /><summary type="html">This weekend I came across some oddly formatted datetimes while playing around with Twitter webhooks. When it came time to test my API endpoint to receive the Twitter event, I received a 400 response with a message indicating that one of the date fields the JSON payload could not be deserialized into a DateTimeOffset. In this post I'll demonstrate how to write a custom converter to solve this and similar JSON deserialization problems in an ASP.NET Core Web API.</summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://blog.jonblankenship.com//2020/05/03/custom-date-deserialization-in-aspnet-core-web-api/clock.jpg" /></entry><entry><title type="html">Global Exception Handling in ASP.NET Core Web API</title><link href="https://blog.jonblankenship.com//2020/04/12/global-exception-handling-in-aspnet-core-api/" rel="alternate" type="text/html" title="Global Exception Handling in ASP.NET Core Web API" /><published>2020-04-12T19:30:00-05:00</published><updated>2020-04-12T19:30:00-05:00</updated><id>https://blog.jonblankenship.com//2020/04/12/global-exception-handling-in-aspnet-core-api</id><content type="html" xml:base="https://blog.jonblankenship.com//2020/04/12/global-exception-handling-in-aspnet-core-api/">&lt;p&gt;A good web API is consistent and follows established patterns for communicating error states to the client, leveraging the appropriate HTTP status codes.  To that end, a global exception handler can be very helpful in consolidating a service’s error handling logic in one place and translating errors into the appropriate responses to send back to the client.  In this post I’ll show you how you can plug custom exception-handling logic into the ASP.NET Core request pipeline to handle any exceptions that are thrown in your API.&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;AspNetCoreMiddleware.png&quot; alt=&quot;ASP.NET Core Middleware&quot; /&gt;&lt;/p&gt;
 
@@ -1649,54 +1732,4 @@ The internet’s a big place.&lt;/p&gt;
 
 &lt;p&gt;Though one of the key value props of serverless computing is automatic scaling, I don’t have practical experience with scaling Azure Functions during periods of high load. I’ll log and monitor timings from the various functions to ensure that notifications are being delivered in a timely fashion from when they are triggered, which is crucial for Stock Alerts’ primary function.&lt;/p&gt;
 
-&lt;p&gt;That’s all for now. Thanks for reading.&lt;/p&gt;</content><author><name>Jon_Blankenship</name></author><category term="asp-net-core" /><category term="azure-functions" /><category term="azure-service-bus" /><category term="mvp" /><category term="azure-sql" /><category term="http-triggered-function" /><category term="infrastructure" /><category term="serverless" /><category term="service-bus-queue-triggered-function" /><category term="stock-alerts" /><category term="timer-triggered-function" /><summary type="html">We’ve talked about the features that we’ll be implementing in Stock Alerts. Today we’ll look at the infrastructure that will be needed to support those features.</summary></entry><entry><title type="html">Stock Alerts Features</title><link href="https://blog.jonblankenship.com//2019/06/28/stock-alerts-features/" rel="alternate" type="text/html" title="Stock Alerts Features" /><published>2019-06-28T02:00:00-05:00</published><updated>2019-06-28T02:00:00-05:00</updated><id>https://blog.jonblankenship.com//2019/06/28/stock-alerts-features</id><content type="html" xml:base="https://blog.jonblankenship.com//2019/06/28/stock-alerts-features/">&lt;p&gt;In my &lt;a href=&quot;https://blog.jonblankenship.com/2019/06/25/working-on-a-new-side-project-in-public/&quot;&gt;previous post&lt;/a&gt; I revealed my new side project, Stock Alerts, and my intention to build a .NET Core product on the Azure stack, posting regular updates about my work as I go. Before I get down into the weeds in future posts, I thought it might be good to first talk at a higher level about the MVP features I’ll be implementing and the infrastructure that will be needed.&lt;/p&gt;
-
-&lt;!--more--&gt;
-
-&lt;h2 id=&quot;features&quot;&gt;Features&lt;/h2&gt;
-
-&lt;p&gt;Stocks Alerts will consist of a mobile app with a small number of key features. Of course there will be backend services to support the mobile app functionality, but we’ll talk about the features from the user’s perspective as he/she interacts with the app.&lt;/p&gt;
-
-&lt;p&gt;There will also be a web app eventually, but for now we’ll just focus on the mobile app.&lt;/p&gt;
-
-&lt;h3 id=&quot;alert-definition-management&quot;&gt;ALERT DEFINITION MANAGEMENT&lt;/h3&gt;
-
-&lt;p&gt;&lt;img src=&quot;push_notifications1600-150x150.png&quot; alt=&quot;Push notification&quot; class=&quot;float-right&quot; /&gt;Stock Alerts users will be able to view, create, edit, and delete alert definitions that define the criteria for a stock alert. In the course of creating an alert definition, the user will search for and select a stock, name the alert, and define the criteria that will trigger the alert.&lt;/p&gt;
-
-&lt;p&gt;Initially, the set of stocks available to create alert definitions will be limited, due to daily API call limits set by my data provider (which I’ll talk in a future post). I’ve considered either supporting only stocks in the S&amp;amp;P 500 at first or allowing the initial users to essentially define the initial universe of stocks by the alert definitions that they create. Still thinking on this one…&lt;/p&gt;
-
-&lt;p&gt;For the alert criteria, the API will support allowing the user to choose from multiple rule types (like various price alerts, technical alerts, and fundamental alerts), as well as combining multiple rules into a boolean logic tree, but for MVP the mobile app will only expose the ability to enter &lt;code class=&quot;highlighter-rouge&quot;&gt;1..n&lt;/code&gt; price alerts combined by an &lt;code class=&quot;highlighter-rouge&quot;&gt;AND&lt;/code&gt; or &lt;code class=&quot;highlighter-rouge&quot;&gt;OR&lt;/code&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;alert-notifications&quot;&gt;ALERT NOTIFICATIONS&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://azure.microsoft.com/en-us/services/functions&quot;&gt;&lt;img src=&quot;AzureFunctions-150x150.png&quot; alt=&quot;Azure Functions&quot; class=&quot;float-right&quot; /&gt;&lt;/a&gt;The Stock Alerts backend will evaluate all active alert definitions as it receives new stock data and notify users of triggered alerts via one or more of three methods: push notification, e-mail, and/or SMS message.&lt;/p&gt;
-
-&lt;p&gt;The processing of active alert definitions and the sending of notifications via the three channels will be handled by Azure Functions in conjunction with Azure Service Bus queues. Azure Functions are well-suited for these types of tasks – I pay for the compute that I use and they can scale out under load (for example, when AAPL makes a large move and triggers a large number of alerts).&lt;/p&gt;
-
-&lt;h3 id=&quot;user-registration--login&quot;&gt;USER REGISTRATION &amp;amp; LOGIN&lt;/h3&gt;
-
-&lt;p&gt;The Stock Alerts mobile app will allow new users to register with the app and existing users to login. To register, a user just needs to provide their e-mail address, a unique username, and their password. After login, web requests will be authenticated via token-based authentication&lt;/p&gt;
-
-&lt;h3 id=&quot;user-preferences-management&quot;&gt;USER PREFERENCES MANAGEMENT&lt;/h3&gt;
-
-&lt;p&gt;Users will be able to set their notification preferences in the Stock Alerts app, including the channels that they will be notified on (push notification, e-mail, or SMS), as well as their e-mail address and SMS phone number, if applicable.&lt;/p&gt;
-
-&lt;h3 id=&quot;paymentsubscription-management&quot;&gt;PAYMENT/SUBSCRIPTION MANAGEMENT&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://stripe.com/&quot;&gt;&lt;img src=&quot;stripe-pay-card-logo_318-55295-150x150.jpg&quot; alt=&quot;Stripe logo&quot; class=&quot;float-right&quot; /&gt;&lt;/a&gt;Though users will be able to register and set up a limited number of alert definitions for free, I’ll charge users who have more than a few active alert definitions. Stripe is the standard for managing subscriptions and taking online payments, and their API is well-designed. We’ll integrate with Stripe to manage user subscriptions and payments for premium users.&lt;/p&gt;
-
-&lt;h3 id=&quot;cross-platform&quot;&gt;CROSS-PLATFORM&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://docs.microsoft.com/en-us/xamarin/xamarin-forms/&quot;&gt;&lt;img src=&quot;xamagon-150x150.png&quot; alt=&quot;Xamarin Forms&quot; class=&quot;float-right&quot; /&gt;&lt;/a&gt;The mobile app will target both Android and iOS (and eventually web), and we’ll use Xamarin.Forms to accomplish this. I’m an Android user, so Android will be the first platform I focus on. I can get idea validation and feedback by launching on a single platform, and if there is traction after launch and I want to expand to iOS, I’ll be well-positioned to do so having build the app with Xamarin.Forms.&lt;/p&gt;
-
-&lt;p&gt;A web app will probably be post-MVP as well.&lt;/p&gt;
-
-&lt;h2 id=&quot;is-that-all&quot;&gt;Is That All?&lt;/h2&gt;
-
-&lt;p&gt;The feature set that I’m targeting for MVP is extremely limited by design. There’s enough here to provide value, prove out the idea, and demonstrate interactions throughout the full stack while being small enough to complete within a couple of months at 5-10 hours per week (though writing about it will slow me down some). There will also be plenty of opportunities for enhancements and additional features post-MVP, if I’m so inclined.&lt;/p&gt;
-
-&lt;p&gt;When choosing a side project, it’s important to me that it be very small and limited in scope for a few reasons. First, I want something that I can build quickly while I’m motivated and energized about the new idea and lessen the risk of losing interest or becoming bored with it halfway through. I also want to launch as soon as possible to begin the feedback loop and start learning from my users: What do they like/not like? How do they use the product? Will they pay for it? Etc… Finally, by limiting the initial feature set, I focus on just the core features of the product and I don’t waste time building features that my users may not even care about.&lt;/p&gt;
-
-&lt;p&gt;So now that we know what features we’ll be building, we’re ready to talk about the infrastructure needed to support those features!&lt;/p&gt;
-
-&lt;p&gt;… but that’s a topic for my next post. Thanks for reading.&lt;/p&gt;</content><author><name>Jon_Blankenship</name></author><category term="asp-net-core" /><category term="azure-functions" /><category term="azure-service-bus" /><category term="mvp" /><category term="stock-alerts" /><category term="xamarin.forms" /><summary type="html">In my previous post I revealed my new side project, Stock Alerts, and my intention to build a .NET Core product on the Azure stack, posting regular updates about my work as I go. Before I get down into the weeds in future posts, I thought it might be good to first talk at a higher level about the MVP features I’ll be implementing and the infrastructure that will be needed.</summary></entry></feed>
+&lt;p&gt;That’s all for now. Thanks for reading.&lt;/p&gt;</content><author><name>Jon_Blankenship</name></author><category term="asp-net-core" /><category term="azure-functions" /><category term="azure-service-bus" /><category term="mvp" /><category term="azure-sql" /><category term="http-triggered-function" /><category term="infrastructure" /><category term="serverless" /><category term="service-bus-queue-triggered-function" /><category term="stock-alerts" /><category term="timer-triggered-function" /><summary type="html">We’ve talked about the features that we’ll be implementing in Stock Alerts. Today we’ll look at the infrastructure that will be needed to support those features.</summary></entry></feed>
