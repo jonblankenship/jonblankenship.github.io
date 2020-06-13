@@ -1,4 +1,224 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.6">Jekyll</generator><link href="https://blog.jonblankenship.com//feed.xml" rel="self" type="application/atom+xml" /><link href="https://blog.jonblankenship.com//" rel="alternate" type="text/html" /><updated>2020-05-03T19:18:14-05:00</updated><id>https://blog.jonblankenship.com//feed.xml</id><title type="html">Jon Blankenship</title><subtitle>Developer.</subtitle><author><name>Jon_Blankenship</name></author><entry><title type="html">Custom Date Deserialization in ASP.NET Core Web API</title><link href="https://blog.jonblankenship.com//2020/05/03/custom-date-deserialization-in-aspnet-core-web-api/" rel="alternate" type="text/html" title="Custom Date Deserialization in ASP.NET Core Web API" /><published>2020-05-03T16:30:00-05:00</published><updated>2020-05-03T16:30:00-05:00</updated><id>https://blog.jonblankenship.com//2020/05/03/custom-date-deserialization-in-aspnet-core-web-api</id><content type="html" xml:base="https://blog.jonblankenship.com//2020/05/03/custom-date-deserialization-in-aspnet-core-web-api/">&lt;p&gt;This weekend I came across some oddly formatted datetimes while playing around with Twitter webhooks.  When it came time to test my API endpoint to receive the Twitter event, I received a 400 response with a message indicating that one of the date fields the JSON payload could not be deserialized into a DateTimeOffset.  In this post I’ll demonstrate how to write a custom converter to solve this and similar JSON deserialization problems in an ASP.NET Core Web API.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.6">Jekyll</generator><link href="https://blog.jonblankenship.com//feed.xml" rel="self" type="application/atom+xml" /><link href="https://blog.jonblankenship.com//" rel="alternate" type="text/html" /><updated>2020-06-13T15:33:49-05:00</updated><id>https://blog.jonblankenship.com//feed.xml</id><title type="html">Jon Blankenship</title><subtitle>Developer.</subtitle><author><name>Jon_Blankenship</name></author><entry><title type="html">My Top 10 Traits in a Development Job</title><link href="https://blog.jonblankenship.com//2020/06/13/top-10-desired-traits-in-a-development-job/" rel="alternate" type="text/html" title="My Top 10 Traits in a Development Job" /><published>2020-06-13T13:30:00-05:00</published><updated>2020-06-13T13:30:00-05:00</updated><id>https://blog.jonblankenship.com//2020/06/13/top-10-desired-traits-in-a-development-job</id><content type="html" xml:base="https://blog.jonblankenship.com//2020/06/13/top-10-desired-traits-in-a-development-job/">&lt;p&gt;&lt;img src=&quot;home-office-pc.jpg&quot; alt=&quot;A PC in a home office&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;small&gt;&lt;em&gt;Photo by &lt;a href=&quot;https://unsplash.com/@casparrubin?utm_source=unsplash&amp;amp;utm_medium=referral&amp;amp;utm_content=creditCopyText&quot;&gt;Caspar Camille Rubin&lt;/a&gt; on &lt;a href=&quot;https://unsplash.com/s/photos/job?utm_source=unsplash&amp;amp;utm_medium=referral&amp;amp;utm_content=creditCopyText&quot;&gt;Unsplash&lt;/a&gt;&lt;/em&gt;&lt;/small&gt;&lt;/p&gt;
+
+&lt;p&gt;In my almost two decades as a developer I’ve become increasingly aware of what matters to me in a job, having been in half dozen different environments that excel in some traits but are lacking in others.&lt;/p&gt;
+
+&lt;p&gt;This list is my list of the things that are most important to me in a dev job at this time in my life.&lt;/p&gt;
+
+&lt;p&gt;This list changes with time as my circumstances and priorities change.&lt;/p&gt;
+
+&lt;p&gt;This list is likely different than your list.&lt;/p&gt;
+
+&lt;p&gt;It’s rare to find your “dream job” that fits all of your criteria.&lt;/p&gt;
+
+&lt;p&gt;Oftentimes you must compromise some of the less important traits for some of the more important ones.&lt;/p&gt;
+
+&lt;p&gt;I’ve done this.&lt;/p&gt;
+
+&lt;p&gt;It’s OK, as long as you understand the trade-offs you’re making.&lt;/p&gt;
+
+&lt;p&gt;Early in your career you have fewer choices.  You can’t afford to be picky.&lt;/p&gt;
+
+&lt;p&gt;This is OK, because you likely have…&lt;/p&gt;
+
+&lt;p&gt;✔  More time&lt;br /&gt;
+✔  More to learn&lt;br /&gt;
+✔  Fewer limitations&lt;br /&gt;
+✔  More to experience&lt;/p&gt;
+
+&lt;p&gt;I share this list in hopes that it will help someone out there think critically about their next career move.&lt;/p&gt;
+
+&lt;p&gt;So without further ado, my Top 10 Desired Traits in a Development Job (roughly in order of importance):&lt;/p&gt;
+
+&lt;h2 id=&quot;1-remote-first-culture-&quot;&gt;1. Remote-First Culture 🏡&lt;/h2&gt;
+
+&lt;p&gt;Being able to work remotely is key for me - I won’t ever work in an office again if I can avoid it.&lt;/p&gt;
+
+&lt;p&gt;The freedom to see my kids when they get home from school, have a coffee break with my wife, and just share more “regular” moments of daily life with my family is priceless.&lt;/p&gt;
+
+&lt;p&gt;I can’t get back the hours I’ve spent commuting to and from work, but going forward I can appreciate the time that I won’t spend sitting behind the wheel every day.&lt;/p&gt;
+
+&lt;p&gt;The company should be remote first, with remote work ingrained in the company culture.&lt;/p&gt;
+
+&lt;p&gt;I don’t want to be the odd man out on a team of mostly co-located coworkers.&lt;/p&gt;
+
+&lt;p&gt;It’s not enough for a company to simply slap a few Skype invites on their meeting requests and call it a day.&lt;/p&gt;
+
+&lt;p&gt;A healthy expectation for remote workers is needed.&lt;/p&gt;
+
+&lt;p&gt;Bad:  Since you’re remote, you should be available 24/7.&lt;/p&gt;
+
+&lt;p&gt;Good:  40 hrs/wk is enough.  Though there may be an occasional week where extra hours are needed, usually you put in your 40 hrs &amp;amp; then go enjoy your non-work life.&lt;/p&gt;
+
+&lt;h2 id=&quot;2-culture-of-craftsmanship-&quot;&gt;2. Culture of Craftsmanship 🛠&lt;/h2&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;craft (n.): an art, trade, or occupation requiring special skill&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Good software is produced when development is viewed as a craft.&lt;/p&gt;
+
+&lt;p&gt;Bad software is produced when development is viewed as an assembly line process.&lt;/p&gt;
+
+&lt;p&gt;I want to work with colleagues who view their work as a craft to be honed.&lt;/p&gt;
+
+&lt;p&gt;I don’t want to work for a company that views development as mechanical process that can be streamlined by simply adding more metrics, KPIs, and process.&lt;/p&gt;
+
+&lt;p&gt;Benefits of a culture of craftsmanship:&lt;/p&gt;
+
+&lt;p&gt;✔ Higher quality&lt;br /&gt;
+✔ Pride of ownership&lt;br /&gt;
+✔ Continuous improvement&lt;/p&gt;
+
+&lt;h2 id=&quot;3-software-is-the-product-&quot;&gt;3. Software is the Product 💾&lt;/h2&gt;
+
+&lt;p&gt;There is a big difference between working for a company where software development is a supporting function vs. one where it is the primary function.&lt;/p&gt;
+
+&lt;p&gt;Cost center vs. profit center mentality.&lt;/p&gt;
+
+&lt;p&gt;I recently &lt;a href=&quot;https://twitter.com/Jon_Blankenship/status/1261703417489211392&quot;&gt;tweeted about this&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;When viewed as a cost center, the emphasis is on keeping costs down.&lt;/p&gt;
+
+&lt;p&gt;This usually means minimizing investment the people and processes involved in producing software, since it is not the company’s core function.&lt;/p&gt;
+
+&lt;p&gt;When viewed as a profit center, the emphasis is on maximizing profits.&lt;/p&gt;
+
+&lt;p&gt;This usually means investing in the people and processes involved in producing the main product, which contributes directly to the company’s bottom line.&lt;/p&gt;
+
+&lt;p&gt;In my experience, the cost center attitude is “Get it done.”&lt;/p&gt;
+
+&lt;p&gt;The profit center attitude is “Get it done well.”&lt;/p&gt;
+
+&lt;p&gt;I much prefer the latter.&lt;/p&gt;
+
+&lt;h2 id=&quot;4-observes-development-best-practices-&quot;&gt;4. Observes Development Best Practices 👨‍💻&lt;/h2&gt;
+
+&lt;p&gt;This one is a byproduct of a culture of craftsmanship.&lt;/p&gt;
+
+&lt;p&gt;A team that strives to produce quality software follows best practices.&lt;/p&gt;
+
+&lt;p&gt;Best practices include…&lt;/p&gt;
+
+&lt;p&gt;✔ YAGNI&lt;br /&gt;
+✔ Clean code&lt;br /&gt;
+✔ Defensive code&lt;br /&gt;
+✔ Design patterns&lt;br /&gt;
+✔ Consistent style&lt;br /&gt;
+✔ SOLID principles&lt;br /&gt;
+✔ Automated tests&lt;br /&gt;
+✔ Minimize complexity&lt;br /&gt;
+✔ Side-effect free functions&lt;br /&gt;
+✔ etc…&lt;/p&gt;
+
+&lt;p&gt;Using good development practices promotes…&lt;/p&gt;
+
+&lt;p&gt;👍 quality&lt;br /&gt;
+👍 reliability&lt;br /&gt;
+👍 readability&lt;br /&gt;
+👍 maintainability&lt;br /&gt;
+👍 robustness&lt;/p&gt;
+
+&lt;p&gt;A clean, well-structured, well-tested codebase is also more enjoyable to work in.&lt;/p&gt;
+
+&lt;p&gt;This is the kind of codebase I prefer to work in.&lt;/p&gt;
+
+&lt;h2 id=&quot;5-observes-devops-best-practices-&quot;&gt;5. Observes DevOps Best Practices 💻&lt;/h2&gt;
+
+&lt;p&gt;A company that prioritizes software quality prioritizes DevOps.&lt;/p&gt;
+
+&lt;p&gt;An investment in DevOps goes a long way towards improving the lives of the developers.&lt;/p&gt;
+
+&lt;p&gt;The benefits of DevOps automation are many:&lt;/p&gt;
+
+&lt;p&gt;☑ Higher stability&lt;br /&gt;
+☑ Higher throughput&lt;br /&gt;
+☑ Easier deployments&lt;br /&gt;
+☑ Reduced human error&lt;br /&gt;
+☑ Less developer time spent on deployments&lt;/p&gt;
+
+&lt;h2 id=&quot;6-talented-and-driven-colleagues-&quot;&gt;6. Talented and Driven Colleagues 👩‍💻&lt;/h2&gt;
+
+&lt;p&gt;I want to work with colleagues who will make me better by working alongside them.&lt;/p&gt;
+
+&lt;p&gt;These aren’t people who simply punch the clock to earn their paycheck.&lt;/p&gt;
+
+&lt;p&gt;They’re talented, smart, curious, and driven individuals who take pride in their work.&lt;/p&gt;
+
+&lt;p&gt;I’ve worked with several people like this over my career, and they’re responsible for much of my growth as a developer, for which I’m indebted.&lt;/p&gt;
+
+&lt;p&gt;You can’t help but grow in your craft if you’re interacting with talented individuals on a daily basis via design meetings, code reviews, debugging sessions, architectural discussions, etc…&lt;/p&gt;
+
+&lt;h2 id=&quot;7-anti-enterprise-&quot;&gt;7. Anti-Enterprise 🏢&lt;/h2&gt;
+
+&lt;p&gt;By “anti-enterprise,” I mean a company where there is minimal corporate process/bureaucracy.&lt;/p&gt;
+
+&lt;p&gt;I prefer working for a small, fast company over a large, slow enterprise.&lt;/p&gt;
+
+&lt;p&gt;I have a low tolerance for waste.&lt;/p&gt;
+
+&lt;p&gt;I prefer to spend my time creating value rather than sitting in meetings and entering support tickets.&lt;/p&gt;
+
+&lt;p&gt;I want to be empowered to do the things that I need to do to do my job.&lt;/p&gt;
+
+&lt;p&gt;I don’t want to have to…&lt;br /&gt;
+↪ spend 15 minutes entering a change request&lt;br /&gt;
+↪ to have a dev database restored&lt;br /&gt;
+↪ that will take a week to complete&lt;br /&gt;
+↪ that would have otherwise taken me 5 minutes&lt;br /&gt;
+↪ if given the adequate permissions.&lt;/p&gt;
+
+&lt;p&gt;I don’t like to be handcuffed by process.&lt;/p&gt;
+
+&lt;p&gt;I have no desire to climb the corporate ladder or play status games.&lt;/p&gt;
+
+&lt;h2 id=&quot;8-potential-for-professional-growth-&quot;&gt;8. Potential for Professional Growth 📈&lt;/h2&gt;
+
+&lt;p&gt;I want to be challenged to grow professionally.&lt;/p&gt;
+
+&lt;p&gt;My growth as a developer is a function of…&lt;/p&gt;
+
+&lt;p&gt;1️⃣ my own initiative,&lt;br /&gt;
+2️⃣ the project(s) I’m working on, and&lt;br /&gt;
+3️⃣ the people that I’m working with.&lt;/p&gt;
+
+&lt;p&gt;The greatest periods of growth in my career have been a result of not only own initiative, but also the fact that I was working on interesting projects with, more importantly, smart colleagues (#6).&lt;/p&gt;
+
+&lt;p&gt;Your potential to grow as a developer will change over the course of your time with a company.&lt;/p&gt;
+
+&lt;p&gt;Often this potential is greatest when you first join and diminishes over time, but not always.&lt;/p&gt;
+
+&lt;p&gt;New projects or new team members can rekindle the fires of growth.&lt;/p&gt;
+
+&lt;h2 id=&quot;9-clear-line-from-contribution-to-value-&quot;&gt;9. Clear Line from Contribution to Value ➡&lt;/h2&gt;
+
+&lt;p&gt;I want to be able to see how my contribution contributes to the success of the company.&lt;/p&gt;
+
+&lt;p&gt;This contributes to a greater satisfaction in a job well done.&lt;/p&gt;
+
+&lt;p&gt;It’s easier to see how your contribution affects the overall success of the company when …&lt;/p&gt;
+
+&lt;p&gt;✔ the company is small (#7), and&lt;br /&gt;
+✔ software is the product (#3).&lt;/p&gt;
+
+&lt;h2 id=&quot;10-compensationbenefitsequity-&quot;&gt;10. Compensation/Benefits/Equity 💵&lt;/h2&gt;
+
+&lt;p&gt;This one comes last in my top 10, but that doesn’t mean it’s not important.&lt;/p&gt;
+
+&lt;p&gt;I want to be compensated fairly for my work.  Ideally that includes equity in the company.&lt;/p&gt;
+
+&lt;p&gt;If my contribution is tied to the success of the company, I prefer my compensation to be as well.&lt;/p&gt;
+
+&lt;p&gt;Once equity enters the equation, you shift from purely trading time for money, to trading time for money + a stake in something of potentially great value.&lt;/p&gt;
+
+&lt;p&gt;Being well-compensated is one way that a company can show me that my contribution is valued.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;There you have it.  My Top 10 Desired Traits in a Software Development Job.&lt;/p&gt;
+
+&lt;p&gt;What are some things on your list?  Drop your comment on the original thread &lt;a href=&quot;https://twitter.com/Jon_Blankenship/status/1269716700682993666&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;</content><author><name>Jon_Blankenship</name></author><category term="software" /><category term="development" /><category term="career" /><category term="best-practices" /><category term="devops" /><category term="remote-work" /><summary type="html">In my almost two decades as a developer I've become increasingly aware of what matters to me in a job, having been in half dozen different environments that excel in some traits but are lacking in others. This list is my list of the things that are most important to me in a dev job at this time in my life. This list changes with time as my circumstances and priorities change. This list is likely different than your list.</summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://blog.jonblankenship.com//2020/06/13/top-10-desired-traits-in-a-development-job/home-office-pc.jpg" /></entry><entry><title type="html">Custom Date Deserialization in ASP.NET Core Web API</title><link href="https://blog.jonblankenship.com//2020/05/03/custom-date-deserialization-in-aspnet-core-web-api/" rel="alternate" type="text/html" title="Custom Date Deserialization in ASP.NET Core Web API" /><published>2020-05-03T16:30:00-05:00</published><updated>2020-05-03T16:30:00-05:00</updated><id>https://blog.jonblankenship.com//2020/05/03/custom-date-deserialization-in-aspnet-core-web-api</id><content type="html" xml:base="https://blog.jonblankenship.com//2020/05/03/custom-date-deserialization-in-aspnet-core-web-api/">&lt;p&gt;This weekend I came across some oddly formatted datetimes while playing around with Twitter webhooks.  When it came time to test my API endpoint to receive the Twitter event, I received a 400 response with a message indicating that one of the date fields the JSON payload could not be deserialized into a DateTimeOffset.  In this post I’ll demonstrate how to write a custom converter to solve this and similar JSON deserialization problems in an ASP.NET Core Web API.&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;clock.jpg&quot; alt=&quot;A clock&quot; /&gt;&lt;/p&gt;
 
@@ -556,7 +776,7 @@
 
 &lt;p&gt;Today we’ve seen why using Razor templates coupled with Azure Functions is a good approach to sending transactional e-mails from your application.  We’ve also seen how to implement this approach.&lt;/p&gt;
 
-&lt;p&gt;I hope it helps you if you’re considering going down the same path.&lt;/p&gt;</content><author><name>Jon_Blankenship</name></author><category term="dotnet" /><category term="asp-net-core" /><category term="azure" /><category term="azure-functions" /><category term="razor" /><category term="service-bus" /><category term="e-mail" /><category term="mailgun" /><category term="razorlight" /><summary type="html">On a couple of recent side projects I've had the need to send automated e-mails to my users. For both implementations I chose the same approach: use Razor templates combined with Azure Functions to build a simple, maintainable, and loosely-coupled solution for sending transactional e-mails. In this post I'll show you how to do the same.</summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://blog.jonblankenship.com//2020/04/05/razor-powered-e-mail-in-azure-functions/HighLevelFlow.png" /></entry><entry><title type="html">Differentiating Yourself from the Competition</title><link href="https://blog.jonblankenship.com//2020/03/22/differentiating-yourself-from-the-competition/" rel="alternate" type="text/html" title="Differentiating Yourself from the Competition" /><published>2020-03-22T16:15:00-05:00</published><updated>2020-03-22T16:15:00-05:00</updated><id>https://blog.jonblankenship.com//2020/03/22/differentiating-yourself-from-the-competition</id><content type="html" xml:base="https://blog.jonblankenship.com//2020/03/22/differentiating-yourself-from-the-competition/">&lt;p&gt;I was recently asked this question about &lt;a href=&quot;https://excepticon.io&quot;&gt;Excepticon&lt;/a&gt; in an online forum:&lt;/p&gt;
+&lt;p&gt;I hope it helps you if you’re considering going down the same path.&lt;/p&gt;</content><author><name>Jon_Blankenship</name></author><category term="dotnet" /><category term="asp-net-core" /><category term="azure" /><category term="azure-functions" /><category term="razor" /><category term="service-bus" /><category term="e-mail" /><category term="mailgun" /><category term="razorlight" /><summary type="html">On a couple of recent side projects I've had the need to send automated e-mails to my users. For both implementations I chose the same approach: use Razor templates combined with Azure Functions to build a simple, maintainable, and loosely-coupled solution for sending transactional e-mails. In this post I'll show you how to do the same.</summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://blog.jonblankenship.com//2020/04/05/razor-powered-e-mail-in-azure-functions/HighLevelFlow.png" /></entry><entry><title type="html">4 Key Ways Excepticon is Different from the Competition</title><link href="https://blog.jonblankenship.com//2020/03/22/differentiating-yourself-from-the-competition/" rel="alternate" type="text/html" title="4 Key Ways Excepticon is Different from the Competition" /><published>2020-03-22T16:15:00-05:00</published><updated>2020-03-22T16:15:00-05:00</updated><id>https://blog.jonblankenship.com//2020/03/22/differentiating-yourself-from-the-competition</id><content type="html" xml:base="https://blog.jonblankenship.com//2020/03/22/differentiating-yourself-from-the-competition/">&lt;p&gt;I was recently asked this question about &lt;a href=&quot;https://excepticon.io&quot;&gt;Excepticon&lt;/a&gt; in an online forum:&lt;/p&gt;
 
 &lt;blockquote&gt;
   &lt;p&gt;Okay, so the idea is valid, but WHAT makes you different than your competition? If money was not an issue, why would I pick you over something like New Relic?&lt;/p&gt;
@@ -1670,66 +1890,4 @@ The internet’s a big place.&lt;/p&gt;
 
 &lt;p&gt;Here’s the repository for the project if you’d like to follow along: https://github.com/jonblankenship/stock-alerts.&lt;/p&gt;
 
-&lt;p&gt;Thanks for reading, and Happy Fourth of July!&lt;/p&gt;</content><author><name>Jon_Blankenship</name></author><category term="asp-net-core" /><category term="async-await" /><category term="cancellation-token" /><category term="httpclient" /><category term="httpclientfactory" /><category term="inotifypropertychanged" /><category term="mvvm" /><category term="notifytask" /><category term="stock-alerts" /><category term="stock-alerts-update" /><category term="xamarin.forms" /><summary type="html">I’d been meaning to get this update out over the weekend, but a stomach bug visited our house and threw off my schedule. I’d like to get these updates out about once a week going forward, but since this is a side project and I’m working on it for fun in my off hours, I’m not going to sweat it too much.</summary></entry><entry><title type="html">Stock Alerts Infrastructure</title><link href="https://blog.jonblankenship.com//2019/07/01/stock-alerts-infrastructure/" rel="alternate" type="text/html" title="Stock Alerts Infrastructure" /><published>2019-07-01T02:00:00-05:00</published><updated>2019-07-01T02:00:00-05:00</updated><id>https://blog.jonblankenship.com//2019/07/01/stock-alerts-infrastructure</id><content type="html" xml:base="https://blog.jonblankenship.com//2019/07/01/stock-alerts-infrastructure/">&lt;p&gt;We’ve &lt;a href=&quot;https://blog.jonblankenship.com/2019/06/28/stock-alerts-features/&quot;&gt;talked about the features&lt;/a&gt; that we’ll be implementing in Stock Alerts. Today we’ll look at the infrastructure that will be needed to support those features.&lt;/p&gt;
-
-&lt;!--more--&gt;
-
-&lt;p&gt;I’ve been working in &lt;a href=&quot;https://azure.microsoft.com/en-us/&quot;&gt;Azure&lt;/a&gt; for several years now, both in my work life and on side projects. Being a primarily .NET developer, it makes sense that Azure is my preferred cloud. One of these days I will probably check out AWS, but for this project we’ll be hosting our backend services in Azure.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;Microsoft-Azure-300x66.png&quot; alt=&quot;Microsoft Azure&quot; /&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;more-than-just-crud&quot;&gt;More Than Just CRUD&lt;/h2&gt;
-
-&lt;p&gt;When deciding what to build for this project, I wanted to do something that was a bit more than just a simple &lt;a href=&quot;https://en.wikipedia.org/wiki/Create,_read,_update_and_delete&quot;&gt;CRUD&lt;/a&gt; app that consists of an app talking to a web service talking to a database. Stock Alerts will need to continuously monitor the current prices of all stocks for which there are active alert definitions and evaluate whether the alert should be triggered, so we’ll need a process that runs on a regular basis to perform that work. Further, when the process detects that an alert should be triggered, it needs to send out notifications on the user’s preferred channel(s).&lt;/p&gt;
-
-&lt;p&gt;For this processing, we’ll use a combination of &lt;a href=&quot;https://azure.microsoft.com/en-us/services/functions/&quot;&gt;Azure Functions&lt;/a&gt; and &lt;a href=&quot;https://azure.microsoft.com/en-us/services/service-bus/&quot;&gt;Service Bus&lt;/a&gt; queues.&lt;/p&gt;
-
-&lt;p&gt;Here’s a sequence diagram depicting the retrieving of quotes, evaluation of alert definitions, and sending of notifications:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;Stock-Alerts-Notification-Sequence-Diagram-768x327.png&quot; alt=&quot;Stock Alerts Notification Sequence Diagram&quot; /&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;alert-definition-evaluation&quot;&gt;ALERT DEFINITION EVALUATION&lt;/h3&gt;
-
-&lt;p&gt;The evaluation of the active alert definitions will have a predictable load. The system will query the stock data provider on a defined time interval for the distinct set of stocks for which there are active alerts and iterate through the alert definitions and evaluate them against the latest data received from the data provider for that stock.&lt;/p&gt;
-
-&lt;p&gt;A &lt;a href=&quot;https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-timer&quot;&gt;timer-triggered Azure Function&lt;/a&gt;, which is essentially a CRON job running in Azure, will work nicely for periodically pulling new stock data. Initially, there will be a single function instance to pull the data, but this work can be partitioned out to multiple function instances if/when the need arises. It will then enqueue a message on a service bus queue (alertprocessingqueue) for each active alert indicating that there’s new data and the alert needs to be evaluated.&lt;/p&gt;
-
-&lt;p&gt;A &lt;a href=&quot;https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-service-bus&quot;&gt;service bus queue-triggered function&lt;/a&gt; (EvaluateAlert) will receive the service bus message and perform the evaluation for a single alert definition.&lt;/p&gt;
-
-&lt;h3 id=&quot;sending-notifications&quot;&gt;SENDING NOTIFICATIONS&lt;/h3&gt;
-
-&lt;p&gt;The actual notification of users, on the other hand, will likely be characterized by periods of low activity with occasional spikes of high activity. Imagine a very popular stock like AAPL receiving an earnings surprise and opening 5% higher – several alert definitions could be triggered at once and notifications will need to be sent immediately.&lt;/p&gt;
-
-&lt;p&gt;Azure Functions will help us with this use case as well – we’ll enqueue notification messages on service bus queues (pushnotificationqueue, for example) when alerts are triggered and service bus queue-triggered functions (SendPushNotification, for example) will respond and send out the notifications. We’ll have a queue for each delivery channel (push, e-mail, SMS), and a function for each as well.&lt;/p&gt;
-
-&lt;p&gt;When AAPL spikes and 500 alerts are triggered, 500 messages will be enqueued on service bus queues (assuming each user only has one delivery channel) and 500 functions will be invoked to deliver those notifications.&lt;/p&gt;
-
-&lt;h2 id=&quot;the-infrastructure&quot;&gt;The Infrastructure&lt;/h2&gt;
-
-&lt;p&gt;So what Azure resources will be required to support the Stock Alerts features? Here’s a diagram of what we’ll need for the MVP:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;Stock-Alerts-MVP-Infrastructure-Resources.png&quot; alt=&quot;Stock Alerts MVP Infrastructure Resources&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;We’ve got an &lt;a href=&quot;https://azure.microsoft.com/en-us/services/sql-database/&quot;&gt;Azure SQL&lt;/a&gt; database to store our users and their preferences, alert definitions and criteria, and stocks and their latest data.&lt;/p&gt;
-
-&lt;p&gt;We’ve already talked about the service bus queues, which are used for communicating between the Azure Functions, and we’ve already talked about the Azure Functions as well.&lt;/p&gt;
-
-&lt;p&gt;The Stock Alerts API will be an ASP.NET Core Web API service running in Azure, and it will expose endpoints to handle the user and alert definition maintenance as well as authentication.&lt;/p&gt;
-
-&lt;p&gt;The Stock Alerts web app, though depicted on the diagram, will actually be implemented post-MVP.&lt;/p&gt;
-
-&lt;h3 id=&quot;current-state&quot;&gt;CURRENT STATE&lt;/h3&gt;
-
-&lt;p&gt;The above shows the infrastructure as I plan to have it at launch. Below is the current infrastructure I have deployed in Azure:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;Stock-Alerts-Current-Infrastructure-Resources.png&quot; alt=&quot;Stock Alerts Current Infrastructure Resources&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;All of the API endpoints are currently implemented as &lt;a href=&quot;https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-http-webhook&quot;&gt;HTTP-triggered Azure functions&lt;/a&gt;. I did this because I already had the StockAlerts.Functions project, and I didn’t think there’d be that many HTTP endpoints. As I started implementing the authentication endpoints and I ran into some of the limitations of Azure Functions HTTP endpoints (i.e., you can’t inject logic into the pipeline as you can into the ASP.NET Core middleware for a full-fledged Web API), I increasingly felt like the API endpoints deserved their own project and app service. It’s on my &lt;a href=&quot;https://github.com/jonblankenship/stock-alerts/blob/master/TODO.md&quot;&gt;TODO list&lt;/a&gt; to move these into their own project and service.&lt;/p&gt;
-
-&lt;h2 id=&quot;wrapping-up&quot;&gt;Wrapping Up&lt;/h2&gt;
-
-&lt;p&gt;I think the most interesting part of the Stock Alerts infrastructure is the use of Azure Functions and Service Bus queues to evaluate alert definitions and send notifications. Azure Functions make sense for these processes because they can be triggered by schedule or service bus queue message (among other methods), and they are easily scaled. Service bus queues are appropriate for the communication between functions because they are highly available, reliable, and fast.&lt;/p&gt;
-
-&lt;p&gt;Though one of the key value props of serverless computing is automatic scaling, I don’t have practical experience with scaling Azure Functions during periods of high load. I’ll log and monitor timings from the various functions to ensure that notifications are being delivered in a timely fashion from when they are triggered, which is crucial for Stock Alerts’ primary function.&lt;/p&gt;
-
-&lt;p&gt;That’s all for now. Thanks for reading.&lt;/p&gt;</content><author><name>Jon_Blankenship</name></author><category term="asp-net-core" /><category term="azure-functions" /><category term="azure-service-bus" /><category term="mvp" /><category term="azure-sql" /><category term="http-triggered-function" /><category term="infrastructure" /><category term="serverless" /><category term="service-bus-queue-triggered-function" /><category term="stock-alerts" /><category term="timer-triggered-function" /><summary type="html">We’ve talked about the features that we’ll be implementing in Stock Alerts. Today we’ll look at the infrastructure that will be needed to support those features.</summary></entry></feed>
+&lt;p&gt;Thanks for reading, and Happy Fourth of July!&lt;/p&gt;</content><author><name>Jon_Blankenship</name></author><category term="asp-net-core" /><category term="async-await" /><category term="cancellation-token" /><category term="httpclient" /><category term="httpclientfactory" /><category term="inotifypropertychanged" /><category term="mvvm" /><category term="notifytask" /><category term="stock-alerts" /><category term="stock-alerts-update" /><category term="xamarin.forms" /><summary type="html">I’d been meaning to get this update out over the weekend, but a stomach bug visited our house and threw off my schedule. I’d like to get these updates out about once a week going forward, but since this is a side project and I’m working on it for fun in my off hours, I’m not going to sweat it too much.</summary></entry></feed>
