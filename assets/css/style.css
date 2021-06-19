@@ -50,23 +50,23 @@
 .icon-calendar:before {
   content: '\e800'; }
 
-/* 'εáÇ' */
+/* '' */
 .icon-github-circled:before {
   content: '\f09b'; }
 
-/* '∩é¢' */
+/* '' */
 .icon-twitter-squared:before {
   content: '\f304'; }
 
-/* '∩îä' */
+/* '' */
 .icon-linkedin-squared:before {
   content: '\f30c'; }
 
-/* '∩îî' */
+/* '' */
 .icon-twitter:before {
   content: '\f099'; }
 
-/* '∩îä' */
+/* '' */
 /*! normalize.css v3.0.2 | MIT License | git.io/normalize */
 html {
   font-family: sans-serif;

@@ -6,9 +6,9 @@
 <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css?family=Roboto:400,400i,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/css/style.css">
-<!-- Begin Jekyll SEO tag v2.6.1 -->
+<!-- Begin Jekyll SEO tag v2.7.1 -->
 <title>Using the Specification Pattern to Build a Data-Driven Rules Engine | Jon Blankenship</title>
-<meta name="generator" content="Jekyll v3.8.6" />
+<meta name="generator" content="Jekyll v3.9.1" />
 <meta property="og:title" content="Using the Specification Pattern to Build a Data-Driven Rules Engine" />
 <meta name="author" content="Jon_Blankenship" />
 <meta property="og:locale" content="en_US" />
@@ -20,8 +20,11 @@
 <meta property="og:image" content="https://blog.jonblankenship.com//2019/10/04/using-the-specification-pattern-to-build-a-data-driven-rules-engine/DecisionTree.PNG" />
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2019-10-04T21:34:00-05:00" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta property="twitter:image" content="https://blog.jonblankenship.com//2019/10/04/using-the-specification-pattern-to-build-a-data-driven-rules-engine/DecisionTree.PNG" />
+<meta property="twitter:title" content="Using the Specification Pattern to Build a Data-Driven Rules Engine" />
 <script type="application/ld+json">
-{"@type":"BlogPosting","url":"https://blog.jonblankenship.com//2019/10/04/using-the-specification-pattern-to-build-a-data-driven-rules-engine/","headline":"Using the Specification Pattern to Build a Data-Driven Rules Engine","dateModified":"2019-10-04T21:34:00-05:00","datePublished":"2019-10-04T21:34:00-05:00","image":"https://blog.jonblankenship.com//2019/10/04/using-the-specification-pattern-to-build-a-data-driven-rules-engine/DecisionTree.PNG","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.jonblankenship.com//2019/10/04/using-the-specification-pattern-to-build-a-data-driven-rules-engine/"},"author":{"@type":"Person","name":"Jon_Blankenship"},"description":"The specification pattern can be an indispensable tool in the developer’s toolbox when faced with the task of determining whether an object meets a certain set of criteria. When coupled with the composite pattern, the composite specification becomes a power tool that can tackle any combination of business rules no matter how complex, all while ensuring maintainability, robustness, and testability. In this post we’ll see how the composite specification pattern can be used in a .NET application to build a data-driven rules engine.","@context":"https://schema.org"}</script>
+{"image":"https://blog.jonblankenship.com//2019/10/04/using-the-specification-pattern-to-build-a-data-driven-rules-engine/DecisionTree.PNG","author":{"@type":"Person","name":"Jon_Blankenship"},"headline":"Using the Specification Pattern to Build a Data-Driven Rules Engine","dateModified":"2019-10-04T21:34:00-05:00","@type":"BlogPosting","datePublished":"2019-10-04T21:34:00-05:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.jonblankenship.com//2019/10/04/using-the-specification-pattern-to-build-a-data-driven-rules-engine/"},"description":"The specification pattern can be an indispensable tool in the developer’s toolbox when faced with the task of determining whether an object meets a certain set of criteria. When coupled with the composite pattern, the composite specification becomes a power tool that can tackle any combination of business rules no matter how complex, all while ensuring maintainability, robustness, and testability. In this post we’ll see how the composite specification pattern can be used in a .NET application to build a data-driven rules engine.","url":"https://blog.jonblankenship.com//2019/10/04/using-the-specification-pattern-to-build-a-data-driven-rules-engine/","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 
 
@@ -48,23 +51,6 @@
 
 <!-- end of Twitter cards -->
 
-
-  <!-- Use $env:JEKYLL_ENV="production"; bundle exec jekyll build to build for production. -->
-  <!-- Fathom - simple website analytics - https://usefathom.com -->
-  <script>
-      (function(f, a, t, h, o, m){
-      a[h]=a[h]||function(){
-          (a[h].q=a[h].q||[]).push(arguments)
-      };
-      o=f.createElement('script'),
-      m=f.getElementsByTagName('script')[0];
-      o.async=1; o.src=t; o.id='fathom-script';
-      m.parentNode.insertBefore(o,m)
-      })(document, window, '//cdn.usefathom.com/tracker.js', 'fathom');
-      fathom('set', 'siteId', 'VHYCR');
-      fathom('trackPageview');
-  </script>
-  <!-- / Fathom -->
 </head>
 <body>
   <header class="texture-black">
@@ -128,7 +114,7 @@
   </ul>
 </blockquote>
 
-<p>The solution to each of these problems is to build a specification that defines the criteria that an object must meet to satisfy the specification.  Typically, a specification has a method <code class="highlighter-rouge">IsSatisfied(candidate)</code> that takes the candidate object as a parameter.  The method returns <code class="highlighter-rouge">true</code> or <code class="highlighter-rouge">false</code>, depending on whether the candidate satisfies the criteria of the specification.</p>
+<p>The solution to each of these problems is to build a specification that defines the criteria that an object must meet to satisfy the specification.  Typically, a specification has a method <code class="language-plaintext highlighter-rouge">IsSatisfied(candidate)</code> that takes the candidate object as a parameter.  The method returns <code class="language-plaintext highlighter-rouge">true</code> or <code class="language-plaintext highlighter-rouge">false</code>, depending on whether the candidate satisfies the criteria of the specification.</p>
 
 <p>In this post, we’ll focus on a particular type of specification, a <strong>composite specification</strong>, to build our rules engine.  This type of specification gets its name from the fact that it is an implementation of another commonly used design pattern: the composite pattern.</p>
 
@@ -148,7 +134,7 @@
 
 <h3 id="ispecification">ISpecification</h3>
 
-<p>First, we need an interface for interacting with the composite specification as a whole, as well as its individual component specifications.  So here’s our <code class="highlighter-rouge">ISpecification</code> interface:</p>
+<p>First, we need an interface for interacting with the composite specification as a whole, as well as its individual component specifications.  So here’s our <code class="language-plaintext highlighter-rouge">ISpecification</code> interface:</p>
 
 <div class="language-c# highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">interface</span> <span class="nc">ISpecification</span><span class="p">&lt;</span><span class="k">in</span> <span class="n">TCandidate</span><span class="p">&gt;</span>
 <span class="p">{</span>
@@ -156,13 +142,13 @@
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p>It’s a very simple interface consisting of one method, <code class="highlighter-rouge">IsSatisfiedBy(TCandidate candidate)</code>, which returns true or false depending on whether the given specification is satisfied by the candidate passed to it.</p>
+<p>It’s a very simple interface consisting of one method, <code class="language-plaintext highlighter-rouge">IsSatisfiedBy(TCandidate candidate)</code>, which returns true or false depending on whether the given specification is satisfied by the candidate passed to it.</p>
 
-<p>The type parameter <code class="highlighter-rouge">TCandidate</code> specifies the type of object that the specification will be used to evaluate.  In the case of a composite specification, the type of candidate object passed to the root node will be passed to the child nodes, so the type is expected to be the same for all individual specifications that make up a composite specification.</p>
+<p>The type parameter <code class="language-plaintext highlighter-rouge">TCandidate</code> specifies the type of object that the specification will be used to evaluate.  In the case of a composite specification, the type of candidate object passed to the root node will be passed to the child nodes, so the type is expected to be the same for all individual specifications that make up a composite specification.</p>
 
 <h3 id="compositespecification">CompositeSpecification</h3>
 
-<p>Next, we have an abstract class <code class="highlighter-rouge">CompositeSpecification</code>, which will be the base class for any branch (non-leaf) nodes in our composite specification:</p>
+<p>Next, we have an abstract class <code class="language-plaintext highlighter-rouge">CompositeSpecification</code>, which will be the base class for any branch (non-leaf) nodes in our composite specification:</p>
 
 <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">abstract</span> <span class="k">class</span> <span class="nc">CompositeSpecification</span><span class="p">&lt;</span><span class="n">TCandidate</span><span class="p">&gt;</span> <span class="p">:</span> <span class="n">ISpecification</span><span class="p">&lt;</span><span class="n">TCandidate</span><span class="p">&gt;</span>
 <span class="p">{</span>
@@ -179,13 +165,13 @@
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p>The main behavior that <code class="highlighter-rouge">CompositeSpecification</code> implements here is the management of a node’s child specifications.  It handles the addition of a child specification to the composite specification, and it exposes the child specifications as a read-only collection that can be traversed.</p>
+<p>The main behavior that <code class="language-plaintext highlighter-rouge">CompositeSpecification</code> implements here is the management of a node’s child specifications.  It handles the addition of a child specification to the composite specification, and it exposes the child specifications as a read-only collection that can be traversed.</p>
 
 <h3 id="boolean-specifications">Boolean Specifications</h3>
 
-<p>The branches (non-leaf nodes) are specifications that represent Boolean operations that connect 1..n other specifications, and they derive from <code class="highlighter-rouge">CompositeSpecification</code>.  For our initial implementation, we have <strong>AND</strong> and <strong>OR</strong> specifications (short-circuited).</p>
+<p>The branches (non-leaf nodes) are specifications that represent Boolean operations that connect 1..n other specifications, and they derive from <code class="language-plaintext highlighter-rouge">CompositeSpecification</code>.  For our initial implementation, we have <strong>AND</strong> and <strong>OR</strong> specifications (short-circuited).</p>
 
-<p><code class="highlighter-rouge">AndSpecification</code>:</p>
+<p><code class="language-plaintext highlighter-rouge">AndSpecification</code>:</p>
 
 <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">AndSpecification</span><span class="p">&lt;</span><span class="n">TCandidate</span><span class="p">&gt;</span> <span class="p">:</span> <span class="n">CompositeSpecification</span><span class="p">&lt;</span><span class="n">TCandidate</span><span class="p">&gt;</span>
 <span class="p">{</span>
@@ -203,7 +189,7 @@
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p><code class="highlighter-rouge">OrSpecification</code>:</p>
+<p><code class="language-plaintext highlighter-rouge">OrSpecification</code>:</p>
 
 <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">OrSpecification</span><span class="p">&lt;</span><span class="n">TCandidate</span><span class="p">&gt;</span> <span class="p">:</span> <span class="n">CompositeSpecification</span><span class="p">&lt;</span><span class="n">TCandidate</span><span class="p">&gt;</span>
 <span class="p">{</span>
@@ -240,7 +226,7 @@
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p>These one-line specifications aren’t useful in application code, but they come in handy when unit-testing the branch (non-leaf) node specifications.  Here’s one of the unit tests for the <code class="highlighter-rouge">AndSpecification</code>, utilizing the <code class="highlighter-rouge">TrueSpecification</code>:</p>
+<p>These one-line specifications aren’t useful in application code, but they come in handy when unit-testing the branch (non-leaf) node specifications.  Here’s one of the unit tests for the <code class="language-plaintext highlighter-rouge">AndSpecification</code>, utilizing the <code class="language-plaintext highlighter-rouge">TrueSpecification</code>:</p>
 
 <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="n">Fact</span><span class="p">]</span>
 <span class="k">public</span> <span class="k">void</span> <span class="nf">IsSatisfiedBy_TwoTrueChildren_True</span><span class="p">()</span>
@@ -259,7 +245,7 @@
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p><code class="highlighter-rouge">TrueSpecification</code> and <code class="highlighter-rouge">FalseSpecification</code> facilitate the writing of straight-forward unit tests like the one above that zero in on the unit under test (<code class="highlighter-rouge">AndSpecification.IsSatisfiedBy(..)</code> in this case).  (You may be wondering about <code class="highlighter-rouge">AlertEvaluationMessage</code> - it is the type of the candidate object that we are evaluating, which we’ll examine in a bit.)</p>
+<p><code class="language-plaintext highlighter-rouge">TrueSpecification</code> and <code class="language-plaintext highlighter-rouge">FalseSpecification</code> facilitate the writing of straight-forward unit tests like the one above that zero in on the unit under test (<code class="language-plaintext highlighter-rouge">AndSpecification.IsSatisfiedBy(..)</code> in this case).  (You may be wondering about <code class="language-plaintext highlighter-rouge">AlertEvaluationMessage</code> - it is the type of the candidate object that we are evaluating, which we’ll examine in a bit.)</p>
 
 <h2 id="domain-specific-specifications">Domain-Specific Specifications</h2>
 
@@ -267,7 +253,7 @@
 
 <h3 id="pricespecification">PriceSpecification</h3>
 
-<p>One of the main criteria that our specification will have to test for is, when given a new price quote, whether the new price exceeds a certain level.  For this, we’ll create a <code class="highlighter-rouge">PriceSpecification</code> that is aware of an alert criteria specifying an important price level, and it will return true or false depending on whether a new stock quote breaches that level:</p>
+<p>One of the main criteria that our specification will have to test for is, when given a new price quote, whether the new price exceeds a certain level.  For this, we’ll create a <code class="language-plaintext highlighter-rouge">PriceSpecification</code> that is aware of an alert criteria specifying an important price level, and it will return true or false depending on whether a new stock quote breaches that level:</p>
 
 <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">PriceSpecification</span> <span class="p">:</span> <span class="n">ISpecification</span><span class="p">&lt;</span><span class="n">AlertEvaluationMessage</span><span class="p">&gt;</span>
 <span class="p">{</span>
@@ -317,7 +303,7 @@
 
 <h4 id="alertcriteria">AlertCriteria</h4>
 
-<p>This specification has a domain model passed to it at the time it is constructed: <code class="highlighter-rouge">AlertCriteria</code>.  We’ll look at just the few properties of <code class="highlighter-rouge">AlertCriteria</code> that are relevant to this particular specification for now:</p>
+<p>This specification has a domain model passed to it at the time it is constructed: <code class="language-plaintext highlighter-rouge">AlertCriteria</code>.  We’ll look at just the few properties of <code class="language-plaintext highlighter-rouge">AlertCriteria</code> that are relevant to this particular specification for now:</p>
 
 <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">AlertCriteria</span>
 <span class="p">{</span>
@@ -333,13 +319,13 @@
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p><code class="highlighter-rouge">Type</code> specifies the alert <a href="https://github.com/jonblankenship/stock-alerts/blob/master/StockAlerts/StockAlerts.Core/Enums/CriteriaType.cs"><code class="highlighter-rouge">CriteriaType</code></a> that we’re evaluating.  Possible values are <code class="highlighter-rouge">Composite</code>, <code class="highlighter-rouge">Price</code>, <code class="highlighter-rouge">DailyPercentageGainLoss</code>, and there will likely be more.  <code class="highlighter-rouge">Operator</code> specifies the <a href="https://github.com/jonblankenship/stock-alerts/blob/master/StockAlerts/StockAlerts.Core/Enums/CriteriaOperator.cs"><code class="highlighter-rouge">CriteriaOperator</code></a> that applies for the particular scenario we’re evaluating.  Finally, if we need to trigger a price alert, we need to know at which level it should be triggered, which is what is specified by the <code class="highlighter-rouge">Level</code> property.  With these three pieces of data, we have what we need to know to create a specification that represents a price alert for a given stock’s price becomes greater than or equal to $150, for example.</p>
+<p><code class="language-plaintext highlighter-rouge">Type</code> specifies the alert <a href="https://github.com/jonblankenship/stock-alerts/blob/master/StockAlerts/StockAlerts.Core/Enums/CriteriaType.cs"><code class="language-plaintext highlighter-rouge">CriteriaType</code></a> that we’re evaluating.  Possible values are <code class="language-plaintext highlighter-rouge">Composite</code>, <code class="language-plaintext highlighter-rouge">Price</code>, <code class="language-plaintext highlighter-rouge">DailyPercentageGainLoss</code>, and there will likely be more.  <code class="language-plaintext highlighter-rouge">Operator</code> specifies the <a href="https://github.com/jonblankenship/stock-alerts/blob/master/StockAlerts/StockAlerts.Core/Enums/CriteriaOperator.cs"><code class="language-plaintext highlighter-rouge">CriteriaOperator</code></a> that applies for the particular scenario we’re evaluating.  Finally, if we need to trigger a price alert, we need to know at which level it should be triggered, which is what is specified by the <code class="language-plaintext highlighter-rouge">Level</code> property.  With these three pieces of data, we have what we need to know to create a specification that represents a price alert for a given stock’s price becomes greater than or equal to $150, for example.</p>
 
-<p>The <code class="highlighter-rouge">AlertCriteria</code> domain object will ultimately come from the database, and is a key part of the data model that will make this a data-driven rules engine.  We’ll look at it more closely in bit.</p>
+<p>The <code class="language-plaintext highlighter-rouge">AlertCriteria</code> domain object will ultimately come from the database, and is a key part of the data model that will make this a data-driven rules engine.  We’ll look at it more closely in bit.</p>
 
 <h4 id="alertevaluationmessage">AlertEvaluationMessage</h4>
 
-<p>The next piece needed for our <code class="highlighter-rouge">PriceSpecification</code> is <code class="highlighter-rouge">AlertEvaluationMessage</code>, which is the type of candidate object that our specification is designed to evaluate.  In our example, <code class="highlighter-rouge">AlertEvaluationMessage</code> represents a new price quote (named <code class="highlighter-rouge">Message</code> since in this particular case it’s being pulled off of a message queue).</p>
+<p>The next piece needed for our <code class="language-plaintext highlighter-rouge">PriceSpecification</code> is <code class="language-plaintext highlighter-rouge">AlertEvaluationMessage</code>, which is the type of candidate object that our specification is designed to evaluate.  In our example, <code class="language-plaintext highlighter-rouge">AlertEvaluationMessage</code> represents a new price quote (named <code class="language-plaintext highlighter-rouge">Message</code> since in this particular case it’s being pulled off of a message queue).</p>
 
 <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">AlertEvaluationMessage</span>
 <span class="p">{</span>
@@ -353,19 +339,19 @@
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p>The relevant properties here for our <code class="highlighter-rouge">PriceSpecification</code> are <code class="highlighter-rouge">LastPrice</code> and <code class="highlighter-rouge">PreviousLastPrice</code>, so that we can determine whether a price has crossed a certain price level.</p>
+<p>The relevant properties here for our <code class="language-plaintext highlighter-rouge">PriceSpecification</code> are <code class="language-plaintext highlighter-rouge">LastPrice</code> and <code class="language-plaintext highlighter-rouge">PreviousLastPrice</code>, so that we can determine whether a price has crossed a certain price level.</p>
 
 <h4 id="issatisfiedbyalertevaluationmessage-candidate">IsSatisfiedBy(AlertEvaluationMessage candidate)</h4>
 
-<p>Now that we have the required information, we can evaluate whether the <code class="highlighter-rouge">PriceSpecification</code> for our particular <code class="highlighter-rouge">AlertCriteria</code> is satisfied by the candidate <code class="highlighter-rouge">AlertEvaluationMessage</code> object.  <code class="highlighter-rouge">IsSatisfiedBy(AlertEvaluationMessage candidate)</code> is a fairly simple set of <code class="highlighter-rouge">if</code> statements that perform comparisons between <code class="highlighter-rouge">_alertCriteria.Level</code> and <code class="highlighter-rouge">candidate.LastPrice</code> and <code class="highlighter-rouge">candidate.PreviousLastPrice</code> depending on <code class="highlighter-rouge">_alertCriteria.Operator</code> and returns <code class="highlighter-rouge">true</code> or <code class="highlighter-rouge">false</code> to indicate whether the price level has been breached.</p>
+<p>Now that we have the required information, we can evaluate whether the <code class="language-plaintext highlighter-rouge">PriceSpecification</code> for our particular <code class="language-plaintext highlighter-rouge">AlertCriteria</code> is satisfied by the candidate <code class="language-plaintext highlighter-rouge">AlertEvaluationMessage</code> object.  <code class="language-plaintext highlighter-rouge">IsSatisfiedBy(AlertEvaluationMessage candidate)</code> is a fairly simple set of <code class="language-plaintext highlighter-rouge">if</code> statements that perform comparisons between <code class="language-plaintext highlighter-rouge">_alertCriteria.Level</code> and <code class="language-plaintext highlighter-rouge">candidate.LastPrice</code> and <code class="language-plaintext highlighter-rouge">candidate.PreviousLastPrice</code> depending on <code class="language-plaintext highlighter-rouge">_alertCriteria.Operator</code> and returns <code class="language-plaintext highlighter-rouge">true</code> or <code class="language-plaintext highlighter-rouge">false</code> to indicate whether the price level has been breached.</p>
 
 <h3 id="other-domain-specific-specifications">Other Domain-Specific Specifications</h3>
 
-<p>I’ve also implemented a <a href="https://github.com/jonblankenship/stock-alerts/blob/master/StockAlerts/StockAlerts.Domain/Specifications/DailyPercentageGainLossSpecification.cs"><code class="highlighter-rouge">DailyPercentageGainLossSpecification</code></a>, which returns <code class="highlighter-rouge">true</code> or <code class="highlighter-rouge">false</code> depending on whether the stock price has exceeded a given percentage gain or loss for the day.  Its logic is very similar to the <code class="highlighter-rouge">PriceSpecification</code> that we just discussed.</p>
+<p>I’ve also implemented a <a href="https://github.com/jonblankenship/stock-alerts/blob/master/StockAlerts/StockAlerts.Domain/Specifications/DailyPercentageGainLossSpecification.cs"><code class="language-plaintext highlighter-rouge">DailyPercentageGainLossSpecification</code></a>, which returns <code class="language-plaintext highlighter-rouge">true</code> or <code class="language-plaintext highlighter-rouge">false</code> depending on whether the stock price has exceeded a given percentage gain or loss for the day.  Its logic is very similar to the <code class="language-plaintext highlighter-rouge">PriceSpecification</code> that we just discussed.</p>
 
-<p>Other types of specifications that I plan to implement in the future are things like <code class="highlighter-rouge">DividendYieldSpecification</code>, which would return <code class="highlighter-rouge">true</code> when a stock’s dividend yield breaches a certain percentage, or <code class="highlighter-rouge">PeRatioSpecification</code>, which would return <code class="highlighter-rouge">true</code> when a stock’s PE ratio breaches a certain level.</p>
+<p>Other types of specifications that I plan to implement in the future are things like <code class="language-plaintext highlighter-rouge">DividendYieldSpecification</code>, which would return <code class="language-plaintext highlighter-rouge">true</code> when a stock’s dividend yield breaches a certain percentage, or <code class="language-plaintext highlighter-rouge">PeRatioSpecification</code>, which would return <code class="language-plaintext highlighter-rouge">true</code> when a stock’s PE ratio breaches a certain level.</p>
 
-<p>The sky is the limit in terms of what kinds of specifications we can implement and combine into a composite specification.  The specifications that we build are generic in the sense that the specific parameters (price level, operator, etc…) are provided at runtime, so that our <code class="highlighter-rouge">PriceSpecification</code>, for example, can be re-used in any composite specification that needs to test for a price level breach as part of its logic.</p>
+<p>The sky is the limit in terms of what kinds of specifications we can implement and combine into a composite specification.  The specifications that we build are generic in the sense that the specific parameters (price level, operator, etc…) are provided at runtime, so that our <code class="language-plaintext highlighter-rouge">PriceSpecification</code>, for example, can be re-used in any composite specification that needs to test for a price level breach as part of its logic.</p>
 
 <p>Hopefully by now it’s becoming a bit clearer how the specification pattern can be used to construct a complex rule like described at the beginning of this post.</p>
 
@@ -399,22 +385,22 @@
 
 <h3 id="domain-model">Domain Model</h3>
 
-<p>Moving up to the domain model, we have <a href="https://github.com/jonblankenship/stock-alerts/blob/master/StockAlerts/StockAlerts.Domain/Model/AlertDefinition.cs"><code class="highlighter-rouge">AlertDefinition</code></a> and <a href="https://github.com/jonblankenship/stock-alerts/blob/master/StockAlerts/StockAlerts.Domain/Model/AlertCriteria.cs"><code class="highlighter-rouge">AlertCriteria</code></a> models that are mapped from and correspond with the two tables in the underlying data model.</p>
+<p>Moving up to the domain model, we have <a href="https://github.com/jonblankenship/stock-alerts/blob/master/StockAlerts/StockAlerts.Domain/Model/AlertDefinition.cs"><code class="language-plaintext highlighter-rouge">AlertDefinition</code></a> and <a href="https://github.com/jonblankenship/stock-alerts/blob/master/StockAlerts/StockAlerts.Domain/Model/AlertCriteria.cs"><code class="language-plaintext highlighter-rouge">AlertCriteria</code></a> models that are mapped from and correspond with the two tables in the underlying data model.</p>
 
 <p><img src="DomainModel.PNG" alt="Domain Model" /></p>
 
-<p>These domain models make up an aggregate, and <code class="highlighter-rouge">AlertDefinition</code> is the aggregate root.  The persistance of the aggregate is controlled via the <code class="highlighter-rouge">SaveAsync</code> and <code class="highlighter-rouge">DeleteAsync</code> methods on <code class="highlighter-rouge">AlertDefinition</code>.</p>
+<p>These domain models make up an aggregate, and <code class="language-plaintext highlighter-rouge">AlertDefinition</code> is the aggregate root.  The persistance of the aggregate is controlled via the <code class="language-plaintext highlighter-rouge">SaveAsync</code> and <code class="language-plaintext highlighter-rouge">DeleteAsync</code> methods on <code class="language-plaintext highlighter-rouge">AlertDefinition</code>.</p>
 
-<p>The domain models contain logic for validating the proper configuration of the composite specification, which is checked at the time the <code class="highlighter-rouge">AlertDefinition</code> is saved.  For example…</p>
+<p>The domain models contain logic for validating the proper configuration of the composite specification, which is checked at the time the <code class="language-plaintext highlighter-rouge">AlertDefinition</code> is saved.  For example…</p>
 
 <ul>
-  <li>A composite <code class="highlighter-rouge">AlertCriteria</code> can only have certain operators (<code class="highlighter-rouge">AND</code>, <code class="highlighter-rouge">OR</code>, other Boolean operators).</li>
-  <li>A composite <code class="highlighter-rouge">AlertCriteria</code> must have at least one child <code class="highlighter-rouge">AlertCriteria</code>.</li>
-  <li>A non-composite <code class="highlighter-rouge">AlertCriteria</code> cannot have any children.</li>
+  <li>A composite <code class="language-plaintext highlighter-rouge">AlertCriteria</code> can only have certain operators (<code class="language-plaintext highlighter-rouge">AND</code>, <code class="language-plaintext highlighter-rouge">OR</code>, other Boolean operators).</li>
+  <li>A composite <code class="language-plaintext highlighter-rouge">AlertCriteria</code> must have at least one child <code class="language-plaintext highlighter-rouge">AlertCriteria</code>.</li>
+  <li>A non-composite <code class="language-plaintext highlighter-rouge">AlertCriteria</code> cannot have any children.</li>
   <li>Etc…</li>
 </ul>
 
-<p>The construction and evaluation of the composite specification is triggered in <code class="highlighter-rouge">AlertDefinition.EvaluateAsync(AlertEvaluationMessage message)</code>:</p>
+<p>The construction and evaluation of the composite specification is triggered in <code class="language-plaintext highlighter-rouge">AlertDefinition.EvaluateAsync(AlertEvaluationMessage message)</code>:</p>
 
 <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">async</span> <span class="n">Task</span> <span class="nf">EvaluateAsync</span><span class="p">(</span><span class="n">AlertEvaluationMessage</span> <span class="n">message</span><span class="p">)</span>
 <span class="p">{</span>
@@ -438,15 +424,15 @@
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p>This is the culmination of all that we’ve been building.  We’ve now got our composite <code class="highlighter-rouge">specification</code> (created by the <code class="highlighter-rouge">_alertCriteriaSpecificationFactory</code>, which we will visit in a moment) representing the user-defined alert definition, and we evaluate the entire set of rules with our call to <code class="highlighter-rouge">specification.IsSatisfiedBy(message)</code>, which simply returns <code class="highlighter-rouge">true</code> or <code class="highlighter-rouge">false</code>.</p>
+<p>This is the culmination of all that we’ve been building.  We’ve now got our composite <code class="language-plaintext highlighter-rouge">specification</code> (created by the <code class="language-plaintext highlighter-rouge">_alertCriteriaSpecificationFactory</code>, which we will visit in a moment) representing the user-defined alert definition, and we evaluate the entire set of rules with our call to <code class="language-plaintext highlighter-rouge">specification.IsSatisfiedBy(message)</code>, which simply returns <code class="language-plaintext highlighter-rouge">true</code> or <code class="language-plaintext highlighter-rouge">false</code>.</p>
 
 <p>It may seem rather anti-climactic on the surface, but there is a lot of power within the specification and the beauty of the pattern lies in the simplicity of its interface.  The client simply asks the specification, “Does this object satisfy your criteria?”</p>
 
 <h3 id="factory">Factory</h3>
 
-<p>The <code class="highlighter-rouge">AlertCriteriaSpecificationFactory</code> is the final piece of the puzzle that we’ll look at.  It is responsible for the actual construction of the composite specification and its children from the <code class="highlighter-rouge">AlertDefinition</code>.  It is an example of the <a href="https://en.wikipedia.org/wiki/Factory_method_pattern">factory pattern</a>, a creational design pattern coined by the Gang of Four.</p>
+<p>The <code class="language-plaintext highlighter-rouge">AlertCriteriaSpecificationFactory</code> is the final piece of the puzzle that we’ll look at.  It is responsible for the actual construction of the composite specification and its children from the <code class="language-plaintext highlighter-rouge">AlertDefinition</code>.  It is an example of the <a href="https://en.wikipedia.org/wiki/Factory_method_pattern">factory pattern</a>, a creational design pattern coined by the Gang of Four.</p>
 
-<p>The <code class="highlighter-rouge">AlertCriteriaSpecificationFactory</code> will create any <code class="highlighter-rouge">ISpecification&lt;AlertEvaluationMessage&gt;</code> for a given <code class="highlighter-rouge">AlertDefinition</code>:</p>
+<p>The <code class="language-plaintext highlighter-rouge">AlertCriteriaSpecificationFactory</code> will create any <code class="language-plaintext highlighter-rouge">ISpecification&lt;AlertEvaluationMessage&gt;</code> for a given <code class="language-plaintext highlighter-rouge">AlertDefinition</code>:</p>
 
 <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">interface</span> <span class="nc">IAlertCriteriaSpecificationFactory</span>
 <span class="p">{</span>
@@ -454,7 +440,7 @@
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p>Though we only publicly expose a single method in the interface for building an <code class="highlighter-rouge">ISpecification</code> from an <code class="highlighter-rouge">AlertDefinition</code>, in the implementation of the factory we see that it is also responsible for building the <code class="highlighter-rouge">ISpecification</code>s that make up the composite from individual <code class="highlighter-rouge">AlertCriteria</code> objects.  The factory contains private methods for constructing each type of specification, and it recursively traverses the tree of alert criteria building the various individual specifications to construct the full composite specification for the <code class="highlighter-rouge">AlertDefinition</code>:</p>
+<p>Though we only publicly expose a single method in the interface for building an <code class="language-plaintext highlighter-rouge">ISpecification</code> from an <code class="language-plaintext highlighter-rouge">AlertDefinition</code>, in the implementation of the factory we see that it is also responsible for building the <code class="language-plaintext highlighter-rouge">ISpecification</code>s that make up the composite from individual <code class="language-plaintext highlighter-rouge">AlertCriteria</code> objects.  The factory contains private methods for constructing each type of specification, and it recursively traverses the tree of alert criteria building the various individual specifications to construct the full composite specification for the <code class="language-plaintext highlighter-rouge">AlertDefinition</code>:</p>
 <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">AlertCriteriaSpecificationFactory</span> <span class="p">:</span> <span class="n">IAlertCriteriaSpecificationFactory</span>
 <span class="p">{</span>
     <span class="k">private</span> <span class="k">readonly</span> <span class="n">IDictionary</span><span class="p">&lt;</span><span class="n">CriteriaType</span><span class="p">,</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">AlertCriteria</span><span class="p">,</span> <span class="n">ISpecification</span><span class="p">&lt;</span><span class="n">AlertEvaluationMessage</span><span class="p">&gt;&gt;&gt;</span> <span class="n">_factoryMethods</span><span class="p">;</span>
@@ -524,7 +510,32 @@
           <p><em>I’m a developer and solo SaaS founder who likes to build things and share what I learn with others.  If you’re interested software development, launching things, or random early morning thoughts, consider <a href="https://twitter.com/Jon_Blankenship">following me</a> on Twitter or <a data-formkit-toggle="7e33ea9455" href="https://unique-designer-4037.ck.page/7e33ea9455">subscribe</a> to my newsletter.</em></p>
           <p class="mb-2"><em>Thanks for reading!</em></p>
       </div>
-      
+
+      <hr/>
+      <div>
+        <h2>Interested in Stocks?</h3>
+        <a href="https://fintrics.ai">
+          <img src="/assets/images/Fintrics.PNG" />
+        </a>
+        <p>
+          I built <a href="https://fintrics.ai">Fintrics</a> using many of the techniques, concepts, and technologies I discuss on this blog.  Fintrics provides 12-month stock price targets, calculated using a proprietary valuation model conceived by my business partner, <a href="https://twitter.com/JonahLupton">Jonah Lupton</a>.
+        </p>        
+        <p>
+          Fintrics is written with server-side Blazor and runs on Azure.
+        </ul>
+        <p>
+          If you have an interest in stocks and investing, I invite you to sign up for the 3-day free trial.
+        </p>
+        <ul>
+          <li>Unlimited 12-month price targets</li>
+          <li>Free 3-day trial</li>
+          <li>3K+ stocks, including the Russell 3K and more</li>
+          <li>Watchlist</li>
+          <li>Price Target Alerts - Coming Soon!</li>
+        </ul>
+      </div>
+      <hr/>
+
       <div class="post-footer">
           <ul class="post-tags">
           
