@@ -6,9 +6,9 @@
 <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css?family=Roboto:400,400i,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/css/style.css">
-<!-- Begin Jekyll SEO tag v2.6.1 -->
+<!-- Begin Jekyll SEO tag v2.7.1 -->
 <title>Global Exception Handling in ASP.NET Core Web API | Jon Blankenship</title>
-<meta name="generator" content="Jekyll v3.8.6" />
+<meta name="generator" content="Jekyll v3.9.1" />
 <meta property="og:title" content="Global Exception Handling in ASP.NET Core Web API" />
 <meta name="author" content="Jon_Blankenship" />
 <meta property="og:locale" content="en_US" />
@@ -20,8 +20,11 @@
 <meta property="og:image" content="https://blog.jonblankenship.com//2020/04/12/global-exception-handling-in-aspnet-core-api/AspNetCoreMiddleware.png" />
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2020-04-12T19:30:00-05:00" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta property="twitter:image" content="https://blog.jonblankenship.com//2020/04/12/global-exception-handling-in-aspnet-core-api/AspNetCoreMiddleware.png" />
+<meta property="twitter:title" content="Global Exception Handling in ASP.NET Core Web API" />
 <script type="application/ld+json">
-{"@type":"BlogPosting","url":"https://blog.jonblankenship.com//2020/04/12/global-exception-handling-in-aspnet-core-api/","headline":"Global Exception Handling in ASP.NET Core Web API","dateModified":"2020-04-12T19:30:00-05:00","datePublished":"2020-04-12T19:30:00-05:00","image":"https://blog.jonblankenship.com//2020/04/12/global-exception-handling-in-aspnet-core-api/AspNetCoreMiddleware.png","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.jonblankenship.com//2020/04/12/global-exception-handling-in-aspnet-core-api/"},"author":{"@type":"Person","name":"Jon_Blankenship"},"description":"A good web API is consistent and follows established patterns for communicating error states to the client, leveraging the appropriate HTTP status codes. To that end, a global exception handler can be very helpful in consolidating a service’s error handling logic in one place and translating errors into the appropriate responses to send back to the caller. In this post I’ll show you how you can plug your custom exception-handling logic into the ASP.NET Core request pipeline to handle any exceptions that are thrown in your service.","@context":"https://schema.org"}</script>
+{"image":"https://blog.jonblankenship.com//2020/04/12/global-exception-handling-in-aspnet-core-api/AspNetCoreMiddleware.png","author":{"@type":"Person","name":"Jon_Blankenship"},"headline":"Global Exception Handling in ASP.NET Core Web API","dateModified":"2020-04-12T19:30:00-05:00","@type":"BlogPosting","datePublished":"2020-04-12T19:30:00-05:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.jonblankenship.com//2020/04/12/global-exception-handling-in-aspnet-core-api/"},"description":"A good web API is consistent and follows established patterns for communicating error states to the client, leveraging the appropriate HTTP status codes. To that end, a global exception handler can be very helpful in consolidating a service’s error handling logic in one place and translating errors into the appropriate responses to send back to the caller. In this post I’ll show you how you can plug your custom exception-handling logic into the ASP.NET Core request pipeline to handle any exceptions that are thrown in your service.","url":"https://blog.jonblankenship.com//2020/04/12/global-exception-handling-in-aspnet-core-api/","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 
 
@@ -88,7 +91,7 @@
 
 <p><img src="AspNetCoreMiddleware.png" alt="ASP.NET Core Middleware" /></p>
 
-<p>ASP.NET Core gives provides the ability to write middleware, which is logic inserted into the pipeline that the framework runs for every request that is received by the application.  ASP.NET Core ships with core middleware components that enable things like rendering MVC pages, defining endpoint routes, and adding authentication support, and these things are configured in the application’s <code class="highlighter-rouge">Startup</code> class, where you can also add your own custom middleware components.  This ability to easily configure and customize how ASP.NET Core processes requests is tremendously useful and powerful.  The <a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/middleware/?view=aspnetcore-3.1">Microsoft documentation</a> goes into more detail on how middleware works in ASP.NET Core, so I won’t spend too much more time on this.</p>
+<p>ASP.NET Core gives provides the ability to write middleware, which is logic inserted into the pipeline that the framework runs for every request that is received by the application.  ASP.NET Core ships with core middleware components that enable things like rendering MVC pages, defining endpoint routes, and adding authentication support, and these things are configured in the application’s <code class="language-plaintext highlighter-rouge">Startup</code> class, where you can also add your own custom middleware components.  This ability to easily configure and customize how ASP.NET Core processes requests is tremendously useful and powerful.  The <a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/middleware/?view=aspnetcore-3.1">Microsoft documentation</a> goes into more detail on how middleware works in ASP.NET Core, so I won’t spend too much more time on this.</p>
 
 <p>For this post, we’ll be creating exception-handling middleware to catch and handle any exceptions that are thrown during the execution of a request to our service.  This is something I implement in every API that I write, and it not only makes the handling of exceptions and the responses from my API consistent, but it also helps keep my codebase a bit cleaner.</p>
 
@@ -96,7 +99,7 @@
 
 <h2 id="error-handling-middleware">Error-Handling Middleware</h2>
 
-<p>Let’s jump straight to the code.  Here’s our <a href="https://github.com/jonblankenship/blog-examples/blob/master/ErrorHandlingMiddlewareSample/Middleware/ErrorHandlingMiddleware.cs"><code class="highlighter-rouge">ErrorHandlingMiddleware</code></a> class:</p>
+<p>Let’s jump straight to the code.  Here’s our <a href="https://github.com/jonblankenship/blog-examples/blob/master/ErrorHandlingMiddlewareSample/Middleware/ErrorHandlingMiddleware.cs"><code class="language-plaintext highlighter-rouge">ErrorHandlingMiddleware</code></a> class:</p>
 
 <div class="language-c# highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">ErrorHandlingMiddleware</span>
 <span class="p">{</span>
@@ -152,15 +155,15 @@
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p>In the <code class="highlighter-rouge">Invoke(..)</code> method of our middleware component, we wrap the invocation of our <code class="highlighter-rouge">_next</code> delegate in a <code class="highlighter-rouge">try..catch</code>.  So any processing that happens further along in the pipeline will be included in this <code class="highlighter-rouge">try..catch</code>.</p>
+<p>In the <code class="language-plaintext highlighter-rouge">Invoke(..)</code> method of our middleware component, we wrap the invocation of our <code class="language-plaintext highlighter-rouge">_next</code> delegate in a <code class="language-plaintext highlighter-rouge">try..catch</code>.  So any processing that happens further along in the pipeline will be included in this <code class="language-plaintext highlighter-rouge">try..catch</code>.</p>
 
-<p>If there’s an exception, our <code class="highlighter-rouge">HandleExceptionAsync(..)</code> method handles it, where we have access to the <code class="highlighter-rouge">HttpContext</code> for the request, as well as the <code class="highlighter-rouge">Exception</code> that occurred.  If you implement something similar, this is where you’ll likely modify the logic to meet your desired behavior according to your needs.  Here I branch depending on the type of exception that was thrown.</p>
+<p>If there’s an exception, our <code class="language-plaintext highlighter-rouge">HandleExceptionAsync(..)</code> method handles it, where we have access to the <code class="language-plaintext highlighter-rouge">HttpContext</code> for the request, as well as the <code class="language-plaintext highlighter-rouge">Exception</code> that occurred.  If you implement something similar, this is where you’ll likely modify the logic to meet your desired behavior according to your needs.  Here I branch depending on the type of exception that was thrown.</p>
 
-<p>Note that we’re setting the <code class="highlighter-rouge">StatusCode</code> property on the <code class="highlighter-rouge">context.Response</code> object depending on the type of exception that we’re handling.  We’re also writing out the error message to the response body, as well as the the stack trace, in the case of an unhandled exception when running in the “Development” environment.</p>
+<p>Note that we’re setting the <code class="language-plaintext highlighter-rouge">StatusCode</code> property on the <code class="language-plaintext highlighter-rouge">context.Response</code> object depending on the type of exception that we’re handling.  We’re also writing out the error message to the response body, as well as the the stack trace, in the case of an unhandled exception when running in the “Development” environment.</p>
 
-<p>If I’m explicitly throwing an exception in my application, usually I’ll create my own custom exception type that inherits from <code class="highlighter-rouge">Exception</code> for the particular exceptional scenario.  In this case, I’ve created <code class="highlighter-rouge">BadRequestException</code> and <code class="highlighter-rouge">NotFoundException</code>, which map nicely  to HTTP response codes, but your situation may differ.  Your exceptions may be more specific to your particular API.</p>
+<p>If I’m explicitly throwing an exception in my application, usually I’ll create my own custom exception type that inherits from <code class="language-plaintext highlighter-rouge">Exception</code> for the particular exceptional scenario.  In this case, I’ve created <code class="language-plaintext highlighter-rouge">BadRequestException</code> and <code class="language-plaintext highlighter-rouge">NotFoundException</code>, which map nicely  to HTTP response codes, but your situation may differ.  Your exceptions may be more specific to your particular API.</p>
 
-<p>Here’s my rather boring <code class="highlighter-rouge">NotFoundException</code> class:</p>
+<p>Here’s my rather boring <code class="language-plaintext highlighter-rouge">NotFoundException</code> class:</p>
 
 <div class="language-c# highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">NotFoundException</span> <span class="p">:</span> <span class="n">Exception</span>
 <span class="p">{</span>
@@ -171,7 +174,7 @@
 
 <h2 id="configuring-the-middleware">Configuring the Middleware</h2>
 
-<p>To configure our API to use our new <code class="highlighter-rouge">ErrorHandlingMiddleware</code>, we call <code class="highlighter-rouge">app.UseMiddleware(..)</code>, passing our middleware type in our <a href="https://github.com/jonblankenship/blog-examples/blob/7d1192f7d21e2532d4deae6d785ff25a06fa5144/ErrorHandlingMiddlewareSample/Startup.cs#L41"><code class="highlighter-rouge">Program</code></a> class’s <code class="highlighter-rouge">Configure(..)</code> method:</p>
+<p>To configure our API to use our new <code class="language-plaintext highlighter-rouge">ErrorHandlingMiddleware</code>, we call <code class="language-plaintext highlighter-rouge">app.UseMiddleware(..)</code>, passing our middleware type in our <a href="https://github.com/jonblankenship/blog-examples/blob/7d1192f7d21e2532d4deae6d785ff25a06fa5144/ErrorHandlingMiddlewareSample/Startup.cs#L41"><code class="language-plaintext highlighter-rouge">Program</code></a> class’s <code class="language-plaintext highlighter-rouge">Configure(..)</code> method:</p>
 
 <div class="language-c# highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">void</span> <span class="nf">Configure</span><span class="p">(</span><span class="n">IApplicationBuilder</span> <span class="n">app</span><span class="p">,</span> <span class="n">IWebHostEnvironment</span> <span class="n">env</span><span class="p">)</span>
 <span class="p">{</span>
@@ -190,17 +193,17 @@
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p>Note that the order in which you register middleware in your application’s request pipeline matters.  The various middleware components execute sequentially in the order in which they’re registered.  In the case of a global exception handler like our <code class="highlighter-rouge">ErrorHandlingMiddleware</code>, we’ll register it early in the <code class="highlighter-rouge">Configure(..)</code> method so that it captures exceptions that occur in downstream middleware components.</p>
+<p>Note that the order in which you register middleware in your application’s request pipeline matters.  The various middleware components execute sequentially in the order in which they’re registered.  In the case of a global exception handler like our <code class="language-plaintext highlighter-rouge">ErrorHandlingMiddleware</code>, we’ll register it early in the <code class="language-plaintext highlighter-rouge">Configure(..)</code> method so that it captures exceptions that occur in downstream middleware components.</p>
 
-<p>Also note that if you’re using an exception tracking service that captures the exception for reporting but then re-throws it to allow it to be handled upstream, that middleware registration should happen after the registration of our <code class="highlighter-rouge">ErrorHandlingMiddleware</code>.  In this sample I’m using <a href="https://excepticon.io">Excepticon</a>.  (Full disclosure:  I <a href="https://blog.jonblankenship.com/2020/03/05/excepticon-exception-monitoring-for-dot-net/">wrote Excepticon</a>.)  But using a third-party exception tracking service is absolutely <strong>not</strong> necessary for implementing global exception handling for you API like what I’m describing in this post.</p>
+<p>Also note that if you’re using an exception tracking service that captures the exception for reporting but then re-throws it to allow it to be handled upstream, that middleware registration should happen after the registration of our <code class="language-plaintext highlighter-rouge">ErrorHandlingMiddleware</code>.  In this sample I’m using <a href="https://excepticon.io">Excepticon</a>.  (Full disclosure:  I <a href="https://blog.jonblankenship.com/2020/03/05/excepticon-exception-monitoring-for-dot-net/">wrote Excepticon</a>.)  But using a third-party exception tracking service is absolutely <strong>not</strong> necessary for implementing global exception handling for you API like what I’m describing in this post.</p>
 
-<p>When our <code class="highlighter-rouge">ErrorHandlingMiddleware</code> catches an exception, execution of the pipeline halts, it sets the appropriate settings on the response, and the API call immediately returns the response to the client.</p>
+<p>When our <code class="language-plaintext highlighter-rouge">ErrorHandlingMiddleware</code> catches an exception, execution of the pipeline halts, it sets the appropriate settings on the response, and the API call immediately returns the response to the client.</p>
 
 <h2 id="application-code">Application Code</h2>
 
 <p>Handling exceptions globally in our middleware not only gives us a uniform way to handle unexpected exceptions that occur in our API, but it also allows us to eliminate some boilerplate code in our controllers, if desired.</p>
 
-<p>In the sample project, there’s a <a href="https://github.com/jonblankenship/blog-examples/blob/7d1192f7d21e2532d4deae6d785ff25a06fa5144/ErrorHandlingMiddlewareSample/Controllers/StocksController.cs#L27"><code class="highlighter-rouge">StocksController</code></a> that has a <code class="highlighter-rouge">GetById(Guid stockId)</code> method that calls a domain service to get a specific stock by ID.  The controller method returns the requested stock to the caller:</p>
+<p>In the sample project, there’s a <a href="https://github.com/jonblankenship/blog-examples/blob/7d1192f7d21e2532d4deae6d785ff25a06fa5144/ErrorHandlingMiddlewareSample/Controllers/StocksController.cs#L27"><code class="language-plaintext highlighter-rouge">StocksController</code></a> that has a <code class="language-plaintext highlighter-rouge">GetById(Guid stockId)</code> method that calls a domain service to get a specific stock by ID.  The controller method returns the requested stock to the caller:</p>
 
 <div class="language-c# highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="n">HttpGet</span><span class="p">]</span>
 <span class="p">[</span><span class="nf">Route</span><span class="p">(</span><span class="s">"{stockId}"</span><span class="p">)]</span>
@@ -211,9 +214,9 @@
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p>This is a very barebones example and most real controller methods probably won’t be this thin.  But note that we’re only worrying about the happy path here - what if the client sends us a <code class="highlighter-rouge">stockId</code> that we don’t have?</p>
+<p>This is a very barebones example and most real controller methods probably won’t be this thin.  But note that we’re only worrying about the happy path here - what if the client sends us a <code class="language-plaintext highlighter-rouge">stockId</code> that we don’t have?</p>
 
-<p>The <code class="highlighter-rouge">GetStock(Guid stockId)</code> method on the <a href="https://github.com/jonblankenship/blog-examples/blob/7d1192f7d21e2532d4deae6d785ff25a06fa5144/ErrorHandlingMiddlewareSample/Services/StocksService.cs#L24"><code class="highlighter-rouge">StocksService</code></a> domain service considers a request for a <code class="highlighter-rouge">stockId</code> that doesn’t exist to be an exceptional case.  That is, it shouldn’t happen, and if it does, the service immediately aborts, short-circuiting any further execution, and expects someone upstream to handle the exception.  It throws a <code class="highlighter-rouge">NotFoundException</code> accordingly:</p>
+<p>The <code class="language-plaintext highlighter-rouge">GetStock(Guid stockId)</code> method on the <a href="https://github.com/jonblankenship/blog-examples/blob/7d1192f7d21e2532d4deae6d785ff25a06fa5144/ErrorHandlingMiddlewareSample/Services/StocksService.cs#L24"><code class="language-plaintext highlighter-rouge">StocksService</code></a> domain service considers a request for a <code class="language-plaintext highlighter-rouge">stockId</code> that doesn’t exist to be an exceptional case.  That is, it shouldn’t happen, and if it does, the service immediately aborts, short-circuiting any further execution, and expects someone upstream to handle the exception.  It throws a <code class="language-plaintext highlighter-rouge">NotFoundException</code> accordingly:</p>
 
 <div class="language-c# highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">/// &lt;summary&gt;</span>
 <span class="c1">/// Returns the &lt;see cref="Stock"/&gt; with the requested &lt;see cref="stockId"/&gt;</span>
@@ -231,9 +234,9 @@
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p>When this exception is thrown, the normal execution is interrupted and the <code class="highlighter-rouge">catch</code> block on our <code class="highlighter-rouge">ErrorHandlingMiddleware</code> takes over.  We stop execution closer to where the exception occurs, and avoid branching logic in our controller to determine whether to return a 200- or a 400-series HTTP response code.</p>
+<p>When this exception is thrown, the normal execution is interrupted and the <code class="language-plaintext highlighter-rouge">catch</code> block on our <code class="language-plaintext highlighter-rouge">ErrorHandlingMiddleware</code> takes over.  We stop execution closer to where the exception occurs, and avoid branching logic in our controller to determine whether to return a 200- or a 400-series HTTP response code.</p>
 
-<p>Note that the method documentation indicates the exception type(s) that this method might throw.  This is helpful for consumers of <code class="highlighter-rouge">IStockService</code> to know what types of exceptions might be thrown when invoking the method.</p>
+<p>Note that the method documentation indicates the exception type(s) that this method might throw.  This is helpful for consumers of <code class="language-plaintext highlighter-rouge">IStockService</code> to know what types of exceptions might be thrown when invoking the method.</p>
 
 <h3 id="a-note-on-this-example">A Note on this Example</h3>
 
@@ -241,7 +244,7 @@
 
 <p>While I understand and agree with the spirit of this objection, I tend to take a more pragmatic position.</p>
 
-<p>This approach eliminates a fair amount of boilerplate <code class="highlighter-rouge">if...else</code> branching logic up the callstack until we get to the controller where we can handle it and return the appropriate HTTP response, especially if the callstack is deep or we invoke this method from multiple controller methods.  For me, the benefit in terms of readability and maintainability is worth the cost of throwing the exception in this case, especially since this condition won’t normally happen.  The likelihood of it happening is further reduced in cases where I control both the API and the client(s).</p>
+<p>This approach eliminates a fair amount of boilerplate <code class="language-plaintext highlighter-rouge">if...else</code> branching logic up the callstack until we get to the controller where we can handle it and return the appropriate HTTP response, especially if the callstack is deep or we invoke this method from multiple controller methods.  For me, the benefit in terms of readability and maintainability is worth the cost of throwing the exception in this case, especially since this condition won’t normally happen.  The likelihood of it happening is further reduced in cases where I control both the API and the client(s).</p>
 
 <p>The ASP.NET Core middleware pattern gives us a clean and elegant way to interrupt execution and handle error conditions.</p>
 
@@ -251,13 +254,13 @@
 
 <h2 id="testing-it-out">Testing It Out</h2>
 
-<p>If we run the sample, we see that a call to the <code class="highlighter-rouge">GET /stocks/{stockId}</code> endpoint with a valid ID returns a 200 response with the stock data in the response body:</p>
+<p>If we run the sample, we see that a call to the <code class="language-plaintext highlighter-rouge">GET /stocks/{stockId}</code> endpoint with a valid ID returns a 200 response with the stock data in the response body:</p>
 
 <p><img src="GetStock200.png" alt="Get Stock Postman Call - 200" /></p>
 
-<p>If we switch the <code class="highlighter-rouge">stockId</code> to an ID that doesn’t exist, we see that the API returns a <code class="highlighter-rouge">404 Not Found</code> and the message we included with our exception is included in the message body:</p>
+<p>If we switch the <code class="language-plaintext highlighter-rouge">stockId</code> to an ID that doesn’t exist, we see that the API returns a <code class="language-plaintext highlighter-rouge">404 Not Found</code> and the message we included with our exception is included in the message body:</p>
 
-<p><img src="GetStock404.png" alt="Get Stock Postman Call - 404" />Further, if we manually throw an <code class="highlighter-rouge">ApplicationException</code> in the <code class="highlighter-rouge">StocksService.Get(Guid stockId)</code> method, we get a <code class="highlighter-rouge">500 Internal Service</code> response with the error and stackTrace included in the response body, since <code class="highlighter-rouge">ApplicationException</code> is not one of the exception types that we’re specifically handling in <code class="highlighter-rouge">ErrorHandlingMiddleware</code>:</p>
+<p><img src="GetStock404.png" alt="Get Stock Postman Call - 404" />Further, if we manually throw an <code class="language-plaintext highlighter-rouge">ApplicationException</code> in the <code class="language-plaintext highlighter-rouge">StocksService.Get(Guid stockId)</code> method, we get a <code class="language-plaintext highlighter-rouge">500 Internal Service</code> response with the error and stackTrace included in the response body, since <code class="language-plaintext highlighter-rouge">ApplicationException</code> is not one of the exception types that we’re specifically handling in <code class="language-plaintext highlighter-rouge">ErrorHandlingMiddleware</code>:</p>
 
 <p><img src="GetStock500.png" alt="Get Stock Postman Call - 500" /></p>
 
@@ -269,7 +272,32 @@
           <p><em>I’m a developer and solo SaaS founder who likes to build things and share what I learn with others.  If you’re interested software development, launching things, or random early morning thoughts, consider <a href="https://twitter.com/Jon_Blankenship">following me</a> on Twitter or <a data-formkit-toggle="7e33ea9455" href="https://unique-designer-4037.ck.page/7e33ea9455">subscribe</a> to my newsletter.</em></p>
           <p class="mb-2"><em>Thanks for reading!</em></p>
       </div>
-      
+
+      <hr/>
+      <div>
+        <h2>Interested in Stocks?</h3>
+        <a href="https://fintrics.ai">
+          <img src="/assets/images/Fintrics.PNG" />
+        </a>
+        <p>
+          I built <a href="https://fintrics.ai">Fintrics</a> using many of the techniques, concepts, and technologies I discuss on this blog.  Fintrics provides 12-month stock price targets, calculated using a proprietary valuation model conceived by my business partner, <a href="https://twitter.com/JonahLupton">Jonah Lupton</a>.
+        </p>        
+        <p>
+          Fintrics is written with server-side Blazor and runs on Azure.
+        </ul>
+        <p>
+          If you have an interest in stocks and investing, I invite you to sign up for the 3-day free trial.
+        </p>
+        <ul>
+          <li>Unlimited 12-month price targets</li>
+          <li>Free 3-day trial</li>
+          <li>3K+ stocks, including the Russell 3K and more</li>
+          <li>Watchlist</li>
+          <li>Price Target Alerts - Coming Soon!</li>
+        </ul>
+      </div>
+      <hr/>
+
       <div class="post-footer">
           <ul class="post-tags">
           

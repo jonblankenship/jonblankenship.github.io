@@ -6,9 +6,9 @@
 <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css?family=Roboto:400,400i,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/css/style.css">
-<!-- Begin Jekyll SEO tag v2.6.1 -->
+<!-- Begin Jekyll SEO tag v2.7.1 -->
 <title>Creating a Loading Overlay for a Composite Blazor View | Jon Blankenship</title>
-<meta name="generator" content="Jekyll v3.8.6" />
+<meta name="generator" content="Jekyll v3.9.1" />
 <meta property="og:title" content="Creating a Loading Overlay for a Composite Blazor View" />
 <meta name="author" content="Jon_Blankenship" />
 <meta property="og:locale" content="en_US" />
@@ -19,8 +19,10 @@
 <meta property="og:site_name" content="Jon Blankenship" />
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2019-01-06T01:00:00-06:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Creating a Loading Overlay for a Composite Blazor View" />
 <script type="application/ld+json">
-{"@type":"BlogPosting","url":"https://blog.jonblankenship.com//2019/01/06/creating-a-loading-overlay-for-a-composite-blazor-view/","headline":"Creating a Loading Overlay for a Composite Blazor View","dateModified":"2019-01-06T01:00:00-06:00","datePublished":"2019-01-06T01:00:00-06:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.jonblankenship.com//2019/01/06/creating-a-loading-overlay-for-a-composite-blazor-view/"},"author":{"@type":"Person","name":"Jon_Blankenship"},"description":"One of my projects’ home screen is composed of multiple Blazor components that make a web service calls in their respective OnInitAsync()s to retrieve their data. When loading the page, all of the components render immediately in their unpopulated state; each one then updates and fills out as the various web service calls complete and their data loads. I’m not a fan of this – I’d rather have a nice overlay with some sort of loading indicator hiding the components while they’re loading that disappears when the last component is ready for display. This weekend I developed a simple pattern for accomplishing just that.","@context":"https://schema.org"}</script>
+{"author":{"@type":"Person","name":"Jon_Blankenship"},"headline":"Creating a Loading Overlay for a Composite Blazor View","dateModified":"2019-01-06T01:00:00-06:00","@type":"BlogPosting","datePublished":"2019-01-06T01:00:00-06:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.jonblankenship.com//2019/01/06/creating-a-loading-overlay-for-a-composite-blazor-view/"},"description":"One of my projects’ home screen is composed of multiple Blazor components that make a web service calls in their respective OnInitAsync()s to retrieve their data. When loading the page, all of the components render immediately in their unpopulated state; each one then updates and fills out as the various web service calls complete and their data loads. I’m not a fan of this – I’d rather have a nice overlay with some sort of loading indicator hiding the components while they’re loading that disappears when the last component is ready for display. This weekend I developed a simple pattern for accomplishing just that.","url":"https://blog.jonblankenship.com//2019/01/06/creating-a-loading-overlay-for-a-composite-blazor-view/","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 
 
@@ -83,7 +85,7 @@
       </div>
 
       <div class="post-container">
-          <p>One of my projects’ home screen is composed of multiple Blazor components that make a web service calls in their respective <code class="highlighter-rouge">OnInitAsync()</code>s to retrieve their data.  When loading the page, all of the components render immediately in their unpopulated state; each one then updates and fills out as the various web service calls complete and their data loads.  I’m not a fan of this – I’d rather have a nice overlay with some sort of loading indicator hiding the components while they’re loading that disappears when the last component is ready for display.  This weekend I developed a simple pattern for accomplishing just that.</p>
+          <p>One of my projects’ home screen is composed of multiple Blazor components that make a web service calls in their respective <code class="language-plaintext highlighter-rouge">OnInitAsync()</code>s to retrieve their data.  When loading the page, all of the components render immediately in their unpopulated state; each one then updates and fills out as the various web service calls complete and their data loads.  I’m not a fan of this – I’d rather have a nice overlay with some sort of loading indicator hiding the components while they’re loading that disappears when the last component is ready for display.  This weekend I developed a simple pattern for accomplishing just that.</p>
 
 <!--more-->
 
@@ -127,9 +129,9 @@
 <span class="nt">&lt;/div&gt;</span>
 </code></pre></div></div>
 
-<p>Note that we have four components in this view: three instances of <code class="highlighter-rouge">ComponentView</code> that load data on initialization, and an instance of <code class="highlighter-rouge">LoadingOverlayView</code> that hides the other components until they are all loaded. We’ll look at these components shortly.</p>
+<p>Note that we have four components in this view: three instances of <code class="language-plaintext highlighter-rouge">ComponentView</code> that load data on initialization, and an instance of <code class="language-plaintext highlighter-rouge">LoadingOverlayView</code> that hides the other components until they are all loaded. We’ll look at these components shortly.</p>
 
-<p>The corresponding <code class="highlighter-rouge">IndexModel</code> for this view has a single property:</p>
+<p>The corresponding <code class="language-plaintext highlighter-rouge">IndexModel</code> for this view has a single property:</p>
 
 <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">IndexModel</span><span class="p">:</span> <span class="n">BlazorComponent</span>
 <span class="p">{</span>
@@ -145,7 +147,7 @@
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p>We instantiate a new instance of <code class="highlighter-rouge">LoadStateManager</code> here, which will manage the loading state of the child components and tell the loading overlay when all components are loaded and it can disappear.</p>
+<p>We instantiate a new instance of <code class="language-plaintext highlighter-rouge">LoadStateManager</code> here, which will manage the loading state of the child components and tell the loading overlay when all components are loaded and it can disappear.</p>
 
 <h3 id="component-view-and-model">Component View and Model</h3>
 
@@ -166,9 +168,9 @@
     <span class="k">public</span> <span class="n">ComponentLoadState</span> <span class="n">LoadState</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="p">}</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">ComponentLoadState</span><span class="p">();</span>
 </code></pre></div></div>
 
-<p>The <code class="highlighter-rouge">LoadStateManager</code> from the parent view is passed to the component, as well as a couple of other parameters (like <code class="highlighter-rouge">Number</code> and <code class="highlighter-rouge">Delay</code>) that control the component’s behavior.</p>
+<p>The <code class="language-plaintext highlighter-rouge">LoadStateManager</code> from the parent view is passed to the component, as well as a couple of other parameters (like <code class="language-plaintext highlighter-rouge">Number</code> and <code class="language-plaintext highlighter-rouge">Delay</code>) that control the component’s behavior.</p>
 
-<p>The component implements interface <code class="highlighter-rouge">ILoadableComponent</code> which defines a single property:</p>
+<p>The component implements interface <code class="language-plaintext highlighter-rouge">ILoadableComponent</code> which defines a single property:</p>
 
 <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">/// &lt;summary&gt;</span>
 <span class="c1">/// Defines a component whose &lt;see cref="ComponentLoadState"/&gt; can be managed by a &lt;see cref="LoadStateManager"/&gt;</span>
@@ -182,9 +184,9 @@
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p>Note that when we implement <code class="highlighter-rouge">ILoadableComponent</code> in our component, we go ahead and instantiate a new instance of <code class="highlighter-rouge">ComponentLoadState</code> to manage the loading state of this individual component.</p>
+<p>Note that when we implement <code class="language-plaintext highlighter-rouge">ILoadableComponent</code> in our component, we go ahead and instantiate a new instance of <code class="language-plaintext highlighter-rouge">ComponentLoadState</code> to manage the loading state of this individual component.</p>
 
-<p>Back to our <code class="highlighter-rouge">ComponentModel</code>, we want to register our component with the <code class="highlighter-rouge">LoadStateManager</code> when its parameters are set, like so:</p>
+<p>Back to our <code class="language-plaintext highlighter-rouge">ComponentModel</code>, we want to register our component with the <code class="language-plaintext highlighter-rouge">LoadStateManager</code> when its parameters are set, like so:</p>
 
 <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">protected</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">OnParametersSet</span><span class="p">()</span>
 <span class="p">{</span>
@@ -195,9 +197,9 @@
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p>This call makes the <code class="highlighter-rouge">LoadStateManager</code> aware of this component and ensures that it will wait for this component to finish loading before alerts the parent view that all child components are done loading.</p>
+<p>This call makes the <code class="language-plaintext highlighter-rouge">LoadStateManager</code> aware of this component and ensures that it will wait for this component to finish loading before alerts the parent view that all child components are done loading.</p>
 
-<p>Finally, we have our good friend, <code class="highlighter-rouge">OnInitAsync()</code> which simulates a web service call with a <code class="highlighter-rouge">Task.Delay(Delay)</code>, sets our <code class="highlighter-rouge">Status</code>, and finishes up with by telling the component’s <code class="highlighter-rouge">LoadState</code> that we’re done loading:</p>
+<p>Finally, we have our good friend, <code class="language-plaintext highlighter-rouge">OnInitAsync()</code> which simulates a web service call with a <code class="language-plaintext highlighter-rouge">Task.Delay(Delay)</code>, sets our <code class="language-plaintext highlighter-rouge">Status</code>, and finishes up with by telling the component’s <code class="language-plaintext highlighter-rouge">LoadState</code> that we’re done loading:</p>
 
 <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">protected</span> <span class="k">override</span> <span class="k">async</span> <span class="n">Task</span> <span class="nf">OnInitAsync</span><span class="p">()</span>
 <span class="p">{</span>
@@ -213,7 +215,7 @@
 
 <h3 id="loading-overlay-view-and-model">Loading Overlay View and Model</h3>
 
-<p>The final view is the <code class="highlighter-rouge">LoadingOverlayView</code>:</p>
+<p>The final view is the <code class="language-plaintext highlighter-rouge">LoadingOverlayView</code>:</p>
 
 <div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code>@inherits LoadingOverlayModel
 
@@ -229,7 +231,7 @@
 }
 </code></pre></div></div>
 
-<p>This is essentially a <code class="highlighter-rouge">div</code> that covers the main content area with a simple CSS loading animation in the middle that is displayed as long as <code class="highlighter-rouge">LoadStateManager.IsLoadingComplete</code> is <code class="highlighter-rouge">false</code>. (The CSS for this overlay is not my main focus for this post, but it can be found towards the bottom of the standard site.css that was created for my new project <a href="https://github.com/jonblankenship/blazorplayground/blob/master/PageLoadingOverlay/PageLoadingOverlay.App/wwwroot/css/site.css">here</a> for those interested.) This is the same <code class="highlighter-rouge">LoadStateManager</code> that is instantiated in the <code class="highlighter-rouge">IndexModel</code> and passed to the child components.</p>
+<p>This is essentially a <code class="language-plaintext highlighter-rouge">div</code> that covers the main content area with a simple CSS loading animation in the middle that is displayed as long as <code class="language-plaintext highlighter-rouge">LoadStateManager.IsLoadingComplete</code> is <code class="language-plaintext highlighter-rouge">false</code>. (The CSS for this overlay is not my main focus for this post, but it can be found towards the bottom of the standard site.css that was created for my new project <a href="https://github.com/jonblankenship/blazorplayground/blob/master/PageLoadingOverlay/PageLoadingOverlay.App/wwwroot/css/site.css">here</a> for those interested.) This is the same <code class="language-plaintext highlighter-rouge">LoadStateManager</code> that is instantiated in the <code class="language-plaintext highlighter-rouge">IndexModel</code> and passed to the child components.</p>
 
 <p>Here’s the corresponding model:</p>
 
@@ -254,13 +256,13 @@
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p>In this model, we subscribe to the <code class="highlighter-rouge">LoadStateManager.LoadingComplete</code> event, which will fire when all of the components that the <code class="highlighter-rouge">LoadStateManager</code> is monitoring have completed loading. When the event fires, we simply need to call <code class="highlighter-rouge">StateHasChanged()</code> to alert the component to update itself. since it is bound directly to <code class="highlighter-rouge">LoadStateManager.IsLoadingComplete</code>.</p>
+<p>In this model, we subscribe to the <code class="language-plaintext highlighter-rouge">LoadStateManager.LoadingComplete</code> event, which will fire when all of the components that the <code class="language-plaintext highlighter-rouge">LoadStateManager</code> is monitoring have completed loading. When the event fires, we simply need to call <code class="language-plaintext highlighter-rouge">StateHasChanged()</code> to alert the component to update itself. since it is bound directly to <code class="language-plaintext highlighter-rouge">LoadStateManager.IsLoadingComplete</code>.</p>
 
 <h2 id="helper-classes">Helper Classes</h2>
 
 <h3 id="loadstatemanager">LoadStateManager</h3>
 
-<p>As we’ve already mentioned, <code class="highlighter-rouge">LoadStateManager</code> manages the load state of a collection of components on a screen. Components register themselves with the <code class="highlighter-rouge">LoadStateManager</code>. The <code class="highlighter-rouge">LoadStateManager</code> keeps a collection of their <code class="highlighter-rouge">ComponentLoadState</code>s and subscribes to each one’s <code class="highlighter-rouge">LoadingComplete</code> event, triggering the <code class="highlighter-rouge">LoadingComplete</code> event when the last one completes:</p>
+<p>As we’ve already mentioned, <code class="language-plaintext highlighter-rouge">LoadStateManager</code> manages the load state of a collection of components on a screen. Components register themselves with the <code class="language-plaintext highlighter-rouge">LoadStateManager</code>. The <code class="language-plaintext highlighter-rouge">LoadStateManager</code> keeps a collection of their <code class="language-plaintext highlighter-rouge">ComponentLoadState</code>s and subscribes to each one’s <code class="language-plaintext highlighter-rouge">LoadingComplete</code> event, triggering the <code class="language-plaintext highlighter-rouge">LoadingComplete</code> event when the last one completes:</p>
 
 <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">/// &lt;summary&gt;</span>
 <span class="c1">/// Manages the &lt;see cref="ComponentLoadState"/&gt;s for a particular view</span>
@@ -302,7 +304,7 @@
 
 <h3 id="componentloadstate">ComponentLoadState</h3>
 
-<p>Finally we have <code class="highlighter-rouge">ComponentLoadState</code>, which represents the load state of an individual component. It exposes an <code class="highlighter-rouge">IsLoaded</code> property, a <code class="highlighter-rouge">LoadingComplete</code> event, and an <code class="highlighter-rouge">OnLoadingComplete()</code> method for storing and communicating the component’s load state:</p>
+<p>Finally we have <code class="language-plaintext highlighter-rouge">ComponentLoadState</code>, which represents the load state of an individual component. It exposes an <code class="language-plaintext highlighter-rouge">IsLoaded</code> property, a <code class="language-plaintext highlighter-rouge">LoadingComplete</code> event, and an <code class="language-plaintext highlighter-rouge">OnLoadingComplete()</code> method for storing and communicating the component’s load state:</p>
 
 <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">/// &lt;summary&gt;</span>
 <span class="c1">/// Represents the load state of an individual component</span>
@@ -332,7 +334,7 @@
 
 <h2 id="putting-it-all-together">Putting It All Together</h2>
 
-<p>Once you have your helper classes and overlay view and spinner created, it’s fairly trivial to add this functionality to a Blazor page. The page view just needs to instantiate the <code class="highlighter-rouge">LoadStateManager</code> and pass it to its children, and the child components need to define properties for the <code class="highlighter-rouge">LoadStateManager</code> and <code class="highlighter-rouge">ComponentLoadState</code>, register with the <code class="highlighter-rouge">LoadStateManager</code>, and tell their <code class="highlighter-rouge">ComponentLoadState</code> when they’re done loading.</p>
+<p>Once you have your helper classes and overlay view and spinner created, it’s fairly trivial to add this functionality to a Blazor page. The page view just needs to instantiate the <code class="language-plaintext highlighter-rouge">LoadStateManager</code> and pass it to its children, and the child components need to define properties for the <code class="language-plaintext highlighter-rouge">LoadStateManager</code> and <code class="language-plaintext highlighter-rouge">ComponentLoadState</code>, register with the <code class="language-plaintext highlighter-rouge">LoadStateManager</code>, and tell their <code class="language-plaintext highlighter-rouge">ComponentLoadState</code> when they’re done loading.</p>
 
 <p>I hope you’ve found this post helpful. You can find the full source code for this sample <a href="https://github.com/jonblankenship/blazorplayground/tree/master/PageLoadingOverlay">here</a>. Thanks for reading!</p>
 
@@ -340,7 +342,32 @@
           <p><em>I’m a developer and solo SaaS founder who likes to build things and share what I learn with others.  If you’re interested software development, launching things, or random early morning thoughts, consider <a href="https://twitter.com/Jon_Blankenship">following me</a> on Twitter or <a data-formkit-toggle="7e33ea9455" href="https://unique-designer-4037.ck.page/7e33ea9455">subscribe</a> to my newsletter.</em></p>
           <p class="mb-2"><em>Thanks for reading!</em></p>
       </div>
-      
+
+      <hr/>
+      <div>
+        <h2>Interested in Stocks?</h3>
+        <a href="https://fintrics.ai">
+          <img src="/assets/images/Fintrics.PNG" />
+        </a>
+        <p>
+          I built <a href="https://fintrics.ai">Fintrics</a> using many of the techniques, concepts, and technologies I discuss on this blog.  Fintrics provides 12-month stock price targets, calculated using a proprietary valuation model conceived by my business partner, <a href="https://twitter.com/JonahLupton">Jonah Lupton</a>.
+        </p>        
+        <p>
+          Fintrics is written with server-side Blazor and runs on Azure.
+        </ul>
+        <p>
+          If you have an interest in stocks and investing, I invite you to sign up for the 3-day free trial.
+        </p>
+        <ul>
+          <li>Unlimited 12-month price targets</li>
+          <li>Free 3-day trial</li>
+          <li>3K+ stocks, including the Russell 3K and more</li>
+          <li>Watchlist</li>
+          <li>Price Target Alerts - Coming Soon!</li>
+        </ul>
+      </div>
+      <hr/>
+
       <div class="post-footer">
           <ul class="post-tags">
           

@@ -6,9 +6,9 @@
 <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css?family=Roboto:400,400i,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/css/style.css">
-<!-- Begin Jekyll SEO tag v2.6.1 -->
+<!-- Begin Jekyll SEO tag v2.7.1 -->
 <title>Moving from HTTP-Triggered Azure Functions to Web API | Jon Blankenship</title>
-<meta name="generator" content="Jekyll v3.8.6" />
+<meta name="generator" content="Jekyll v3.9.1" />
 <meta property="og:title" content="Moving from HTTP-Triggered Azure Functions to Web API" />
 <meta name="author" content="Jon_Blankenship" />
 <meta property="og:locale" content="en_US" />
@@ -19,8 +19,10 @@
 <meta property="og:site_name" content="Jon Blankenship" />
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2019-07-09T02:00:00-05:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Moving from HTTP-Triggered Azure Functions to Web API" />
 <script type="application/ld+json">
-{"@type":"BlogPosting","url":"https://blog.jonblankenship.com//2019/07/09/moving-from-http-triggered-azure-functions-to-web-api-update-2019-07-09/","headline":"Moving from HTTP-Triggered Azure Functions to Web API","dateModified":"2019-07-09T02:00:00-05:00","datePublished":"2019-07-09T02:00:00-05:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.jonblankenship.com//2019/07/09/moving-from-http-triggered-azure-functions-to-web-api-update-2019-07-09/"},"author":{"@type":"Person","name":"Jon_Blankenship"},"description":"This past weekend was a long one due to the Fourth of July, and despite a weekend filled with cookouts, swimming, fireworks, an anniversary date night, and a trip to St. Louis, I was able to knock off an important task on my side project‘s TODO List.","@context":"https://schema.org"}</script>
+{"author":{"@type":"Person","name":"Jon_Blankenship"},"headline":"Moving from HTTP-Triggered Azure Functions to Web API","dateModified":"2019-07-09T02:00:00-05:00","@type":"BlogPosting","datePublished":"2019-07-09T02:00:00-05:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.jonblankenship.com//2019/07/09/moving-from-http-triggered-azure-functions-to-web-api-update-2019-07-09/"},"description":"This past weekend was a long one due to the Fourth of July, and despite a weekend filled with cookouts, swimming, fireworks, an anniversary date night, and a trip to St. Louis, I was able to knock off an important task on my side project‘s TODO List.","url":"https://blog.jonblankenship.com//2019/07/09/moving-from-http-triggered-azure-functions-to-web-api-update-2019-07-09/","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 
 
@@ -101,7 +103,7 @@
 
 <p>Thankfully the refactoring of the code was fairly simple because my functions, much like good controller methods, were thin – they simply received the HTTP request, deserialized it, performed any necessary request-level validation, and delegated processing to the domain layer which lives in a separate assembly. The controllers in the Web API project that I created ended up being very similar.</p>
 
-<p>I’m now closer to the MVP infrastructure that I <a href="https://blog.jonblankenship.com/2019/07/01/stock-alerts-infrastructure/">mentioned</a> a week ago, depicted below (I’m just missing <code class="highlighter-rouge">StockAlerts.WebApp</code> now):</p>
+<p>I’m now closer to the MVP infrastructure that I <a href="https://blog.jonblankenship.com/2019/07/01/stock-alerts-infrastructure/">mentioned</a> a week ago, depicted below (I’m just missing <code class="language-plaintext highlighter-rouge">StockAlerts.WebApp</code> now):</p>
 
 <p><img src="Stock-Alerts-MVP-Infrastructure-Resources.png" alt="Stock Alerts MVP Infrastructure Resources" /></p>
 
@@ -129,22 +131,22 @@
 
 <h4 id="error-handling"><em>Error Handling</em></h4>
 
-<p>My preferred approach to handling exceptions on recent Web API projects has been to create an <code class="highlighter-rouge">ErrorHandlingMiddleware</code> class that catches any unhandled exception during the processing of the request and turns it into the appropriate HTTP response. The code can be found <a href="https://github.com/jonblankenship/stock-alerts/blob/master/StockAlerts/StockAlerts.Api/Middleware/ErrorHandlingMiddleware.cs">here</a>. Adding it to the pipeline is as simple as one line in <code class="highlighter-rouge">Startup.cs</code>:</p>
+<p>My preferred approach to handling exceptions on recent Web API projects has been to create an <code class="language-plaintext highlighter-rouge">ErrorHandlingMiddleware</code> class that catches any unhandled exception during the processing of the request and turns it into the appropriate HTTP response. The code can be found <a href="https://github.com/jonblankenship/stock-alerts/blob/master/StockAlerts/StockAlerts.Api/Middleware/ErrorHandlingMiddleware.cs">here</a>. Adding it to the pipeline is as simple as one line in <code class="language-plaintext highlighter-rouge">Startup.cs</code>:</p>
 
 <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">app</span><span class="p">.</span><span class="nf">UseMiddleware</span><span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="n">ErrorHandlingMiddleware</span><span class="p">));</span>
 </code></pre></div></div>
 
-<p>To accomplish similar functionality in my Azure Functions required an additional Nuget package (<a href="https://www.nuget.org/packages/PostSharp/">PostSharp</a>), a custom attribute, and a <code class="highlighter-rouge">[HandleExceptions]</code> on top of all of my functions. Not terrible, but I’d rather not have the extra package and have to remember to manually decorate my functions to get error-handling.</p>
+<p>To accomplish similar functionality in my Azure Functions required an additional Nuget package (<a href="https://www.nuget.org/packages/PostSharp/">PostSharp</a>), a custom attribute, and a <code class="language-plaintext highlighter-rouge">[HandleExceptions]</code> on top of all of my functions. Not terrible, but I’d rather not have the extra package and have to remember to manually decorate my functions to get error-handling.</p>
 
 <h4 id="authenticationauthorization"><em>Authentication/Authorization</em></h4>
 
-<p>To turn on token-based authentication/authorization for an ASP.NET Core Web API endpoint, you must configure the authentication, JWT bearer, and authorization options in <code class="highlighter-rouge">Startup.cs</code>, add the authentication middleware with <code class="highlighter-rouge">app.UseAuthentication();</code>, and decorate your controller methods with the <code class="highlighter-rouge">[Authorize]</code> attribute.</p>
+<p>To turn on token-based authentication/authorization for an ASP.NET Core Web API endpoint, you must configure the authentication, JWT bearer, and authorization options in <code class="language-plaintext highlighter-rouge">Startup.cs</code>, add the authentication middleware with <code class="language-plaintext highlighter-rouge">app.UseAuthentication();</code>, and decorate your controller methods with the <code class="language-plaintext highlighter-rouge">[Authorize]</code> attribute.</p>
 
-<p>To implement token-based authentication/authorization on my Azure Functions, there wasn’t an easy way for me to simply decorate a function with an <code class="highlighter-rouge">[Authorize]</code> attribute and let the framework make sure that the user could invoke the function. Instead, for each function I had to use <code class="highlighter-rouge">AuthorizationLevel.Anonymous</code> and manually check for a valid <code class="highlighter-rouge">ClaimsPrincipal</code> and <code class="highlighter-rouge">return new UnauthorizedResult()</code> if there wasn’t one.</p>
+<p>To implement token-based authentication/authorization on my Azure Functions, there wasn’t an easy way for me to simply decorate a function with an <code class="language-plaintext highlighter-rouge">[Authorize]</code> attribute and let the framework make sure that the user could invoke the function. Instead, for each function I had to use <code class="language-plaintext highlighter-rouge">AuthorizationLevel.Anonymous</code> and manually check for a valid <code class="language-plaintext highlighter-rouge">ClaimsPrincipal</code> and <code class="language-plaintext highlighter-rouge">return new UnauthorizedResult()</code> if there wasn’t one.</p>
 
 <p>It worked, but it wasn’t pretty.</p>
 
-<p>Beyond that, I had trouble getting it to add the <code class="highlighter-rouge">Token-Expired</code> header on responses when the auth token has expired. After switching over to Web API, this just works with the configuration I have in place.</p>
+<p>Beyond that, I had trouble getting it to add the <code class="language-plaintext highlighter-rouge">Token-Expired</code> header on responses when the auth token has expired. After switching over to Web API, this just works with the configuration I have in place.</p>
 
 <h3 id="prefer-controllers-over-functions">PREFER CONTROLLERS OVER FUNCTIONS</h3>
 
@@ -194,9 +196,9 @@
   <li>The controller method is shorter.</li>
   <li>The controller method is able to accept ID parameters as GUIDs, avoiding manual conversion.</li>
   <li>The controller method declares the HTTP verb and route more cleanly (in my opinion) as method attributes rather than a parameter attribute.</li>
-  <li>Because I’ve decorated the controller with <code class="highlighter-rouge">[Authorize]</code>, the controller method avoids the manual authorization logic.</li>
-  <li>Because I’m using the <code class="highlighter-rouge">ErrorHandlingMiddleware</code>, the controller method avoids the extra <code class="highlighter-rouge">[HandleExceptions]</code> attribute.</li>
-  <li>Not illustrated in this example, but the controller method accepts request bodies as entities, avoiding having to manually deserialize the request body from the <code class="highlighter-rouge">HttpRequest</code>.</li>
+  <li>Because I’ve decorated the controller with <code class="language-plaintext highlighter-rouge">[Authorize]</code>, the controller method avoids the manual authorization logic.</li>
+  <li>Because I’m using the <code class="language-plaintext highlighter-rouge">ErrorHandlingMiddleware</code>, the controller method avoids the extra <code class="language-plaintext highlighter-rouge">[HandleExceptions]</code> attribute.</li>
+  <li>Not illustrated in this example, but the controller method accepts request bodies as entities, avoiding having to manually deserialize the request body from the <code class="language-plaintext highlighter-rouge">HttpRequest</code>.</li>
 </ol>
 
 <p>From a purely code aesthetics perspective, I just prefer controller methods over HTTP-triggered functions.</p>
@@ -219,7 +221,32 @@
           <p><em>I’m a developer and solo SaaS founder who likes to build things and share what I learn with others.  If you’re interested software development, launching things, or random early morning thoughts, consider <a href="https://twitter.com/Jon_Blankenship">following me</a> on Twitter or <a data-formkit-toggle="7e33ea9455" href="https://unique-designer-4037.ck.page/7e33ea9455">subscribe</a> to my newsletter.</em></p>
           <p class="mb-2"><em>Thanks for reading!</em></p>
       </div>
-      
+
+      <hr/>
+      <div>
+        <h2>Interested in Stocks?</h3>
+        <a href="https://fintrics.ai">
+          <img src="/assets/images/Fintrics.PNG" />
+        </a>
+        <p>
+          I built <a href="https://fintrics.ai">Fintrics</a> using many of the techniques, concepts, and technologies I discuss on this blog.  Fintrics provides 12-month stock price targets, calculated using a proprietary valuation model conceived by my business partner, <a href="https://twitter.com/JonahLupton">Jonah Lupton</a>.
+        </p>        
+        <p>
+          Fintrics is written with server-side Blazor and runs on Azure.
+        </ul>
+        <p>
+          If you have an interest in stocks and investing, I invite you to sign up for the 3-day free trial.
+        </p>
+        <ul>
+          <li>Unlimited 12-month price targets</li>
+          <li>Free 3-day trial</li>
+          <li>3K+ stocks, including the Russell 3K and more</li>
+          <li>Watchlist</li>
+          <li>Price Target Alerts - Coming Soon!</li>
+        </ul>
+      </div>
+      <hr/>
+
       <div class="post-footer">
           <ul class="post-tags">
           

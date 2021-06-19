@@ -6,9 +6,9 @@
 <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css?family=Roboto:400,400i,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/css/style.css">
-<!-- Begin Jekyll SEO tag v2.6.1 -->
+<!-- Begin Jekyll SEO tag v2.7.1 -->
 <title>Adding a Loading Spinner to a Button with Blazor | Jon Blankenship</title>
-<meta name="generator" content="Jekyll v3.8.6" />
+<meta name="generator" content="Jekyll v3.9.1" />
 <meta property="og:title" content="Adding a Loading Spinner to a Button with Blazor" />
 <meta name="author" content="Jon_Blankenship" />
 <meta property="og:locale" content="en_US" />
@@ -19,8 +19,10 @@
 <meta property="og:site_name" content="Jon Blankenship" />
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2018-10-19T02:00:00-05:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Adding a Loading Spinner to a Button with Blazor" />
 <script type="application/ld+json">
-{"@type":"BlogPosting","url":"https://blog.jonblankenship.com//2018/10/19/adding-a-loading-spinner-to-a-button-with-blazor/","headline":"Adding a Loading Spinner to a Button with Blazor","dateModified":"2018-10-19T02:00:00-05:00","datePublished":"2018-10-19T02:00:00-05:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.jonblankenship.com//2018/10/19/adding-a-loading-spinner-to-a-button-with-blazor/"},"author":{"@type":"Person","name":"Jon_Blankenship"},"description":"I’ve been playing with Blazor for several weeks now, and it’s fantastic. For the uninitiated, Blazor allows you to write .NET code that runs in the browser through the power of WebAssembly (Wasm). This means that the amount of JavaScript you end up having to write to create a dynamic web UI is significantly reduced, or even eliminated (check out this Tetris clone @mistermag00 wrote running completely on Blazor with ZERO JavaScript).","@context":"https://schema.org"}</script>
+{"author":{"@type":"Person","name":"Jon_Blankenship"},"headline":"Adding a Loading Spinner to a Button with Blazor","dateModified":"2018-10-19T02:00:00-05:00","@type":"BlogPosting","datePublished":"2018-10-19T02:00:00-05:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.jonblankenship.com//2018/10/19/adding-a-loading-spinner-to-a-button-with-blazor/"},"description":"I’ve been playing with Blazor for several weeks now, and it’s fantastic. For the uninitiated, Blazor allows you to write .NET code that runs in the browser through the power of WebAssembly (Wasm). This means that the amount of JavaScript you end up having to write to create a dynamic web UI is significantly reduced, or even eliminated (check out this Tetris clone @mistermag00 wrote running completely on Blazor with ZERO JavaScript).","url":"https://blog.jonblankenship.com//2018/10/19/adding-a-loading-spinner-to-a-button-with-blazor/","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 
 
@@ -105,9 +107,9 @@ else
 
 <p>Here we have two versions of the button, and we determine which one to display based on an IsSearching boolean property in the Blazor component code.</p>
 
-<p>The first button represents the state of the button while we’re searching.  We set the visual state to disabled with the <code class="highlighter-rouge">disabled</code> CSS class and disable clicks with the disabled attribute.  Both buttons have a custom <code class="highlighter-rouge">search</code> CSS class which just sets the width of the button so we don’t have a jarring width change when transitioning between states.  I’m using a <a href="https://fontawesome.com/">Font Awesome</a> icon for my spinning icon (so don’t forget the link to their CSS in your HEAD), and animating it with a couple of custom CCS classes that we’ll look at in a minute.</p>
+<p>The first button represents the state of the button while we’re searching.  We set the visual state to disabled with the <code class="language-plaintext highlighter-rouge">disabled</code> CSS class and disable clicks with the disabled attribute.  Both buttons have a custom <code class="language-plaintext highlighter-rouge">search</code> CSS class which just sets the width of the button so we don’t have a jarring width change when transitioning between states.  I’m using a <a href="https://fontawesome.com/">Font Awesome</a> icon for my spinning icon (so don’t forget the link to their CSS in your HEAD), and animating it with a couple of custom CCS classes that we’ll look at in a minute.</p>
 
-<p>The second button represents the state of the button when we’re not searching.  It has the <code class="highlighter-rouge">onclick</code> handler calling into the <code class="highlighter-rouge">OnSearchAsync</code> method in my Blazor component code.</p>
+<p>The second button represents the state of the button when we’re not searching.  It has the <code class="language-plaintext highlighter-rouge">onclick</code> handler calling into the <code class="language-plaintext highlighter-rouge">OnSearchAsync</code> method in my Blazor component code.</p>
 
 <p>Speaking of my Blazor component code, let’s check it out…</p>
 
@@ -131,7 +133,7 @@ else
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p>All that’s needed is a simple <code class="highlighter-rouge">IsSearching</code> property that  I can set to switch between button states while searching.  I just need to remember to call <code class="highlighter-rouge">StateHasChanged()</code> to let Blazor know it needs to update the DOM.</p>
+<p>All that’s needed is a simple <code class="language-plaintext highlighter-rouge">IsSearching</code> property that  I can set to switch between button states while searching.  I just need to remember to call <code class="language-plaintext highlighter-rouge">StateHasChanged()</code> to let Blazor know it needs to update the DOM.</p>
 
 <p>And finally, here’s the custom CSS to make the animation happen:</p>
 
@@ -175,7 +177,32 @@ else
           <p><em>I’m a developer and solo SaaS founder who likes to build things and share what I learn with others.  If you’re interested software development, launching things, or random early morning thoughts, consider <a href="https://twitter.com/Jon_Blankenship">following me</a> on Twitter or <a data-formkit-toggle="7e33ea9455" href="https://unique-designer-4037.ck.page/7e33ea9455">subscribe</a> to my newsletter.</em></p>
           <p class="mb-2"><em>Thanks for reading!</em></p>
       </div>
-      
+
+      <hr/>
+      <div>
+        <h2>Interested in Stocks?</h3>
+        <a href="https://fintrics.ai">
+          <img src="/assets/images/Fintrics.PNG" />
+        </a>
+        <p>
+          I built <a href="https://fintrics.ai">Fintrics</a> using many of the techniques, concepts, and technologies I discuss on this blog.  Fintrics provides 12-month stock price targets, calculated using a proprietary valuation model conceived by my business partner, <a href="https://twitter.com/JonahLupton">Jonah Lupton</a>.
+        </p>        
+        <p>
+          Fintrics is written with server-side Blazor and runs on Azure.
+        </ul>
+        <p>
+          If you have an interest in stocks and investing, I invite you to sign up for the 3-day free trial.
+        </p>
+        <ul>
+          <li>Unlimited 12-month price targets</li>
+          <li>Free 3-day trial</li>
+          <li>3K+ stocks, including the Russell 3K and more</li>
+          <li>Watchlist</li>
+          <li>Price Target Alerts - Coming Soon!</li>
+        </ul>
+      </div>
+      <hr/>
+
       <div class="post-footer">
           <ul class="post-tags">
           

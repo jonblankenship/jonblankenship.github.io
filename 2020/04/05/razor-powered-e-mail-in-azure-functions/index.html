@@ -6,9 +6,9 @@
 <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css?family=Roboto:400,400i,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/css/style.css">
-<!-- Begin Jekyll SEO tag v2.6.1 -->
+<!-- Begin Jekyll SEO tag v2.7.1 -->
 <title>Razor-Powered E-mail in Azure Functions | Jon Blankenship</title>
-<meta name="generator" content="Jekyll v3.8.6" />
+<meta name="generator" content="Jekyll v3.9.1" />
 <meta property="og:title" content="Razor-Powered E-mail in Azure Functions" />
 <meta name="author" content="Jon_Blankenship" />
 <meta property="og:locale" content="en_US" />
@@ -20,8 +20,11 @@
 <meta property="og:image" content="https://blog.jonblankenship.com//2020/04/05/razor-powered-e-mail-in-azure-functions/HighLevelFlow.png" />
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2020-04-05T09:15:00-05:00" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta property="twitter:image" content="https://blog.jonblankenship.com//2020/04/05/razor-powered-e-mail-in-azure-functions/HighLevelFlow.png" />
+<meta property="twitter:title" content="Razor-Powered E-mail in Azure Functions" />
 <script type="application/ld+json">
-{"@type":"BlogPosting","url":"https://blog.jonblankenship.com//2020/04/05/razor-powered-e-mail-in-azure-functions/","headline":"Razor-Powered E-mail in Azure Functions","dateModified":"2020-04-05T09:15:00-05:00","datePublished":"2020-04-05T09:15:00-05:00","image":"https://blog.jonblankenship.com//2020/04/05/razor-powered-e-mail-in-azure-functions/HighLevelFlow.png","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.jonblankenship.com//2020/04/05/razor-powered-e-mail-in-azure-functions/"},"author":{"@type":"Person","name":"Jon_Blankenship"},"description":"On a couple of recent side projects I’ve had the need to send automated e-mails to my users. For both implementations I chose the same approach: use Razor templates combined with Azure Functions to build a simple, maintainable, and loosely-coupled solution for sending transactional e-mails. In this post I’ll show you how to do the same.","@context":"https://schema.org"}</script>
+{"image":"https://blog.jonblankenship.com//2020/04/05/razor-powered-e-mail-in-azure-functions/HighLevelFlow.png","author":{"@type":"Person","name":"Jon_Blankenship"},"headline":"Razor-Powered E-mail in Azure Functions","dateModified":"2020-04-05T09:15:00-05:00","@type":"BlogPosting","datePublished":"2020-04-05T09:15:00-05:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.jonblankenship.com//2020/04/05/razor-powered-e-mail-in-azure-functions/"},"description":"On a couple of recent side projects I’ve had the need to send automated e-mails to my users. For both implementations I chose the same approach: use Razor templates combined with Azure Functions to build a simple, maintainable, and loosely-coupled solution for sending transactional e-mails. In this post I’ll show you how to do the same.","url":"https://blog.jonblankenship.com//2020/04/05/razor-powered-e-mail-in-azure-functions/","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 
 
@@ -94,8 +97,8 @@
 
 <ol>
   <li>Application code determines that an e-mail should be sent.</li>
-  <li>Application code writes a message to an <a href="https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-queues-topics-subscriptions">Azure Service Bus</a> queue (<code class="highlighter-rouge">email-queue</code>).</li>
-  <li>Azure Function (<code class="highlighter-rouge">email-queue-trigger-function</code>) receives message from Service Bus queue.</li>
+  <li>Application code writes a message to an <a href="https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-queues-topics-subscriptions">Azure Service Bus</a> queue (<code class="language-plaintext highlighter-rouge">email-queue</code>).</li>
+  <li>Azure Function (<code class="language-plaintext highlighter-rouge">email-queue-trigger-function</code>) receives message from Service Bus queue.</li>
   <li>Azure Function builds e-mail from a Razor template and a template model.</li>
   <li>Azure Function sends e-mail.</li>
 </ol>
@@ -159,9 +162,9 @@
 
 <h5 id="razor-template">Razor Template</h5>
 
-<p>All of my e-mail templates live in a folder in my Functions project called <code class="highlighter-rouge">\EmailTemplates</code>.  In it there’s a Razor template named <code class="highlighter-rouge">NewExceptionGroupTemplate.cshtml</code>:</p>
+<p>All of my e-mail templates live in a folder in my Functions project called <code class="language-plaintext highlighter-rouge">\EmailTemplates</code>.  In it there’s a Razor template named <code class="language-plaintext highlighter-rouge">NewExceptionGroupTemplate.cshtml</code>:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>@model ServiceTrace.Domain.Model.Email.NewExceptionGroupModel
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>@model ServiceTrace.Domain.Model.Email.NewExceptionGroupModel
 
 &lt;h3&gt;@Model.Subject&lt;/h3&gt;
 
@@ -175,13 +178,13 @@
 &lt;/div&gt;
 </code></pre></div></div>
 
-<p><strong>Important:</strong>  Set the Build Action for all Razor email templates to <code class="highlighter-rouge">Embedded Resource</code> and the Copy to Output Directory to <code class="highlighter-rouge">Do not copy</code>.</p>
+<p><strong>Important:</strong>  Set the Build Action for all Razor email templates to <code class="language-plaintext highlighter-rouge">Embedded Resource</code> and the Copy to Output Directory to <code class="language-plaintext highlighter-rouge">Do not copy</code>.</p>
 
 <p><img src="EmbeddedResourceProperties.png" alt="Razor template file properties" /></p>
 
 <h5 id="template-model">Template Model</h5>
 
-<p>The model that provides the data for this template is <code class="highlighter-rouge">NewExceptionGroupModel</code>.  It’s a <a href="https://en.wikipedia.org/wiki/Plain_old_CLR_object">POCO</a> that has properties for each of the data items that will be merged into the Razor template:</p>
+<p>The model that provides the data for this template is <code class="language-plaintext highlighter-rouge">NewExceptionGroupModel</code>.  It’s a <a href="https://en.wikipedia.org/wiki/Plain_old_CLR_object">POCO</a> that has properties for each of the data items that will be merged into the Razor template:</p>
 
 <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">NewExceptionGroupModel</span> <span class="p">:</span> <span class="n">IEmailTemplateModel</span>
 <span class="p">{</span>
@@ -210,7 +213,7 @@
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p>Finally, <code class="highlighter-rouge">IEmailTemplateModel</code> has a couple of properties that are common to all of my e-mail template models:</p>
+<p>Finally, <code class="language-plaintext highlighter-rouge">IEmailTemplateModel</code> has a couple of properties that are common to all of my e-mail template models:</p>
 
 <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">interface</span> <span class="nc">IEmailTemplateModel</span>
 <span class="p">{</span>
@@ -220,20 +223,20 @@
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p>The <code class="highlighter-rouge">TemplateName</code> property identifies the Razor template that this model corresponds with.  It will be used to retrieve the appropriate Razor template when we’re ready to generate the HTML for the e-mail body.  The rest of the properties are data items that will be merged into the Razor template.</p>
+<p>The <code class="language-plaintext highlighter-rouge">TemplateName</code> property identifies the Razor template that this model corresponds with.  It will be used to retrieve the appropriate Razor template when we’re ready to generate the HTML for the e-mail body.  The rest of the properties are data items that will be merged into the Razor template.</p>
 
 <p>So that’s all that’s needed to define the e-mail message body - we’ll see how it gets turned into HTML in a moment…</p>
 
 <h3 id="receive-the-message">Receive the Message</h3>
 
-<p>I’m using a Service Bus queue, cleverly named <code class="highlighter-rouge">email-queue</code>, as the channel by which the rest of my application notifies my e-mail function that an e-mail needs to be sent.  To do this, the application creates a new <code class="highlighter-rouge">NewExceptionGroupModel</code> with the appropriate data and puts it on the queue with a couple of additional user properties:</p>
+<p>I’m using a Service Bus queue, cleverly named <code class="language-plaintext highlighter-rouge">email-queue</code>, as the channel by which the rest of my application notifies my e-mail function that an e-mail needs to be sent.  To do this, the application creates a new <code class="language-plaintext highlighter-rouge">NewExceptionGroupModel</code> with the appropriate data and puts it on the queue with a couple of additional user properties:</p>
 
 <ul>
   <li>EmailModelType - tells the e-mail function what type of model is in the queue message body.</li>
-  <li>ToEmailAddress - tells the e-mail function who to send the e-mail to.  (I’ve made this a user property on the message, but there’s no reason why it couldn’t be defined on <code class="highlighter-rouge">IEmailTemplateModel</code> and be part of the model.)</li>
+  <li>ToEmailAddress - tells the e-mail function who to send the e-mail to.  (I’ve made this a user property on the message, but there’s no reason why it couldn’t be defined on <code class="language-plaintext highlighter-rouge">IEmailTemplateModel</code> and be part of the model.)</li>
 </ul>
 
-<p>The function that responds to a new message on <code class="highlighter-rouge">email-queue</code> reads the user properties on the message and deserializes the message body into an instance of the appropriate e-mail template model, <code class="highlighter-rouge">NewExceptionGroupModel</code> in this case, and invokes <code class="highlighter-rouge">_emailSender.SendEmailAsync(..)</code> to build and send the e-mail:</p>
+<p>The function that responds to a new message on <code class="language-plaintext highlighter-rouge">email-queue</code> reads the user properties on the message and deserializes the message body into an instance of the appropriate e-mail template model, <code class="language-plaintext highlighter-rouge">NewExceptionGroupModel</code> in this case, and invokes <code class="language-plaintext highlighter-rouge">_emailSender.SendEmailAsync(..)</code> to build and send the e-mail:</p>
 
 <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="nf">FunctionName</span><span class="p">(</span><span class="s">"email-queue-trigger-function"</span><span class="p">)]</span>
 <span class="k">public</span> <span class="k">async</span> <span class="n">Task</span> <span class="nf">Run</span><span class="p">([</span><span class="nf">ServiceBusTrigger</span><span class="p">(</span><span class="s">"email-queue"</span><span class="p">,</span> <span class="n">Connection</span> <span class="p">=</span> <span class="s">"ServiceBusConnectionString"</span><span class="p">)]</span> <span class="n">Message</span> <span class="n">message</span><span class="p">,</span> <span class="n">ILogger</span> <span class="n">log</span><span class="p">)</span>
@@ -266,11 +269,11 @@
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p>(Shameless plug:  I’ve wrapped my function body in a <code class="highlighter-rouge">try..catch</code> that sends any exceptions that occur to <a href="https://excepticon.io">Excepticon</a>, an exception monitoring service.  I built Excepticon and wrote about it in a <a href="https://blog.jonblankenship.com/2020/03/05/excepticon-exception-monitoring-for-dot-net/">previous post</a>.  Using Excepticon is certainly not required for the topic we’re discussing here, but if you’re looking for an exception monitoring service, I invite you to check it out.  Now, back to our program…)</p>
+<p>(Shameless plug:  I’ve wrapped my function body in a <code class="language-plaintext highlighter-rouge">try..catch</code> that sends any exceptions that occur to <a href="https://excepticon.io">Excepticon</a>, an exception monitoring service.  I built Excepticon and wrote about it in a <a href="https://blog.jonblankenship.com/2020/03/05/excepticon-exception-monitoring-for-dot-net/">previous post</a>.  Using Excepticon is certainly not required for the topic we’re discussing here, but if you’re looking for an exception monitoring service, I invite you to check it out.  Now, back to our program…)</p>
 
 <h3 id="build-and-send">Build and Send</h3>
 
-<p>The <code class="highlighter-rouge">EmailSender</code> instance is managed my IoC container and injected into the function.  The interface is straight-forward:</p>
+<p>The <code class="language-plaintext highlighter-rouge">EmailSender</code> instance is managed my IoC container and injected into the function.  The interface is straight-forward:</p>
 
 <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">interface</span> <span class="nc">IEmailSender</span>
 <span class="p">{</span>
@@ -278,7 +281,7 @@
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p>The implementation of <code class="highlighter-rouge">IEmailSender.SendEmailAsync(..)</code> consists of rendering the e-mail template and corresponding model as a string of HTML, and then building the web request to <code class="highlighter-rouge">POST</code> to the Mailgun API:</p>
+<p>The implementation of <code class="language-plaintext highlighter-rouge">IEmailSender.SendEmailAsync(..)</code> consists of rendering the e-mail template and corresponding model as a string of HTML, and then building the web request to <code class="language-plaintext highlighter-rouge">POST</code> to the Mailgun API:</p>
 
 <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">EmailSender</span> <span class="p">:</span> <span class="n">IEmailSender</span>
 <span class="p">{</span>
@@ -331,7 +334,7 @@
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p>And that’s it!  Most of the heavy lifting is done by the <code class="highlighter-rouge">RazorLightEngine</code> and <code class="highlighter-rouge">Mailgun</code>.</p>
+<p>And that’s it!  Most of the heavy lifting is done by the <code class="language-plaintext highlighter-rouge">RazorLightEngine</code> and <code class="language-plaintext highlighter-rouge">Mailgun</code>.</p>
 
 <h2 id="gotchas">Gotchas</h2>
 
@@ -341,9 +344,9 @@
   <li>
     <p><strong>Error compiling Razor when using the latest Microsoft.NET.Sdk.Functions package (3.0.5)</strong></p>
 
-    <p>My call to <code class="highlighter-rouge">_razorLightEngine.ComplieRenderAsync(..)</code> was throwing the following error:</p>
+    <p>My call to <code class="language-plaintext highlighter-rouge">_razorLightEngine.ComplieRenderAsync(..)</code> was throwing the following error:</p>
 
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Could not load file or assembly 'System.IdentityModel.Tokens.Jwt, Version=5.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Could not load file or assembly 'System.IdentityModel.Tokens.Jwt, Version=5.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'
 </code></pre></div>    </div>
 
     <p>This issue is documented <a href="https://github.com/Azure/azure-functions-host/issues/5756">here</a>.</p>
@@ -353,7 +356,7 @@
   <li>
     <p><strong>Project settings to support RazorLight rendering</strong></p>
 
-    <p>There are a couple of settings you’ll probably have to set in your Azure Functions project file to enable the RazorLight rendering.  I had to set <code class="highlighter-rouge">PreserveCompilationReferences</code> and <code class="highlighter-rouge">PreserveCompilationContext</code> both to <code class="highlighter-rouge">true</code>:</p>
+    <p>There are a couple of settings you’ll probably have to set in your Azure Functions project file to enable the RazorLight rendering.  I had to set <code class="language-plaintext highlighter-rouge">PreserveCompilationReferences</code> and <code class="language-plaintext highlighter-rouge">PreserveCompilationContext</code> both to <code class="language-plaintext highlighter-rouge">true</code>:</p>
 
     <div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;PropertyGroup&gt;</span>
   <span class="nt">&lt;TargetFramework&gt;</span>netcoreapp3.0<span class="nt">&lt;/TargetFramework&gt;</span>
@@ -374,7 +377,7 @@
 
     <p>According to a comment on <a href="https://stackoverflow.com/questions/46163664/765-unexpected-token-at-mailgun-magnificent-api-ruby-on-rails-mailgun-rails">this Stack Overflow question</a>, “‘Mailgun Magnificent API’ is Mailgun’s way of saying ‘Your sender domain and auth are all good, but I can’t figure out what API you’re asking for.”</p>
 
-    <p>If you get this, I’d suggest inspecting the way I set my <code class="highlighter-rouge">_httpClient.BaseAddress</code> and how I build the URL for the <code class="highlighter-rouge">PostAsync(..)</code> call.  If you have a <code class="highlighter-rouge">/</code> in the wrong place, you’ll get this response.</p>
+    <p>If you get this, I’d suggest inspecting the way I set my <code class="language-plaintext highlighter-rouge">_httpClient.BaseAddress</code> and how I build the URL for the <code class="language-plaintext highlighter-rouge">PostAsync(..)</code> call.  If you have a <code class="language-plaintext highlighter-rouge">/</code> in the wrong place, you’ll get this response.</p>
   </li>
 </ol>
 
@@ -386,7 +389,32 @@
           <p><em>I’m a developer and solo SaaS founder who likes to build things and share what I learn with others.  If you’re interested software development, launching things, or random early morning thoughts, consider <a href="https://twitter.com/Jon_Blankenship">following me</a> on Twitter or <a data-formkit-toggle="7e33ea9455" href="https://unique-designer-4037.ck.page/7e33ea9455">subscribe</a> to my newsletter.</em></p>
           <p class="mb-2"><em>Thanks for reading!</em></p>
       </div>
-      
+
+      <hr/>
+      <div>
+        <h2>Interested in Stocks?</h3>
+        <a href="https://fintrics.ai">
+          <img src="/assets/images/Fintrics.PNG" />
+        </a>
+        <p>
+          I built <a href="https://fintrics.ai">Fintrics</a> using many of the techniques, concepts, and technologies I discuss on this blog.  Fintrics provides 12-month stock price targets, calculated using a proprietary valuation model conceived by my business partner, <a href="https://twitter.com/JonahLupton">Jonah Lupton</a>.
+        </p>        
+        <p>
+          Fintrics is written with server-side Blazor and runs on Azure.
+        </ul>
+        <p>
+          If you have an interest in stocks and investing, I invite you to sign up for the 3-day free trial.
+        </p>
+        <ul>
+          <li>Unlimited 12-month price targets</li>
+          <li>Free 3-day trial</li>
+          <li>3K+ stocks, including the Russell 3K and more</li>
+          <li>Watchlist</li>
+          <li>Price Target Alerts - Coming Soon!</li>
+        </ul>
+      </div>
+      <hr/>
+
       <div class="post-footer">
           <ul class="post-tags">
           

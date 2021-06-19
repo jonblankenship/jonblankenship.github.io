@@ -6,9 +6,9 @@
 <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css?family=Roboto:400,400i,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/css/style.css">
-<!-- Begin Jekyll SEO tag v2.6.1 -->
+<!-- Begin Jekyll SEO tag v2.7.1 -->
 <title>Adding Simple Pagination to a Bootstrap Table in ASP.NET Core | Jon Blankenship</title>
-<meta name="generator" content="Jekyll v3.8.6" />
+<meta name="generator" content="Jekyll v3.9.1" />
 <meta property="og:title" content="Adding Simple Pagination to a Bootstrap Table in ASP.NET Core" />
 <meta name="author" content="Jon_Blankenship" />
 <meta property="og:locale" content="en_US" />
@@ -19,8 +19,10 @@
 <meta property="og:site_name" content="Jon Blankenship" />
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2018-08-18T02:00:00-05:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Adding Simple Pagination to a Bootstrap Table in ASP.NET Core" />
 <script type="application/ld+json">
-{"@type":"BlogPosting","url":"https://blog.jonblankenship.com//2018/08/18/adding-simple-pagination-to-a-bootstrap-table-in-asp-net-core/","headline":"Adding Simple Pagination to a Bootstrap Table in ASP.NET Core","dateModified":"2018-08-18T02:00:00-05:00","datePublished":"2018-08-18T02:00:00-05:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.jonblankenship.com//2018/08/18/adding-simple-pagination-to-a-bootstrap-table-in-asp-net-core/"},"author":{"@type":"Person","name":"Jon_Blankenship"},"description":"I recently needed to add simple pagination to a Bootstrap table on a page in my ASP.NET Core project. I’m using MVC Razor Pages, but a similar approach will work with Razor Views.","@context":"https://schema.org"}</script>
+{"author":{"@type":"Person","name":"Jon_Blankenship"},"headline":"Adding Simple Pagination to a Bootstrap Table in ASP.NET Core","dateModified":"2018-08-18T02:00:00-05:00","@type":"BlogPosting","datePublished":"2018-08-18T02:00:00-05:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.jonblankenship.com//2018/08/18/adding-simple-pagination-to-a-bootstrap-table-in-asp-net-core/"},"description":"I recently needed to add simple pagination to a Bootstrap table on a page in my ASP.NET Core project. I’m using MVC Razor Pages, but a similar approach will work with Razor Views.","url":"https://blog.jonblankenship.com//2018/08/18/adding-simple-pagination-to-a-bootstrap-table-in-asp-net-core/","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 
 
@@ -136,13 +138,13 @@
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p>The page implements <code class="highlighter-rouge">public async Task&lt;IActionResult&gt; OnGetAsync(int? pageIndex, CancellationToken cancellation)</code></p>
+<p>The page implements <code class="language-plaintext highlighter-rouge">public async Task&lt;IActionResult&gt; OnGetAsync(int? pageIndex, CancellationToken cancellation)</code></p>
 
 <p>This is responsible for handling GET requests for the page. There’s not too much to it: retrieve the data from a domain service, set the Stocks collection property on the page model, and return the page.</p>
 
-<p>Note that the method takes <code class="highlighter-rouge">int? pageIndex</code> as a parameter which indicates which page of the table is being requested by the client. Not passing this parameter will cause the the first page of the table to be returned.</p>
+<p>Note that the method takes <code class="language-plaintext highlighter-rouge">int? pageIndex</code> as a parameter which indicates which page of the table is being requested by the client. Not passing this parameter will cause the the first page of the table to be returned.</p>
 
-<p>The interesting thing to note here is that the <code class="highlighter-rouge">Stocks</code> property is not a standard .NET collection. It’s a <code class="highlighter-rouge">PaginatedList&lt;Stock&gt;</code>. <code class="highlighter-rouge">PaginatedList&lt;T&gt;</code> derives from <code class="highlighter-rouge">List&lt;T&gt;</code> and represents a “page” of our data, and it exposes the properties needed to enable paging functionality for the collection on the view. Let’s take a look at it:</p>
+<p>The interesting thing to note here is that the <code class="language-plaintext highlighter-rouge">Stocks</code> property is not a standard .NET collection. It’s a <code class="language-plaintext highlighter-rouge">PaginatedList&lt;Stock&gt;</code>. <code class="language-plaintext highlighter-rouge">PaginatedList&lt;T&gt;</code> derives from <code class="language-plaintext highlighter-rouge">List&lt;T&gt;</code> and represents a “page” of our data, and it exposes the properties needed to enable paging functionality for the collection on the view. Let’s take a look at it:</p>
 
 <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">PaginatedList</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="p">:</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> 
 <span class="p">{</span> 
@@ -206,9 +208,9 @@
 <span class="p">}</span> 
 </code></pre></div></div>
 
-<p>We create a <code class="highlighter-rouge">PaginatedList</code> by calling into the static <code class="highlighter-rouge">Create</code> method and passing it the collection that will be paged, the index of the page we need to display, the page size, and the number of page indexes we want to display in the pagination control at a time (in the screenshot at the beginning of the post it’s five).</p>
+<p>We create a <code class="language-plaintext highlighter-rouge">PaginatedList</code> by calling into the static <code class="language-plaintext highlighter-rouge">Create</code> method and passing it the collection that will be paged, the index of the page we need to display, the page size, and the number of page indexes we want to display in the pagination control at a time (in the screenshot at the beginning of the post it’s five).</p>
 
-<p><code class="highlighter-rouge">PaginatedList</code> exposes several properties about the page of data that it represents:</p>
+<p><code class="language-plaintext highlighter-rouge">PaginatedList</code> exposes several properties about the page of data that it represents:</p>
 
 <ul>
   <li>PageIndex</li>
@@ -218,9 +220,9 @@
   <li>PageIndexesToDisplay</li>
 </ul>
 
-<p>… and, of course, since it derives from <code class="highlighter-rouge">List&lt;T&gt;</code>, we have access to the list of items on our page.</p>
+<p>… and, of course, since it derives from <code class="language-plaintext highlighter-rouge">List&lt;T&gt;</code>, we have access to the list of items on our page.</p>
 
-<p>The most complex part of <code class="highlighter-rouge">PaginatedList&lt;T&gt;</code> is <code class="highlighter-rouge">SetPageIndexesToDisplay(..)</code>, which builds the collection of page indices to display in the Bootstrap pagination control based on the current page index and the total count of indices to display. <code class="highlighter-rouge">PageIndex</code> is a simple POCO that contains the index number and a boolean indicating whether that page index is the active (displayed page:</p>
+<p>The most complex part of <code class="language-plaintext highlighter-rouge">PaginatedList&lt;T&gt;</code> is <code class="language-plaintext highlighter-rouge">SetPageIndexesToDisplay(..)</code>, which builds the collection of page indices to display in the Bootstrap pagination control based on the current page index and the total count of indices to display. <code class="language-plaintext highlighter-rouge">PageIndex</code> is a simple POCO that contains the index number and a boolean indicating whether that page index is the active (displayed page:</p>
 
 <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">PageIndex</span> 
 <span class="p">{</span> 
@@ -276,9 +278,9 @@
 <span class="nt">&lt;/nav&gt;</span>
 </code></pre></div></div>
 
-<p>Here we use the properties exposed by our <code class="highlighter-rouge">PaginatedList&lt;Stock&gt;</code> to control how the pagination control is rendered and functions. We enable/disable the previous/next buttons based on the <code class="highlighter-rouge">HasPreviousPage</code> and <code class="highlighter-rouge">HasNextPage</code> properties, respectively. We build the numeric page index buttons from the <code class="highlighter-rouge">PageIndexesToDisplay</code> collection, and we set the link appropriately for the given index.</p>
+<p>Here we use the properties exposed by our <code class="language-plaintext highlighter-rouge">PaginatedList&lt;Stock&gt;</code> to control how the pagination control is rendered and functions. We enable/disable the previous/next buttons based on the <code class="language-plaintext highlighter-rouge">HasPreviousPage</code> and <code class="language-plaintext highlighter-rouge">HasNextPage</code> properties, respectively. We build the numeric page index buttons from the <code class="language-plaintext highlighter-rouge">PageIndexesToDisplay</code> collection, and we set the link appropriately for the given index.</p>
 
-<p>Clicking one of the links in the pagination control requests the page again passing the given page index and the <code class="highlighter-rouge">PaginatedList&lt;Stock&gt;</code> is rebuilt for the requested page.</p>
+<p>Clicking one of the links in the pagination control requests the page again passing the given page index and the <code class="language-plaintext highlighter-rouge">PaginatedList&lt;Stock&gt;</code> is rebuilt for the requested page.</p>
 
 <h2 id="wrapping-up">Wrapping Up</h2>
 
@@ -286,7 +288,7 @@
 
 <ul>
   <li>Interacting with the pagination control causes a refresh of the entire page. This could be modified to execute a little Javascript to hit an endpoint that returns the new page of data and update the table and pagination control in-place without reloading the whole page.</li>
-  <li>This implementation retrieves the entire data set from the service and then applies paging within our app service. This is fine for my purposes since my dataset is small, but for larger datasets I would push the execution of the paging (skip/take operators) to the database. (If using Entity Framework, this could be as simple as deferring query execution until after the <code class="highlighter-rouge">Skip</code> and <code class="highlighter-rouge">Take</code> are applied in <code class="highlighter-rouge">PaginatedList&lt;T&gt;.Create(..)</code>.)</li>
+  <li>This implementation retrieves the entire data set from the service and then applies paging within our app service. This is fine for my purposes since my dataset is small, but for larger datasets I would push the execution of the paging (skip/take operators) to the database. (If using Entity Framework, this could be as simple as deferring query execution until after the <code class="language-plaintext highlighter-rouge">Skip</code> and <code class="language-plaintext highlighter-rouge">Take</code> are applied in <code class="language-plaintext highlighter-rouge">PaginatedList&lt;T&gt;.Create(..)</code>.)</li>
 </ul>
 
 <p>I may consider these enhancements in the future, but for now this implementation suits my needs just fine.</p>
@@ -295,7 +297,32 @@
           <p><em>I’m a developer and solo SaaS founder who likes to build things and share what I learn with others.  If you’re interested software development, launching things, or random early morning thoughts, consider <a href="https://twitter.com/Jon_Blankenship">following me</a> on Twitter or <a data-formkit-toggle="7e33ea9455" href="https://unique-designer-4037.ck.page/7e33ea9455">subscribe</a> to my newsletter.</em></p>
           <p class="mb-2"><em>Thanks for reading!</em></p>
       </div>
-      
+
+      <hr/>
+      <div>
+        <h2>Interested in Stocks?</h3>
+        <a href="https://fintrics.ai">
+          <img src="/assets/images/Fintrics.PNG" />
+        </a>
+        <p>
+          I built <a href="https://fintrics.ai">Fintrics</a> using many of the techniques, concepts, and technologies I discuss on this blog.  Fintrics provides 12-month stock price targets, calculated using a proprietary valuation model conceived by my business partner, <a href="https://twitter.com/JonahLupton">Jonah Lupton</a>.
+        </p>        
+        <p>
+          Fintrics is written with server-side Blazor and runs on Azure.
+        </ul>
+        <p>
+          If you have an interest in stocks and investing, I invite you to sign up for the 3-day free trial.
+        </p>
+        <ul>
+          <li>Unlimited 12-month price targets</li>
+          <li>Free 3-day trial</li>
+          <li>3K+ stocks, including the Russell 3K and more</li>
+          <li>Watchlist</li>
+          <li>Price Target Alerts - Coming Soon!</li>
+        </ul>
+      </div>
+      <hr/>
+
       <div class="post-footer">
           <ul class="post-tags">
           

@@ -6,9 +6,9 @@
 <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css?family=Roboto:400,400i,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/css/style.css">
-<!-- Begin Jekyll SEO tag v2.6.1 -->
+<!-- Begin Jekyll SEO tag v2.7.1 -->
 <title>Configuring AutoMapper for use with the ASP.NET Core DI Container | Jon Blankenship</title>
-<meta name="generator" content="Jekyll v3.8.6" />
+<meta name="generator" content="Jekyll v3.9.1" />
 <meta property="og:title" content="Configuring AutoMapper for use with the ASP.NET Core DI Container" />
 <meta name="author" content="Jon_Blankenship" />
 <meta property="og:locale" content="en_US" />
@@ -19,8 +19,10 @@
 <meta property="og:site_name" content="Jon Blankenship" />
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2018-08-23T02:00:00-05:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Configuring AutoMapper for use with the ASP.NET Core DI Container" />
 <script type="application/ld+json">
-{"@type":"BlogPosting","url":"https://blog.jonblankenship.com//2018/08/23/configuring-automapper-for-use-with-the-asp-net-core-di-container/","headline":"Configuring AutoMapper for use with the ASP.NET Core DI Container","dateModified":"2018-08-23T02:00:00-05:00","datePublished":"2018-08-23T02:00:00-05:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.jonblankenship.com//2018/08/23/configuring-automapper-for-use-with-the-asp-net-core-di-container/"},"author":{"@type":"Person","name":"Jon_Blankenship"},"description":"I’m generally a strong proponent of using separate models for commmunicating across service boundaries that are separate and distinct from my core domain model. In a typical web application that is backed by a database, this usually means that I have a domain model, a storage model, and a view model, and I map between storage model ↔ domain model and between domain model ↔ view model when crossing their respective boundaries. This keeps my domain model isolated, ensures that it is not forced to change due to concerns in another layer, and promotes adherence to the Single Responsibility Principle (a class should have one, and only one, reason to change).","@context":"https://schema.org"}</script>
+{"author":{"@type":"Person","name":"Jon_Blankenship"},"headline":"Configuring AutoMapper for use with the ASP.NET Core DI Container","dateModified":"2018-08-23T02:00:00-05:00","@type":"BlogPosting","datePublished":"2018-08-23T02:00:00-05:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.jonblankenship.com//2018/08/23/configuring-automapper-for-use-with-the-asp-net-core-di-container/"},"description":"I’m generally a strong proponent of using separate models for commmunicating across service boundaries that are separate and distinct from my core domain model. In a typical web application that is backed by a database, this usually means that I have a domain model, a storage model, and a view model, and I map between storage model ↔ domain model and between domain model ↔ view model when crossing their respective boundaries. This keeps my domain model isolated, ensures that it is not forced to change due to concerns in another layer, and promotes adherence to the Single Responsibility Principle (a class should have one, and only one, reason to change).","url":"https://blog.jonblankenship.com//2018/08/23/configuring-automapper-for-use-with-the-asp-net-core-di-container/","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 
 
@@ -91,13 +93,13 @@
 
 <h2 id="install-nuget-packages">Install Nuget Packages</h2>
 
-<p>Let’s first install the Nuget packages that we’ll need.  I’m using AutoMapper 7.0.1 and AutoMapper.Extensions.Microsoft.DependencyInjection 5.0.1, which provides AutoMapper extensions on <code class="highlighter-rouge">IServiceCollection</code> that allow us to wire-up AutoMapper in <code class="highlighter-rouge">Startup.ConfigureServices(IServiceCollection services)</code>.</p>
+<p>Let’s first install the Nuget packages that we’ll need.  I’m using AutoMapper 7.0.1 and AutoMapper.Extensions.Microsoft.DependencyInjection 5.0.1, which provides AutoMapper extensions on <code class="language-plaintext highlighter-rouge">IServiceCollection</code> that allow us to wire-up AutoMapper in <code class="language-plaintext highlighter-rouge">Startup.ConfigureServices(IServiceCollection services)</code>.</p>
 
 <p><img src="Capture-2.png" alt="img" class="center-image" /></p>
 
 <h2 id="create-models">Create Models</h2>
 
-<p>Suppose we have a <code class="highlighter-rouge">Stock</code> domain model class that looks like this:</p>
+<p>Suppose we have a <code class="language-plaintext highlighter-rouge">Stock</code> domain model class that looks like this:</p>
 
 <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">Stock</span>
 <span class="p">{</span>
@@ -114,9 +116,9 @@
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p>Note that we’re injecting an <code class="highlighter-rouge">IStockRepository</code>.  (I often have the aggregate roots in my domain models take a reference to their corresponding repository so I can do neat things like <code class="highlighter-rouge">stock.SaveAsync()</code>, but that’s another topic…)</p>
+<p>Note that we’re injecting an <code class="language-plaintext highlighter-rouge">IStockRepository</code>.  (I often have the aggregate roots in my domain models take a reference to their corresponding repository so I can do neat things like <code class="language-plaintext highlighter-rouge">stock.SaveAsync()</code>, but that’s another topic…)</p>
 
-<p>For our purposes here it doesn’t really matter what <code class="highlighter-rouge">IStockRepository</code> and <code class="highlighter-rouge">StockRepository</code> look like – we’ll just leave them empty:</p>
+<p>For our purposes here it doesn’t really matter what <code class="language-plaintext highlighter-rouge">IStockRepository</code> and <code class="language-plaintext highlighter-rouge">StockRepository</code> look like – we’ll just leave them empty:</p>
 
 <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">interface</span> <span class="nc">IStockRepository</span>
 <span class="p">{</span>
@@ -127,7 +129,7 @@
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p>We have a <code class="highlighter-rouge">StockViewModel</code> class that roughly corresponds with our <code class="highlighter-rouge">Stock</code> domain model and looks like this:</p>
+<p>We have a <code class="language-plaintext highlighter-rouge">StockViewModel</code> class that roughly corresponds with our <code class="language-plaintext highlighter-rouge">Stock</code> domain model and looks like this:</p>
 
 <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">StockViewModel</span>
 <span class="p">{</span>
@@ -141,9 +143,9 @@
 
 <h2 id="create-mapping-profile">Create Mapping Profile</h2>
 
-<p>Next we’ll create our mapping profile, which is where we’ll configure our specific type mappings.  Usually I’ll create a profile per bounded context per layer I’m mapping.  So, for example, if I have a single bounded context but I map between storage model ↔ domain model and between domain model ↔ view model, I’ll have a <code class="highlighter-rouge">ViewModelMappingProfile</code> and a <code class="highlighter-rouge">StorageModelMappingProfile</code>.</p>
+<p>Next we’ll create our mapping profile, which is where we’ll configure our specific type mappings.  Usually I’ll create a profile per bounded context per layer I’m mapping.  So, for example, if I have a single bounded context but I map between storage model ↔ domain model and between domain model ↔ view model, I’ll have a <code class="language-plaintext highlighter-rouge">ViewModelMappingProfile</code> and a <code class="language-plaintext highlighter-rouge">StorageModelMappingProfile</code>.</p>
 
-<p>Our <code class="highlighter-rouge">ViewModelMappingProfile</code> in this case looks like this:</p>
+<p>Our <code class="language-plaintext highlighter-rouge">ViewModelMappingProfile</code> in this case looks like this:</p>
 
 <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">ViewModelMappingProfile</span> <span class="p">:</span> <span class="n">Profile</span>
 <span class="p">{</span>
@@ -154,20 +156,20 @@
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p>It derives from <code class="highlighter-rouge">AutoMapper.Profile</code>.  I’ve just got a single, simple mapping from <code class="highlighter-rouge">StockViewModel</code> to <code class="highlighter-rouge">Stock</code>, and I’ve called <code class="highlighter-rouge">ConstructUsingServiceLocator()</code> on the mapping to enable the resolution and injection of dependencies into the target.  Comprehensive documentation on configuring individual mappings can be found <a href="http://docs.automapper.org/en/stable/#">here</a>.</p>
+<p>It derives from <code class="language-plaintext highlighter-rouge">AutoMapper.Profile</code>.  I’ve just got a single, simple mapping from <code class="language-plaintext highlighter-rouge">StockViewModel</code> to <code class="language-plaintext highlighter-rouge">Stock</code>, and I’ve called <code class="language-plaintext highlighter-rouge">ConstructUsingServiceLocator()</code> on the mapping to enable the resolution and injection of dependencies into the target.  Comprehensive documentation on configuring individual mappings can be found <a href="http://docs.automapper.org/en/stable/#">here</a>.</p>
 
 <h2 id="configure-services">Configure Services</h2>
 
-<p>Next we configure our services and add AutoMapper to the service collection.   In <code class="highlighter-rouge">Startup.ConfigureServices(IServiceCollection services)</code>we add the following after <code class="highlighter-rouge">services.AddMvc()</code>:</p>
+<p>Next we configure our services and add AutoMapper to the service collection.   In <code class="language-plaintext highlighter-rouge">Startup.ConfigureServices(IServiceCollection services)</code>we add the following after <code class="language-plaintext highlighter-rouge">services.AddMvc()</code>:</p>
 
 <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">services</span><span class="p">.</span><span class="nf">AddAutoMapper</span><span class="p">();</span>
 </code></pre></div></div>
 
-<p>The line above does a couple of things: it registers <code class="highlighter-rouge">IMapper</code> with our DI container, and it searches our assembly for classes that inherit from <code class="highlighter-rouge">AutoMapper.Profile</code>and automatically loads them.  So our <code class="highlighter-rouge">ViewModelMappingProfile</code> gets loaded automatically at startup, and we can confirm that by putting a breakpoint in its constructor.</p>
+<p>The line above does a couple of things: it registers <code class="language-plaintext highlighter-rouge">IMapper</code> with our DI container, and it searches our assembly for classes that inherit from <code class="language-plaintext highlighter-rouge">AutoMapper.Profile</code>and automatically loads them.  So our <code class="language-plaintext highlighter-rouge">ViewModelMappingProfile</code> gets loaded automatically at startup, and we can confirm that by putting a breakpoint in its constructor.</p>
 
-<p>We also must register with the DI container any dependencies that will be injected in at map time (like our <code class="highlighter-rouge">IStockRepository</code>) as well as any type mappings that are configured with <code class="highlighter-rouge">ConstructUsingServiceLocator()</code>(like our <code class="highlighter-rouge">Stock</code> domain class).  This part is important when working with the ASP.NET Core DI container – other third-party containers that I’ve worked with in the past (such as Unity) will resolve concrete types automatically without requiring an explicit type mapping.  Not so with the ASP.NET Core DI container, and I spent a bit of time figuring this out.  Since we define the mapping to <code class="highlighter-rouge">Stock</code> with <code class="highlighter-rouge">ConstructUsingServiceLocator()</code>, it must be explicitly registered with the container.</p>
+<p>We also must register with the DI container any dependencies that will be injected in at map time (like our <code class="language-plaintext highlighter-rouge">IStockRepository</code>) as well as any type mappings that are configured with <code class="language-plaintext highlighter-rouge">ConstructUsingServiceLocator()</code>(like our <code class="language-plaintext highlighter-rouge">Stock</code> domain class).  This part is important when working with the ASP.NET Core DI container – other third-party containers that I’ve worked with in the past (such as Unity) will resolve concrete types automatically without requiring an explicit type mapping.  Not so with the ASP.NET Core DI container, and I spent a bit of time figuring this out.  Since we define the mapping to <code class="language-plaintext highlighter-rouge">Stock</code> with <code class="language-plaintext highlighter-rouge">ConstructUsingServiceLocator()</code>, it must be explicitly registered with the container.</p>
 
-<p>So, we have the following somewhere in our <code class="highlighter-rouge">Startup.ConfigureServices(IServiceCollection services)</code> method:</p>
+<p>So, we have the following somewhere in our <code class="language-plaintext highlighter-rouge">Startup.ConfigureServices(IServiceCollection services)</code> method:</p>
 
 <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">services</span><span class="p">.</span><span class="n">AddScoped</span><span class="p">&lt;</span><span class="n">IStockRepository</span><span class="p">,</span> <span class="n">StockRepository</span><span class="p">&gt;();</span>
 <span class="n">services</span><span class="p">.</span><span class="n">AddTransient</span><span class="p">&lt;</span><span class="n">Stock</span><span class="p">,</span> <span class="n">Stock</span><span class="p">&gt;();</span>
@@ -175,9 +177,9 @@
 
 <h2 id="map">Map!</h2>
 
-<p>With our configuration complete, all that’s left to do is start using our mappings.  We can inject an instance of <code class="highlighter-rouge">IMapper</code> into any of our classes that are resolved using the DI container.</p>
+<p>With our configuration complete, all that’s left to do is start using our mappings.  We can inject an instance of <code class="language-plaintext highlighter-rouge">IMapper</code> into any of our classes that are resolved using the DI container.</p>
 
-<p>Here’s an example usage in an <code class="highlighter-rouge">OnPostAsync()</code> method on a Razor page model that maps from a posted view model to the domain model and then saves the data:</p>
+<p>Here’s an example usage in an <code class="language-plaintext highlighter-rouge">OnPostAsync()</code> method on a Razor page model that maps from a posted view model to the domain model and then saves the data:</p>
 
 <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">async</span> <span class="n">Task</span><span class="p">&lt;</span><span class="n">IActionResult</span><span class="p">&gt;</span> <span class="nf">OnPostAsync</span><span class="p">(</span><span class="n">CancellationToken</span> <span class="n">cancellationToken</span><span class="p">)</span>
 <span class="p">{</span>
@@ -203,7 +205,32 @@
           <p><em>I’m a developer and solo SaaS founder who likes to build things and share what I learn with others.  If you’re interested software development, launching things, or random early morning thoughts, consider <a href="https://twitter.com/Jon_Blankenship">following me</a> on Twitter or <a data-formkit-toggle="7e33ea9455" href="https://unique-designer-4037.ck.page/7e33ea9455">subscribe</a> to my newsletter.</em></p>
           <p class="mb-2"><em>Thanks for reading!</em></p>
       </div>
-      
+
+      <hr/>
+      <div>
+        <h2>Interested in Stocks?</h3>
+        <a href="https://fintrics.ai">
+          <img src="/assets/images/Fintrics.PNG" />
+        </a>
+        <p>
+          I built <a href="https://fintrics.ai">Fintrics</a> using many of the techniques, concepts, and technologies I discuss on this blog.  Fintrics provides 12-month stock price targets, calculated using a proprietary valuation model conceived by my business partner, <a href="https://twitter.com/JonahLupton">Jonah Lupton</a>.
+        </p>        
+        <p>
+          Fintrics is written with server-side Blazor and runs on Azure.
+        </ul>
+        <p>
+          If you have an interest in stocks and investing, I invite you to sign up for the 3-day free trial.
+        </p>
+        <ul>
+          <li>Unlimited 12-month price targets</li>
+          <li>Free 3-day trial</li>
+          <li>3K+ stocks, including the Russell 3K and more</li>
+          <li>Watchlist</li>
+          <li>Price Target Alerts - Coming Soon!</li>
+        </ul>
+      </div>
+      <hr/>
+
       <div class="post-footer">
           <ul class="post-tags">
           

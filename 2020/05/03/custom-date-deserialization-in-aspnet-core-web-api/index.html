@@ -6,9 +6,9 @@
 <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css?family=Roboto:400,400i,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/css/style.css">
-<!-- Begin Jekyll SEO tag v2.6.1 -->
+<!-- Begin Jekyll SEO tag v2.7.1 -->
 <title>Custom Date Deserialization in ASP.NET Core Web API | Jon Blankenship</title>
-<meta name="generator" content="Jekyll v3.8.6" />
+<meta name="generator" content="Jekyll v3.9.1" />
 <meta property="og:title" content="Custom Date Deserialization in ASP.NET Core Web API" />
 <meta name="author" content="Jon_Blankenship" />
 <meta property="og:locale" content="en_US" />
@@ -20,8 +20,11 @@
 <meta property="og:image" content="https://blog.jonblankenship.com//2020/05/03/custom-date-deserialization-in-aspnet-core-web-api/clock.jpg" />
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2020-05-03T16:30:00-05:00" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta property="twitter:image" content="https://blog.jonblankenship.com//2020/05/03/custom-date-deserialization-in-aspnet-core-web-api/clock.jpg" />
+<meta property="twitter:title" content="Custom Date Deserialization in ASP.NET Core Web API" />
 <script type="application/ld+json">
-{"@type":"BlogPosting","url":"https://blog.jonblankenship.com//2020/05/03/custom-date-deserialization-in-aspnet-core-web-api/","headline":"Custom Date Deserialization in ASP.NET Core Web API","dateModified":"2020-05-03T16:30:00-05:00","datePublished":"2020-05-03T16:30:00-05:00","image":"https://blog.jonblankenship.com//2020/05/03/custom-date-deserialization-in-aspnet-core-web-api/clock.jpg","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.jonblankenship.com//2020/05/03/custom-date-deserialization-in-aspnet-core-web-api/"},"author":{"@type":"Person","name":"Jon_Blankenship"},"description":"This weekend I came across some oddly formatted datetimes while playing around with Twitter webhooks. When it came time to test my API endpoint to receive the Twitter event, I received a 400 response with a message indicating that one of the date fields the JSON payload could not be deserialized into a DateTimeOffset. In this post I’ll demonstrate how to write a custom converter to solve this and similar JSON deserialization problems in an ASP.NET Core Web API.","@context":"https://schema.org"}</script>
+{"image":"https://blog.jonblankenship.com//2020/05/03/custom-date-deserialization-in-aspnet-core-web-api/clock.jpg","author":{"@type":"Person","name":"Jon_Blankenship"},"headline":"Custom Date Deserialization in ASP.NET Core Web API","dateModified":"2020-05-03T16:30:00-05:00","@type":"BlogPosting","datePublished":"2020-05-03T16:30:00-05:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.jonblankenship.com//2020/05/03/custom-date-deserialization-in-aspnet-core-web-api/"},"description":"This weekend I came across some oddly formatted datetimes while playing around with Twitter webhooks. When it came time to test my API endpoint to receive the Twitter event, I received a 400 response with a message indicating that one of the date fields the JSON payload could not be deserialized into a DateTimeOffset. In this post I’ll demonstrate how to write a custom converter to solve this and similar JSON deserialization problems in an ASP.NET Core Web API.","url":"https://blog.jonblankenship.com//2020/05/03/custom-date-deserialization-in-aspnet-core-web-api/","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 
 
@@ -94,13 +97,13 @@
 
 <p>Sadly, there’s not a universally accepted format for sending dates in JSON.  Dates in JSON are just strings after all, and although the <a href="[https://en.wikipedia.org/wiki/ISO_8601](https://en.wikipedia.org/wiki/ISO_8601)">ISO 8601</a> format is the most commonly used and de facto standard, it’s far from universal.</p>
 
-<p>An ISO 8601 datetime looks like this: <code class="highlighter-rouge">2018-10-10T20:19:24-00:00</code></p>
+<p>An ISO 8601 datetime looks like this: <code class="language-plaintext highlighter-rouge">2018-10-10T20:19:24-00:00</code></p>
 
-<p>Twitter formats their datetimes like this: <code class="highlighter-rouge">Wed Oct 10 20:19:24 +0000 2018</code></p>
+<p>Twitter formats their datetimes like this: <code class="language-plaintext highlighter-rouge">Wed Oct 10 20:19:24 +0000 2018</code></p>
 
 <p>I don’t know if this is a format that’s used anywhere outside of Twitter or not, but I do know that the .NET JSON deserializer doesn’t know what to do with it.</p>
 
-<p>When a payload with a datetime like that is <code class="highlighter-rouge">POST</code>ed to my ASP.NET Core Web API endpoint, my API complains:</p>
+<p>When a payload with a datetime like that is <code class="language-plaintext highlighter-rouge">POST</code>ed to my ASP.NET Core Web API endpoint, my API complains:</p>
 
 <div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
     </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://tools.ietf.org/html/rfc7231#section-6.5.1"</span><span class="p">,</span><span class="w">
@@ -117,17 +120,17 @@
 
 <h2 id="the-solution">The Solution</h2>
 
-<p>I need to configure my API to deserialize datetimes in the Twitter format into a .NET <code class="highlighter-rouge">DateTimeOffset</code>.  To do this, I’ll create a custom <code class="highlighter-rouge">JsonConverter</code> and add it to the collection of JSON converters my service wires up at start-up.</p>
+<p>I need to configure my API to deserialize datetimes in the Twitter format into a .NET <code class="language-plaintext highlighter-rouge">DateTimeOffset</code>.  To do this, I’ll create a custom <code class="language-plaintext highlighter-rouge">JsonConverter</code> and add it to the collection of JSON converters my service wires up at start-up.</p>
 
-<p>Note that I’m using the <code class="highlighter-rouge">System.Text.Json</code> serializer that was introduced with .NET Core 3.0, not the <code class="highlighter-rouge">Newtonsoft.Json</code> serializer.</p>
+<p>Note that I’m using the <code class="language-plaintext highlighter-rouge">System.Text.Json</code> serializer that was introduced with .NET Core 3.0, not the <code class="language-plaintext highlighter-rouge">Newtonsoft.Json</code> serializer.</p>
 
 <p>First let’s create the custom converter.</p>
 
 <h4 id="twitterdatetimeoffsetconverter">TwitterDateTimeOffsetConverter</h4>
 
-<p>My custom converter derives from <code class="highlighter-rouge">JsonConverter&lt;DateTimeOffset&gt;</code>.  The generic type parameter specifies the data type that we’ll be deserializing to/serializing from on the .NET side.</p>
+<p>My custom converter derives from <code class="language-plaintext highlighter-rouge">JsonConverter&lt;DateTimeOffset&gt;</code>.  The generic type parameter specifies the data type that we’ll be deserializing to/serializing from on the .NET side.</p>
 
-<p>The converter implements two methods, <code class="highlighter-rouge">Read(..)</code> and <code class="highlighter-rouge">Write(..)</code>,  which deserialize from and serialize to our custom datetime format specified in the <code class="highlighter-rouge">TwitterDateFormat</code> constant.</p>
+<p>The converter implements two methods, <code class="language-plaintext highlighter-rouge">Read(..)</code> and <code class="language-plaintext highlighter-rouge">Write(..)</code>,  which deserialize from and serialize to our custom datetime format specified in the <code class="language-plaintext highlighter-rouge">TwitterDateFormat</code> constant.</p>
 
 <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">TwitterDateTimeOffsetConverter</span> <span class="p">:</span> <span class="n">JsonConverter</span><span class="p">&lt;</span><span class="n">DateTimeOffset</span><span class="p">&gt;</span>
 <span class="p">{</span>
@@ -149,7 +152,7 @@
 
 <h4 id="startup-configuration">Startup Configuration</h4>
 
-<p>The only thing left to do now is to add my new converter to the collection of JSON converters that ASP.NET Core will use when handling requests to my API.  I do that in the <code class="highlighter-rouge">ConfigureServices(..)</code> method in my Startup.cs:</p>
+<p>The only thing left to do now is to add my new converter to the collection of JSON converters that ASP.NET Core will use when handling requests to my API.  I do that in the <code class="language-plaintext highlighter-rouge">ConfigureServices(..)</code> method in my Startup.cs:</p>
 
 <div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">public</span> <span class="k">void</span> <span class="nf">ConfigureServices</span><span class="p">(</span><span class="n">IServiceCollection</span> <span class="n">services</span><span class="p">)</span>
 <span class="p">{</span>
@@ -165,7 +168,7 @@
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p>I restart my service and send a test payload to my endpoint and everything is <code class="highlighter-rouge">200 - OK</code>.</p>
+<p>I restart my service and send a test payload to my endpoint and everything is <code class="language-plaintext highlighter-rouge">200 - OK</code>.</p>
 
 <p>Life is good.  :-)</p>
 
@@ -173,7 +176,32 @@
           <p><em>I’m a developer and solo SaaS founder who likes to build things and share what I learn with others.  If you’re interested software development, launching things, or random early morning thoughts, consider <a href="https://twitter.com/Jon_Blankenship">following me</a> on Twitter or <a data-formkit-toggle="7e33ea9455" href="https://unique-designer-4037.ck.page/7e33ea9455">subscribe</a> to my newsletter.</em></p>
           <p class="mb-2"><em>Thanks for reading!</em></p>
       </div>
-      
+
+      <hr/>
+      <div>
+        <h2>Interested in Stocks?</h3>
+        <a href="https://fintrics.ai">
+          <img src="/assets/images/Fintrics.PNG" />
+        </a>
+        <p>
+          I built <a href="https://fintrics.ai">Fintrics</a> using many of the techniques, concepts, and technologies I discuss on this blog.  Fintrics provides 12-month stock price targets, calculated using a proprietary valuation model conceived by my business partner, <a href="https://twitter.com/JonahLupton">Jonah Lupton</a>.
+        </p>        
+        <p>
+          Fintrics is written with server-side Blazor and runs on Azure.
+        </ul>
+        <p>
+          If you have an interest in stocks and investing, I invite you to sign up for the 3-day free trial.
+        </p>
+        <ul>
+          <li>Unlimited 12-month price targets</li>
+          <li>Free 3-day trial</li>
+          <li>3K+ stocks, including the Russell 3K and more</li>
+          <li>Watchlist</li>
+          <li>Price Target Alerts - Coming Soon!</li>
+        </ul>
+      </div>
+      <hr/>
+
       <div class="post-footer">
           <ul class="post-tags">
           
